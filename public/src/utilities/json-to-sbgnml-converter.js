@@ -115,9 +115,13 @@ var jsonToSbgnml = {
 
     addClone : function(node){
         var sbgnmlText = "";
+<<<<<<< HEAD
 
         //funda if(typeof node._private.data.sbgnclonemarker != 'undefined')
         if(node._private.data.sbgnclonemarker != 'undefined' &&  node._private.data.sbgnclonemarker != null)
+=======
+        if((typeof node._private.data.sbgnclonemarker != 'undefined') && (node._private.data.sbgnclonemarker != null))
+>>>>>>> acdd5a8a6a2e39e06e83cb92b67771d67f32479e
             sbgnmlText = sbgnmlText + "<clone/>\n";
         return sbgnmlText;
     },

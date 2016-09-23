@@ -6,6 +6,8 @@
  * **/
 
 
+var jsonMerger = require('../../../src/utilities/json-merger.js');
+var idxcardjson = require('../../../src/utilities/idxcardjson-to-json-converter.js');
 var sbgnFiltering = require('../../../src/utilities/sbgn-filtering.js')();
 var sbgnElementUtilities = require('../../../src/utilities/sbgn-element-utilities.js')();
 var expandCollapseUtilities = require('../../../src/utilities/expand-collapse-utilities.js')();
@@ -1526,7 +1528,7 @@ module.exports = function(){
                         (sbgnStyleRules['incremental-layout-after-expand-collapse'] == 'true');
                 }
                 if (incrementalLayoutAfterExpandCollapse)
-                    ditorActions.collapseGivenNodes({
+                   editorActions.collapseGivenNodes({
                         nodes: cy.nodes(),
                         sync: true
                     });
@@ -1560,6 +1562,7 @@ module.exports = function(){
                     $("#perform-layout").trigger('click');
                 }
             });
+
 
             $("#perform-layout").click(function (e) {
 
@@ -1747,7 +1750,33 @@ module.exports = function(){
                 expanderOpts.widow = 0;
             });
 
+			//Create a new model from REACH everytime a message is posted
+			// in the chat box.
+		    $("#send-message").click(function(evt) {
+				var httpRequest;
+				if (window.XMLHttpRequest)
+	    	    	httpRequest = new XMLHttpRequest();
+				else
+	        		httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
 
+				//Let REACH process the message posted in the chat box.
+		    	httpRequest.open("POST", "http://agathon.sista.arizona.edu:8080/odinweb/api/text", true);
+    			httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    			httpRequest.send("text="+document.getElementById("inputs-comment").value+"&output=indexcard");
+   	 			httpRequest.onreadystatechange = function () { 
+    	    		if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+						var reachResponse = JSON.parse(httpRequest.responseText);
+						var newJson = idxcardjson.createJson(reachResponse); //Translate the index card JSON data format into a valid JSON model for SBGNviz.
+						var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
+						var currJson = sbgnmlToJson.convert(currSbgnml);
+						var jsonObj = jsonMerger.merge(newJson, currJson); //Merge the two SBGN models.
+
+               			//get another sbgncontainer and display the new SBGN model.
+            			editorActions.modelManager.deleteAll(cy.nodes(), cy.edges(), "me");
+	               		sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+                        editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);
+
+<<<<<<< HEAD
             //TODO: Funda
 
             $("#send-message").click(function(evt) {
@@ -1765,6 +1794,12 @@ module.exports = function(){
                 }
             });
 
+=======
+						$("#perform-layout").trigger('click');
+					}
+				}
+		    });
+>>>>>>> acdd5a8a6a2e39e06e83cb92b67771d67f32479e
 
             $("#node-label-textbox").keydown(function (e) {
                 if (e.which === 13) {
