@@ -98,21 +98,14 @@ module.exports = function(){
           editorActions.refreshGlobalUndoRedoButtonsStatus();
          },
 
+		 stateBeforeMerge: function(js1, js2) {
+			 var jsonObj = {nodes:[], edges:[]};
+			 jsonObj.nodes = jsonObj.nodes.concat(JSON.parse(JSON.stringify(js1)).nodes);
+			 jsonObj.nodes = jsonObj.nodes.concat(JSON.parse(JSON.stringify(js2)).nodes);
+			 jsonObj.edges = jsonObj.edges.concat(JSON.parse(JSON.stringify(js1)).edges);
+			 jsonObj.edges = jsonObj.edges.concat(JSON.parse(JSON.stringify(js2)).edges);
 
-         mergeJson: function(jsonGraph){
-             var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
-             var currJson = sbgnmlToJson.convert(currSbgnml);
-
-
-             editorActions.modelManager.setRollbackPoint(); //before merging
-
-
-
-             var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
-             var jsonObj = mergeResult.wholeJson;
-             var newJsonIds = mergeResult.jsonToMerge;
-
-             //get another sbgncontainer and display the new SBGN model.
+             //get another sbgncontainer and display the new JSON model.
              editorActions.modelManager.newModel( "me", true);
 
              sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
@@ -120,35 +113,79 @@ module.exports = function(){
 
              editorActions.modelManager.setSampleInd(-1, "me", true); //to notify other clients
 
-             //select the new graph
-             newJsonIds.nodes.forEach(function(node){
-                 var cyNode = cy.getElementById(node.data.id)[0];
-
-
-                 if(cyNode)
-                     editorActions.selectNode(cyNode);
-
-             });
-
-             //Call Layout
-
-
              beforePerformLayout();
 
              sbgnLayout.applyLayout(editorActions.modelManager);
 
 
-             editorActions.performLayoutFunction(true, function(){
+             editorActions.performLayoutFunction();
+
+			 var self = this;
+
+			 setTimeout(function() {
+			 }, 45000);
+		 },
+
+         mergeJson: function(jsonGraph, currJson){
+             var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
+             var currJson = sbgnmlToJson.convert(currSbgnml);
+
+			 this.stateBeforeMerge(jsonGraph, currJson);
+             editorActions.modelManager.setRollbackPoint(); //before merging
 
 
-                 editorActions.modelManager.mergeJsons();
-             }); //don't update history
+
+			 /**jsonObj.nodes.forEach(function(node) {
+                 var cyNode = cy.getElementById(node.data.id)[0];
 
 
+                 if(cyNode)
+                     editorActions.selectNode(cyNode);
+			 });
+ 
+             editorActions.removeEles(cy.$(":selected")); **/
+
+	         var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two JSON models.
+   		     var jsonObj = mergeResult.wholeJson;
+       		 var newJsonIds = mergeResult.jsonToMerge;
+
+             //get another sbgncontainer and display the new SBGN model.
+	         editorActions.modelManager.newModel( "me", true);
+
+	   	     sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+       		 editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", true);
+
+           	 editorActions.modelManager.setSampleInd(-1, "me", true); //to notify other clients
+
+	         //select the new graph
+   		     newJsonIds.nodes.forEach(function(node){
+       		     var cyNode = cy.getElementById(node.data.id)[0];
+
+
+           		 if(cyNode)
+               	     editorActions.selectNode(cyNode);
+
+	         });
+
+   		     //Call Layout
+
+
+    	     beforePerformLayout();
+
+   	    	 sbgnLayout.applyLayout(editorActions.modelManager);
+
+
+       		 editorActions.performLayoutFunction(true, function(){
+
+
+               	 editorActions.modelManager.mergeJsons();
+	         }); //don't update history
          },
 
-         mergeSbgn: function(sbgnGraph){
+	 	mergeSbgg: function(js1, js2){
+		 },
 
+         mergeSbgn: function(sbgnGraph){
              var newJson = sbgnmlToJson.convert(sbgnGraph);
              this.mergeJson(newJson);
          },
@@ -1185,7 +1222,6 @@ module.exports = function(){
 
                 
 
-              
                editorActions.removeEles(selectedEles);
 
 
