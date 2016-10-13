@@ -607,10 +607,64 @@
                 <div class="sbgn-frame">
                     <h2 class="sbgn-text">About</h2>
 
+<<<<<<< HEAD
                     <table width="100%" height="100%" align="center" valign="center">
                         <tr><td>
                             <img src="sample-app/sampleapp-images/i-vis.png" alt="" class="centered">
                         </td></tr>
+=======
+        <!--<div id="messages" as  = "content">-->
+        <!--<ul id="messages-list" as="list"  >-->
+        <ul id="messages" as="list"  >
+          {{each _page.list as #message}}
+          <li><view name="chat-message"></view></li>
+          {{/each}}
+        </ul>
+        <!--</div>-->
+        <div id="inputs">
+          <input id="inputs-name" value="{{users[_session.userId].name}}">
+          <form id="inputs-form" on-submit="add()">
+            <input id="inputs-comment"  value="{{_page.newComment}}" autofocus> <button id="send-message">Send</button>
+                  <div class="filebutton"><input type="file" id="imagefile" accept="image/*" on-change = "uploadFile($event)" value = {{_page.newFile}}></div>
+
+          </form>
+        </div>
+
+
+        <div id = "receivedImages" >
+        {{ each _page.doc.images as #imageFile}}
+            {{#imageFile.filePath}}
+           <div class = image> <img src= "{{#imageFile.img}}" onclick ="openImage(this)" onmouseover ="showQTip(this)" /> </div>
+        {{/each}}
+        </div>
+
+    </div>
+
+
+
+    <ul id ="command-history-area" as = "list">
+
+        <!--<ul id ="command-list" as = "list" >-->
+        {{each _page.doc.history as #pCommand}}
+            <li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} > </b>{{#pCommand.opName}} {{#pCommand.opTarget}} {{formatObj(#pCommand.elId)}} {{#pCommand.opAttr}} {{formatObj(#pCommand.param)}}
+            </li>
+            {{/each}}
+        <!--</ul>-->
+
+    </ul>
+
+
+
+
+    <audio id="notificationAudio" src="http://www.talkingwav.com/various/beep_02.wav" preload="auto"></audio>
+
+
+
+
+    <unit-tests:>
+        <div id ="unitTestArea"> <button on-click = "runUnitTests()"> Test</button></div>
+
+>>>>>>> acdd5a8a6a2e39e06e83cb92b67771d67f32479e
 
                         <tr><td>
                             <img src="sample-app/sampleapp-images/cbio.png" alt="" class="centered">

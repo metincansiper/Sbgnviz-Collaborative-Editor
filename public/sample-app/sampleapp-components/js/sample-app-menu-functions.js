@@ -6,6 +6,8 @@
  * **/
 
 
+var jsonMerger = require('../../../src/utilities/json-merger.js');
+var idxcardjson = require('../../../src/utilities/idxcardjson-to-json-converter.js');
 var sbgnFiltering = require('../../../src/utilities/sbgn-filtering.js')();
 var sbgnElementUtilities = require('../../../src/utilities/sbgn-element-utilities.js')();
 var expandCollapseUtilities = require('../../../src/utilities/expand-collapse-utilities.js')();
@@ -170,7 +172,6 @@ module.exports = function(){
          },
 
          mergeSbgn: function(sbgnGraph){
-
              var newJson = sbgnmlToJson.convert(sbgnGraph);
              this.mergeJson(newJson);
          },
@@ -1207,7 +1208,6 @@ module.exports = function(){
 
                 
 
-              
                editorActions.removeEles(selectedEles);
 
 
@@ -1512,7 +1512,7 @@ module.exports = function(){
                         (sbgnStyleRules['incremental-layout-after-expand-collapse'] == 'true');
                 }
                 if (incrementalLayoutAfterExpandCollapse)
-                    ditorActions.collapseGivenNodes({
+                   editorActions.collapseGivenNodes({
                         nodes: cy.nodes(),
                         sync: true
                     });
@@ -1546,6 +1546,7 @@ module.exports = function(){
                     $("#perform-layout").trigger('click');
                 }
             });
+
 
             $("#perform-layout").click(function (e) {
 
@@ -1733,7 +1734,6 @@ module.exports = function(){
                 expanderOpts.widow = 0;
             });
 
-
             //TODO: Funda
 
             $("#send-message").click(function(evt) {
@@ -1750,7 +1750,6 @@ module.exports = function(){
 
                 }
             });
-
 
             $("#node-label-textbox").keydown(function (e) {
                 if (e.which === 13) {

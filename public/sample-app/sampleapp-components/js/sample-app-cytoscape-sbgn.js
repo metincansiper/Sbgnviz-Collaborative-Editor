@@ -747,14 +747,12 @@ module.exports.SBGNContainer = function( el,  cytoscapeJsGraph, editorActions) {
 
 
 
-
         }
     };
 
 
     container.html("");
     container.cy(cyOptions);
-
 
     return this;
 };
