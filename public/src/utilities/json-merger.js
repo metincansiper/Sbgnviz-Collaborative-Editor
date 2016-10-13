@@ -3,7 +3,7 @@
 
 //Author: David Servillo.
 
-//Date of the last change: 08/25/2016.
+//Date of the last change: 10/12/2016.
 
 module.exports = {
 
