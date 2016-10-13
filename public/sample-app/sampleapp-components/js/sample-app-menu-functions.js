@@ -98,17 +98,39 @@ module.exports = function(){
           editorActions.refreshGlobalUndoRedoButtonsStatus();
          },
 
+		 stateBeforeMerge: function(js1, js2) {
+			 var jsonObj = {nodes:[], edges:[]};
+			 jsonObj.nodes = jsonObj.nodes.concat(JSON.parse(JSON.stringify(js1)).nodes);
+			 jsonObj.nodes = jsonObj.nodes.concat(JSON.parse(JSON.stringify(js2)).nodes);
+			 jsonObj.edges = jsonObj.edges.concat(JSON.parse(JSON.stringify(js1)).edges);
+			 jsonObj.edges = jsonObj.edges.concat(JSON.parse(JSON.stringify(js2)).edges);
 
+             //get another sbgncontainer and display the new JSON model.
+             editorActions.modelManager.newModel( "me", true);
+
+             sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+             editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", true);
+
+             editorActions.modelManager.setSampleInd(-1, "me", true); //to notify other clients
+
+             beforePerformLayout();
+
+             sbgnLayout.applyLayout(editorActions.modelManager);
+
+
+             editorActions.performLayoutFunction();
+		 },
+			 
          mergeJson: function(jsonGraph){
              var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
              var currJson = sbgnmlToJson.convert(currSbgnml);
 
-
+			 this.stateBeforeMerge(jsonGraph, currJson);
              editorActions.modelManager.setRollbackPoint(); //before merging
 
 
 
-             var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
+             var mergeResult = jsonMerger.merge(currJson, jsonGraph); //Merge the two SBGN models.
              var jsonObj = mergeResult.wholeJson;
              var newJsonIds = mergeResult.jsonToMerge;
 
