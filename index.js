@@ -991,45 +991,5 @@ app.proto.formatTime = function (message) {
 
 app.proto.formatObj = function(obj){
 
-<<<<<<< HEAD
     return JSON.stringify(obj, null, '\t');
 };
-
-=======
-    return JSON.stringify(obj);
-};
->>>>>>> acdd5a8a6a2e39e06e83cb92b67771d67f32479e
-
-app.proto.processReach = function(msg) {
-    var httpRequest;
-    if (window.XMLHttpRequest) {
-<<<<<<< HEAD
-        httpRequest = new XMLHttpRequest();
-    } else {
-        httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
-=======
-    	httpRequest = new XMLHttpRequest();
-    } else {
-    	httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
->>>>>>> acdd5a8a6a2e39e06e83cb92b67771d67f32479e
-    }
-    httpRequest.open("POST", "http://agathon.sista.arizona.edu:8080/odinweb/api/text", true);
-    httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    httpRequest.send("text="+msg+"&output=indexcard");
-    //httpRequest.send("text="+msg);
-    httpRequest.onreadystatechange = function () {
-<<<<<<< HEAD
-        if (httpRequest.readyState == 4 && httpRequest.status == 200) {
-            //alert(JSON.parse(httpRequest.responseText).cards[0].extracted_information.participant_a.entity_text);
-            alert(httpRequest.responseText);
-        }
-    }
-};
-=======
-    	if (httpRequest.readyState == 4 && httpRequest.status == 200) {
-	    //alert(JSON.parse(httpRequest.responseText).cards[0].extracted_information.participant_a.entity_text);
-	    alert(httpRequest.responseText);
-        }
-    }
-};
->>>>>>> acdd5a8a6a2e39e06e83cb92b67771d67f32479e

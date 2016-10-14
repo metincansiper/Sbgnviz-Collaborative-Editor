@@ -1261,7 +1261,6 @@ module.exports =  function(model, docId, userId, userName) {
 
             if(!noHistUpdate){
 
-				alert("coucou");
                 this.updateHistory({opName:'merge',  prevParam: prevModelCy, param: modelCy, opTarget:'model'});
             }
 
