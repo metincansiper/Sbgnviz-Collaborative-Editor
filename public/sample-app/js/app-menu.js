@@ -12,7 +12,6 @@ var expandCollapseUtilities = require('../../src/utilities/expand-collapse-utili
 var sbgnmlToJson =require('../../src/utilities/sbgnml-to-json-converter.js')();
 var factoidHandler =  require('./factoid-handler.js');
 
-
 var cytoscape = require('cytoscape');
 
     var jsonMerger = require('../../src/reach-functions/json-merger.js');
@@ -1735,8 +1734,32 @@ module.exports = function(){
             //TODO: Funda
 
             $("#send-message").click(function(evt) {
+				var httpRequest;
+                if (window.XMLHttpRequest)
+                    httpRequest = new XMLHttpRequest();
+                else
+                    httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
 
-                var msg = document.getElementById("inputs-comment").value;
+                //Let REACH process the message posted in the chat box.
+                httpRequest.open("POST", "http://agathon.sista.arizona.edu:8080/odinweb/api/text", true);
+                httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                httpRequest.send("text="+document.getElementById("inputs-comment").value+"&output=indexcard");
+                httpRequest.onreadystatechange = function () { 
+                    if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+                        var reachResponse = JSON.parse(httpRequest.responseText);
+                        var jsonObj = idxcardjson.createJson(reachResponse); //Translate the index card JSON data format into a valid JSON model for SBGNviz.
+						console.log(JSON.stringify(jsonObj));
+
+                        //get another sbgncontainer and display the new SBGN model.
+                        sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+                        editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);
+
+                		beforePerformLayout();
+		                sbgnLayout.applyLayout(editorActions.modelManager);
+        		        editorActions.performLayoutFunction();
+					}
+
+                /**var msg = document.getElementById("inputs-comment").value;
                 socket.emit("REACHQuery", "fries", msg); //for agent
 
 
@@ -1744,7 +1767,7 @@ module.exports = function(){
                     var sbgnSelected = jsonToSbgnml.createSbgnml(cy.nodes(":selected"), cy.edges(":selected"));
 
 
-                    socket.emit('BioPAXRequest', sbgnSelected, "partialBiopax");
+                    socket.emit('BioPAXRequest', sbgnSelected, "partialBiopax"); **/
 
                 }
             });
