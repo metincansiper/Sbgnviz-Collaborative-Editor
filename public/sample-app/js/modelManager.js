@@ -1267,4 +1267,7 @@ module.exports =  function(model, docId, userId, userName) {
         }
     }
 }
+<<<<<<< HEAD:public/sample-app/js/modelManager.js
 
+=======
+>>>>>>> 4b257beb05319781a0db019728495511666c9586:public/sample-app/sampleapp-components/js/modelManager.js

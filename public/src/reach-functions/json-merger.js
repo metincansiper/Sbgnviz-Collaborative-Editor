@@ -3,7 +3,7 @@
 
 //Author: David Servillo.
 
-//Date of the last change: 08/25/2016.
+//Date of the last change: 10/12/2016.
 
 module.exports = {
 
@@ -121,7 +121,7 @@ module.exports = {
             json1 = JSON.parse(jsnString1);
         }
 
-        jsonToMerge = json1;
+        jsonToMerge = JSON.parse(JSON.stringify(json1));
 
         //Identify and store the container nodes, which are nodes able to contain other nodes in it.
         //Store the content of the containers as well.
@@ -195,29 +195,29 @@ module.exports = {
             }
         }
 
-        var tmp;
-        //json1 has too be the bigger than json2.
-        if(json2.nodes.length > json1.nodes.length) {
-            tmp = JSON.stringify(json2);
-            json2 = JSON.parse(JSON.stringify(json1));
-            json1 = JSON.parse(tmp);
+        //var tmp;
+        ////json1 has too be the bigger than json2.
+        //if(json2.nodes.length > json1.nodes.length) {
+        //    tmp = JSON.stringify(json2);
+        //    json2 = JSON.parse(JSON.stringify(json1));
+        //    json1 = JSON.parse(tmp);
 
-            tmp = JSON.stringify(nodepositions2);
-            nodepositions2 = JSON.parse(JSON.stringify(nodepositions1));
-            nodepositions1 = JSON.parse(tmp);
+          //  tmp = JSON.stringify(nodepositions2);
+          //  nodepositions2 = JSON.parse(JSON.stringify(nodepositions1));
+          //  nodepositions1 = JSON.parse(tmp);
 
-            tmp = JSON.stringify(container2);
-            container2 = JSON.parse(JSON.stringify(container1));
-            container1 = JSON.parse(tmp);
+            //tmp = JSON.stringify(container2);
+            //container2 = JSON.parse(JSON.stringify(container1));
+            //container1 = JSON.parse(tmp);
 
-            tmp = JSON.stringify(outcompsource2);
-            outcompsource2 = JSON.parse(JSON.stringify(outcompsource2));
-            outcompsource1 = JSON.parse(tmp);
+            //tmp = JSON.stringify(outcompsource2);
+            //outcompsource2 = JSON.parse(JSON.stringify(outcompsource2));
+            //outcompsource1 = JSON.parse(tmp);
 
-            tmp = JSON.stringify(outcomptarget2);
-            outcomptarget2 = JSON.parse(JSON.stringify(outcomptarget2));
-            outcomptarget1 = JSON.parse(tmp);
-        }
+            //tmp = JSON.stringify(outcomptarget2);
+            //outcomptarget2 = JSON.parse(JSON.stringify(outcomptarget2));
+            //outcomptarget1 = JSON.parse(tmp);
+       // }
 
         var jsn = {"nodes": [], "edges": []};
 
@@ -577,17 +577,28 @@ module.exports = {
             }
         }
 
-        //There were only matches. json2 is useless, only json1 becomes the final json.
-        if(matches == json2.edges.length) {
-            for(i=0; i<json1.edges.length; i++) {  //Remove the useless edges.
-                if("toBeRemoved" in json1.edges[i].data) {
-                    json1.edges.splice(i, 1);
-                    i = i - 1;
-                }
+        for(i=0; i<json1.edges.length; i++) {  //Remove the useless edges.
+            if("toBeRemoved" in json1.edges[i].data) {
+                json1.edges.splice(i, 1);
+                i = i - 1;
             }
-
-            jsn = json1;
         }
+
+		if(json1.nodes.length < jsn.nodes.length) {
+			var json1nodeslength = json1.nodes.length;
+			for(i=json1nodeslength; i<jsn.nodes.length; i++)
+				json1.nodes.push(jsn.nodes[i]);
+		}
+
+		if(json1.edges.length < jsn.edges.length) {
+			var json1edgeslength = json1.edges.length;
+			for(i=json1edgeslength; i<jsn.edges.length; i++)
+				json1.edges.push(jsn.edges[i]);
+		}
+
+        //There were only matches. json2 is useless, only json1 becomes the final json.
+        if(matches == json2.edges.length)
+            jsn = json1;
 
         return {wholeJson: jsn, jsonToMerge: jsonToMerge};
     },

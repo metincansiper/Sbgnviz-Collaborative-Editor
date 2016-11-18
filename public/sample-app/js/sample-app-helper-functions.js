@@ -585,44 +585,45 @@ var getNodesData = function () {
 
 
 var relocateStateAndInfos = function (stateAndInfos) {
-    var length = stateAndInfos.length;
-    if (length == 0) {
-        return;
-    }
-    else if (length == 1) {
-        stateAndInfos[0].bbox.x = 0;
-        stateAndInfos[0].bbox.y = -50;
-    }
-    else if (length == 2) {
-        stateAndInfos[0].bbox.x = 0;
-        stateAndInfos[0].bbox.y = -50;
+	//if(stateAndInfos !== undefined) {
+   	var length = stateAndInfos.length;
+   	if (length == 0) {
+       	return;
+   	}
+   	else if (length == 1) {
+       	stateAndInfos[0].bbox.x = 0;
+       	stateAndInfos[0].bbox.y = -50;
+   	}
+   	else if (length == 2) {
+       	stateAndInfos[0].bbox.x = 0;
+       	stateAndInfos[0].bbox.y = -50;
 
-        stateAndInfos[1].bbox.x = 0;
-        stateAndInfos[1].bbox.y = 50;
-    }
-    else if (length == 3) {
-        stateAndInfos[0].bbox.x = -25;
-        stateAndInfos[0].bbox.y = -50;
+       	stateAndInfos[1].bbox.x = 0;
+       	stateAndInfos[1].bbox.y = 50;
+   	}
+   	else if (length == 3) {
+       	stateAndInfos[0].bbox.x = -25;
+       	stateAndInfos[0].bbox.y = -50;
 
-        stateAndInfos[1].bbox.x = 25;
-        stateAndInfos[1].bbox.y = -50;
+       	stateAndInfos[1].bbox.x = 25;
+       	stateAndInfos[1].bbox.y = -50;
 
-        stateAndInfos[2].bbox.x = 0;
-        stateAndInfos[2].bbox.y = 50;
-    }
-    else {
-        stateAndInfos[0].bbox.x = -25;
-        stateAndInfos[0].bbox.y = -50;
+       	stateAndInfos[2].bbox.x = 0;
+       	stateAndInfos[2].bbox.y = 50;
+   	}
+   	else {
+   		stateAndInfos[0].bbox.x = -25;
+	    stateAndInfos[0].bbox.y = -50;
 
-        stateAndInfos[1].bbox.x = 25;
-        stateAndInfos[1].bbox.y = -50;
+	    stateAndInfos[1].bbox.x = 25;
+    	stateAndInfos[1].bbox.y = -50;
 
-        stateAndInfos[2].bbox.x = -25;
-        stateAndInfos[2].bbox.y = 50;
+	    stateAndInfos[2].bbox.x = -25;
+	    stateAndInfos[2].bbox.y = 50;
 
-        stateAndInfos[3].bbox.x = 25;
-        stateAndInfos[3].bbox.y = 50;
-    }
+	 	stateAndInfos[3].bbox.x = 25;
+	    stateAndInfos[3].bbox.y = 50;
+	}
 };
 
 /*
