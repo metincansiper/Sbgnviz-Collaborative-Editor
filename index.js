@@ -996,23 +996,3 @@ app.proto.formatObj = function(obj){
 
     return JSON.stringify(obj, null, '\t');
 };
-
-
-app.proto.processReach = function(msg) {
-    var httpRequest;
-    if (window.XMLHttpRequest) {
-        httpRequest = new XMLHttpRequest();
-    } else {
-        httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
-    }
-    httpRequest.open("POST", "http://agathon.sista.arizona.edu:8080/odinweb/api/text", true);
-    httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    httpRequest.send("text="+msg+"&output=indexcard");
-    //httpRequest.send("text="+msg);
-    httpRequest.onreadystatechange = function () {
-        if (httpRequest.readyState == 4 && httpRequest.status == 200) {
-            //alert(JSON.parse(httpRequest.responseText).cards[0].extracted_information.participant_a.entity_text);
-            alert(httpRequest.responseText);
-        }
-    }
-};
