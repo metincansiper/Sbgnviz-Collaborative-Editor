@@ -6,13 +6,21 @@
  * **/
 
 
+<<<<<<< HEAD:public/sample-app/js/app-menu.js
 var sbgnFiltering = require('../../src/utilities/sbgn-filtering.js')();
 var sbgnElementUtilities = require('../../src/utilities/sbgn-element-utilities.js')();
 var expandCollapseUtilities = require('../../src/utilities/expand-collapse-utilities.js')();
 var sbgnmlToJson =require('../../src/utilities/sbgnml-to-json-converter.js')();
 var factoidHandler =  require('./factoid-handler.js');
 
-
+=======
+var jsonMerger = require('../../../src/utilities/json-merger.js');
+var idxcardjson = require('../../../src/utilities/idxcardjson-to-json-converter.js');
+var sbgnFiltering = require('../../../src/utilities/sbgn-filtering.js')();
+var sbgnElementUtilities = require('../../../src/utilities/sbgn-element-utilities.js')();
+var expandCollapseUtilities = require('../../../src/utilities/expand-collapse-utilities.js')();
+var sbgnmlToJson =require('../../../src/utilities/sbgnml-to-json-converter.js')();
+>>>>>>> 4b257beb05319781a0db019728495511666c9586:public/sample-app/sampleapp-components/js/sample-app-menu-functions.js
 var cytoscape = require('cytoscape');
 
     var jsonMerger = require('../../src/reach-functions/json-merger.js');
@@ -101,6 +109,7 @@ module.exports = function(){
           editorActions.refreshGlobalUndoRedoButtonsStatus();
          },
 
+<<<<<<< HEAD:public/sample-app/js/app-menu.js
          newFile: function(){
              setFileContent("new_file.sbgnml");
 
@@ -112,7 +121,22 @@ module.exports = function(){
              editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);
 
          },
+=======
+		 stateBeforeMerge: function(js1, js2) {
+			 var jsonObj = {nodes:[], edges:[]};
+			 jsonObj.nodes = jsonObj.nodes.concat(JSON.parse(JSON.stringify(js1)).nodes);
+			 jsonObj.nodes = jsonObj.nodes.concat(JSON.parse(JSON.stringify(js2)).nodes);
+			 jsonObj.edges = jsonObj.edges.concat(JSON.parse(JSON.stringify(js1)).edges);
+			 jsonObj.edges = jsonObj.edges.concat(JSON.parse(JSON.stringify(js2)).edges);
+>>>>>>> 4b257beb05319781a0db019728495511666c9586:public/sample-app/sampleapp-components/js/sample-app-menu-functions.js
 
+             //get another sbgncontainer and display the new JSON model.
+             editorActions.modelManager.newModel( "me", true);
+
+             sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+             editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", true);
+
+<<<<<<< HEAD
 
          mergeJsons:function(jsonGraphs){
 
@@ -200,12 +224,15 @@ module.exports = function(){
              sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
              editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", true);
 
+=======
+>>>>>>> 6df15a1588f092441f40f0d6d6f04e474682dfe6
              editorActions.modelManager.setSampleInd(-1, "me", true); //to notify other clients
 
              beforePerformLayout();
 
              sbgnLayout.applyLayout(editorActions.modelManager);
 
+<<<<<<< HEAD
             //Call merge notification after the layout
              editorActions.performLayoutFunction(true, function(){
 
@@ -217,15 +244,22 @@ module.exports = function(){
              return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
          },
          mergeJsonWithCurrent: function(jsonGraph){
+=======
+
+             editorActions.performLayoutFunction();
+		 },
+			 
+         mergeJson: function(jsonGraph){
+>>>>>>> 6df15a1588f092441f40f0d6d6f04e474682dfe6
              var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
              var currJson = sbgnmlToJson.convert(currSbgnml);
 
-
+			 this.stateBeforeMerge(jsonGraph, currJson);
              editorActions.modelManager.setRollbackPoint(); //before merging
 
 
 
-             var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
+             var mergeResult = jsonMerger.merge(currJson, jsonGraph); //Merge the two SBGN models.
              var jsonObj = mergeResult.wholeJson;
              var newJsonIds = mergeResult.jsonToMerge;
 
@@ -266,7 +300,6 @@ module.exports = function(){
          },
 
          mergeSbgn: function(sbgnGraph){
-
              var newJson = sbgnmlToJson.convert(sbgnGraph);
              this.mergeJsonWithCurrent(newJson);
          },
@@ -1359,7 +1392,6 @@ module.exports = function(){
 
                 
 
-              
                editorActions.removeEles(selectedEles);
 
 
@@ -1663,7 +1695,7 @@ module.exports = function(){
                         (sbgnStyleRules['incremental-layout-after-expand-collapse'] == 'true');
                 }
                 if (incrementalLayoutAfterExpandCollapse)
-                    ditorActions.collapseGivenNodes({
+                   editorActions.collapseGivenNodes({
                         nodes: cy.nodes(),
                         sync: true
                     });
@@ -1697,6 +1729,7 @@ module.exports = function(){
                     $("#perform-layout").trigger('click');
                 }
             });
+
 
             $("#perform-layout").click(function (e) {
 
@@ -1884,12 +1917,35 @@ module.exports = function(){
                 expanderOpts.widow = 0;
             });
 
-
             //TODO: Funda
 
             $("#send-message").click(function(evt) {
+				var httpRequest;
+                if (window.XMLHttpRequest)
+                    httpRequest = new XMLHttpRequest();
+                else
+                    httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
 
-                var msg = document.getElementById("inputs-comment").value;
+                //Let REACH process the message posted in the chat box.
+                httpRequest.open("POST", "http://agathon.sista.arizona.edu:8080/odinweb/api/text", true);
+                httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                httpRequest.send("text="+document.getElementById("inputs-comment").value+"&output=indexcard");
+                httpRequest.onreadystatechange = function () { 
+                    if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+                        var reachResponse = JSON.parse(httpRequest.responseText);
+                        var jsonObj = idxcardjson.createJson(reachResponse); //Translate the index card JSON data format into a valid JSON model for SBGNviz.
+						console.log(JSON.stringify(jsonObj));
+
+                        //get another sbgncontainer and display the new SBGN model.
+                        sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+                        editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);
+
+                		beforePerformLayout();
+		                sbgnLayout.applyLayout(editorActions.modelManager);
+        		        editorActions.performLayoutFunction();
+					}
+
+                /**var msg = document.getElementById("inputs-comment").value;
                 socket.emit("REACHQuery", "fries", msg); //for agent
 
 
@@ -1897,11 +1953,10 @@ module.exports = function(){
                     var sbgnSelected = jsonToSbgnml.createSbgnml(cy.nodes(":selected"), cy.edges(":selected"));
 
 
-                    socket.emit('BioPAXRequest', sbgnSelected, "partialBiopax");
+                    socket.emit('BioPAXRequest', sbgnSelected, "partialBiopax"); **/
 
                 }
             });
-
 
             $("#node-label-textbox").keydown(function (e) {
                 if (e.which === 13) {

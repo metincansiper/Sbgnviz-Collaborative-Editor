@@ -3,7 +3,11 @@
 
 //Author: David Servillo.
 
+<<<<<<< HEAD
 //Date of the last change: 12/23/2016.
+=======
+//Date of the last change: 10/12/2016.
+>>>>>>> 6df15a1588f092441f40f0d6d6f04e474682dfe6
 
 module.exports = {
 
@@ -18,6 +22,25 @@ module.exports = {
         for(i=0; i<json1.nodes.length; i++)
             nodepositions1[json1.nodes[i].data.id] = i;
 
+<<<<<<< HEAD
+=======
+            jsnString1 = jsnString1.replace(new RegExp('"glyph'+(j+1)+'"', "g"), '');
+            jsnString1 = jsnString1.replace(new RegExp('"'+json1.nodes[i-json2.nodes.length].data.id+'"', "g"), '"glyph'+(j+1)+'"');
+            jsnString1 = jsnString1.replace(new RegExp(':,"', "g"), ':"'+json1.nodes[i-json2.nodes.length].data.id+'","');
+            jsnString1 = jsnString1.replace(new RegExp(':}', "g"), ':"'+json1.nodes[i-json2.nodes.length].data.id+'"}');
+
+            jsnString1 = jsnString1.replace(new RegExp('"glyph'+(j+1)+'-', "g"), '"-');
+            jsnString1 = jsnString1.replace(new RegExp('"'+json1.nodes[i-json2.nodes.length].data.id+'-', "g"), '"glyph'+(j+1)+'-');
+            jsnString1 = jsnString1.replace(new RegExp(':"-', "g"), ':"'+json1.nodes[i-json2.nodes.length].data.id+'-');
+
+            jsnString1 = jsnString1.replace(new RegExp('-glyph'+(j+1)+'"', "g"), '-');
+            jsnString1 = jsnString1.replace(new RegExp('-'+json1.nodes[i-json2.nodes.length].data.id+'"', "g"), '-glyph'+(j+1)+'"');
+            jsnString1 = jsnString1.replace(new RegExp('-,"', "g"), '-'+json1.nodes[i-json2.nodes.length].data.id+'","');
+
+            json1 = JSON.parse(jsnString1);
+        }
+
+>>>>>>> 6df15a1588f092441f40f0d6d6f04e474682dfe6
         jsonToMerge = JSON.parse(JSON.stringify(json1));
 
         //Identify and store the container nodes, which are nodes able to contain other nodes in it.
@@ -93,6 +116,7 @@ module.exports = {
             }
         }
 
+<<<<<<< HEAD
         var jsnString2 = JSON.stringify(json2);
         var maxj = json1.nodes.length;
         var nodepositions2 = {};
@@ -190,6 +214,31 @@ module.exports = {
                 json2.edges[json2.edges.length - 1].data.toBeRemoved = "";
             }
         }
+=======
+        //var tmp;
+        ////json1 has too be the bigger than json2.
+        //if(json2.nodes.length > json1.nodes.length) {
+        //    tmp = JSON.stringify(json2);
+        //    json2 = JSON.parse(JSON.stringify(json1));
+        //    json1 = JSON.parse(tmp);
+
+          //  tmp = JSON.stringify(nodepositions2);
+          //  nodepositions2 = JSON.parse(JSON.stringify(nodepositions1));
+          //  nodepositions1 = JSON.parse(tmp);
+
+            //tmp = JSON.stringify(container2);
+            //container2 = JSON.parse(JSON.stringify(container1));
+            //container1 = JSON.parse(tmp);
+
+            //tmp = JSON.stringify(outcompsource2);
+            //outcompsource2 = JSON.parse(JSON.stringify(outcompsource2));
+            //outcompsource1 = JSON.parse(tmp);
+
+            //tmp = JSON.stringify(outcomptarget2);
+            //outcomptarget2 = JSON.parse(JSON.stringify(outcomptarget2));
+            //outcomptarget1 = JSON.parse(tmp);
+       // }
+>>>>>>> 6df15a1588f092441f40f0d6d6f04e474682dfe6
 
         var jsn = {"nodes": [], "edges": []};
 
@@ -567,6 +616,7 @@ module.exports = {
             if("toBeRemoved" in json1.edges[i].data) {
                 json1.edges.splice(i, 1);
                 i = i - 1;
+<<<<<<< HEAD
             }
         }
 
@@ -590,6 +640,26 @@ module.exports = {
             for(i=json1.edges.length; i<jsn.edges.length; i++)
                 json1.edges.push(jsn.edges[i]);
         }
+=======
+            }
+        }
+
+		if(json1.nodes.length < jsn.nodes.length) {
+			var json1nodeslength = json1.nodes.length;
+			for(i=json1nodeslength; i<jsn.nodes.length; i++)
+				json1.nodes.push(jsn.nodes[i]);
+		}
+
+		if(json1.edges.length < jsn.edges.length) {
+			var json1edgeslength = json1.edges.length;
+			for(i=json1edgeslength; i<jsn.edges.length; i++)
+				json1.edges.push(jsn.edges[i]);
+		}
+
+        //There were only matches. json2 is useless, only json1 becomes the final json.
+        if(matches == json2.edges.length)
+            jsn = json1;
+>>>>>>> 6df15a1588f092441f40f0d6d6f04e474682dfe6
 
         return {wholeJson: json1, jsonToMerge: jsonToMerge, whichJsn: whichJsn};
     },

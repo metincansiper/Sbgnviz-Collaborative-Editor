@@ -3,7 +3,7 @@
 
 // Author: David Servillo.
 
-//Date of the last change: 08/18/2016
+//Date of the last change: 12/27/2016
 
 module.exports = {
 
@@ -17,24 +17,27 @@ module.exports = {
         for(i=0; i<idxcardjsonObj.cards.length; i++) {
 
             //Create the first glyph
-            var newNode0 = {
-                data: {
-                    id:"ele"+i+1,
-                    sbgnclass: "macromolecule",
-                    sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"60.0", h:"60.0"},
-                    sbgnstatesandinfos: [{bbox:{x:-27.916666666666668, y:-27.916666666666668, w:"53.0", h:"18.0"},
-                        id:"ele"+i+2,
-                        clazz:"unit of information",
-                        label:{text:"mt:prot"}}],
-                    parent: "",
-                    ports: []
-                }
-            };
+			var newNode0 = {
+				data: {
+					id:"ele"+i+1,
+					sbgnclass: "macromolecule",
+					sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"60.0", h:"60.0"},
+					sbgnstatesandinfos: [{bbox:{x:-27.916666666666668, y:-27.916666666666668, w:"53.0", h:"18.0"},
+						id:"ele"+i+2,
+						clazz:"unit of information",
+						label:{text:"mt:prot"}}],
+					parent: "",
+					ports: []
+				}
+			};
 
             if('participant_a' in idxcardjsonObj.cards[i].extracted_information)
                 newNode0.data.sbgnlabel = idxcardjsonObj.cards[i].extracted_information.participant_a.entity_text;
-            else
-                newNode0.data.sbgnlabel = "";
+            else {
+                newNode0.data.sbgnlabel = "null";
+                newNode0.data.sbgnclass = "source and sink";
+				newNode0.data.sbgnstatesandinfos = [];
+			}
 
             jsonObj.nodes.push(newNode0);
 
@@ -106,7 +109,7 @@ module.exports = {
             var newEdge1 = {
                 data: {
                     id: newNode2.data.id + "-" + newNode1.data.id,
-                    sbgnclass: "consumption",
+                    sbgnclass: "production",
                     bendPointPositions: [],
                     sbgncardinality: 0,
                     source: newNode2.data.id,
