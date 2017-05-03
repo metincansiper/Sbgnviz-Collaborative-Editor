@@ -85,7 +85,7 @@ CausalityAgent.prototype.init = function(){
     // }, 1000);
 
 
-    self.sendMessage([{text:"Let’s build a pathway model for ovarian cancer using the phosphoproteomics dataset from PNNL.", style: "font-size:large"}], "*");
+    self.sendMessage("Let’s build a pathway model for ovarian cancer using the phosphoproteomics dataset from PNNL.", "*");
 
     self.listenToMessages();
 
@@ -229,7 +229,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
             if(sentence.indexOf("YES")>=0) {
                 var agentMsg  = "OK, I am updating my model and the graph..."
-                self.sendMessage([{text: agentMsg, style: "font-size:large"}], "*", function () {
+                self.sendMessage(agentMsg, "*", function () {
                     self.updateAgentModel(data.comment[0].text, function(){
 
 
@@ -335,7 +335,7 @@ CausalityAgent.prototype.updateAgentModel = function(text, callback){
 
 CausalityAgent.prototype.tellMutSig = function(gene, callback) {
     var self = this;
-
+var agentMsg= "";
     var pVal = self.geneSig[gene];
     if(pVal < 0.01)
         agentMsg = gene + " is highly significantly mutated in ovarian cancer with a p value of "+ pVal + ". ";
@@ -344,7 +344,7 @@ CausalityAgent.prototype.tellMutSig = function(gene, callback) {
     else
         agentMsg = gene + " is not significantly mutated in ovarian cancer.";
 
-    self.sendMessage([{text: agentMsg, style: "font-size:large"}], "*", function () {
+    self.sendMessage(agentMsg, "*", function () {
         if (callback) callback();
     });
 
@@ -402,8 +402,9 @@ CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
 
             agentMsg += makeUpstreamStr(commonUpstreams);
 
-            self.sendMessage([{text: agentMsg, style: "font-size:large"}], "*", function () {
-                if (callback) callback();
+                self.sendMessage(agentMsg, "*", function () {
+
+                    if (callback) callback();
             });
         }
     });
@@ -425,8 +426,9 @@ CausalityAgent.prototype.tellCausality = function(gene, callback) {
     var agentMsg = gene + " " + relText + " " + self.causality[gene][self.indCausal].id2 + ". Here's it's graph. ";
 
 
-    self.sendMessage([{text: agentMsg, style: "font-size:large"}], "*", function () {
-        if (callback) callback();
+        self.sendMessage(agentMsg, "*", function () {
+
+            if (callback) callback();
     });
 
     self.showCausality(gene, self.indCausal, callback);
@@ -500,6 +502,7 @@ function toCorrelationDetailString(geneCorrArr, indCorr, maxCorr){
  */
 CausalityAgent.prototype.tellCorrelation = function(gene, callback){
 
+    var agentMsg ="";
     var self = this;
     var indCorr = -1;
 
@@ -568,7 +571,8 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
             }
 
         }
-        self.sendMessage([{text: agentMsg, style: "font-size:large"}], "*", function () {
+        self.sendMessage(agentMsg, "*", function () {
+
             if (callback) callback();
         });
 

@@ -1566,7 +1566,7 @@
                         <button id = "change-user-color" class = "btn btn-mini" on-click ="changeColorCode()">New user color</button>
                         <form id="inputs-form" on-submit="add($event)">
                         <!--<form id="inputs-form">-->
-                            <textarea id="inputs-comment" rows="3", wrap ="soft" style = {{_page.newComment.style}} on-keypress="enterMessage($event)">{{_page.newComment.text}}</textarea>
+                            <textarea id="inputs-comment" rows="3", wrap ="soft" on-keypress="enterMessage($event)">{{_page.newComment}}</textarea>
                             <!--<input id="inputs-comment" rows = "3", wrap = "soft" style = {{_page.newComment.style}} type = "text">{{_page.newComment.text}}</input>-->
 
                             <button  class = "btn btn-info" id = "send-message">Send</button>
@@ -1643,13 +1643,7 @@
                 </tr>
                 <tr><td  style = "padding : 10px">
 
-                    {{each #message.comment as #cmt}}
-                    {{if #cmt.link}}
-                    <span style = {{#cmt.style}}><a href={{#message.comment.link}}>{{#cmt.text}}</a></span>
-                    {{else}}
-                    <span style = {{#cmt.style}}>{{#cmt.text}}</span>
-                    {{/if}}
-                    {{/each}}
+                    <p> {{ unescaped #message.comment}}</p>
 
                     </td>
                 </tr>
