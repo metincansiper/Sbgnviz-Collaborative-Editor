@@ -1316,6 +1316,7 @@ app.proto.add = function (event, model, filePath) {
 
        socket.emit('getDate', function(date){ //get the date from the server
 
+           comment.style = "font-size:large";
             model.add('_page.doc.messages', {
                 room: model.get('_page.room'),
                 targets: targets,
