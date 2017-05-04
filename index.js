@@ -1358,18 +1358,18 @@ app.proto.dynamicResize = function (images) {
 
     if (windowWidth > canvasWidth)
     {
-        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.7);
-        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.7);
+        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.55);
+        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.55);
 
 
         if(images) {
             images.forEach(function (img) {
-                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.7);
+                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.55);
             });
         }
-        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.3);
+        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.45);
 
-        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.3);
+        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.45);
         // var w = $("#sbgn-inspector-and-canvas").width(); //funda
         var w = $("#canvas-tab-area").width();
         $(".nav-menu").width(w);

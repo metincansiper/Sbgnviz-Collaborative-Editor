@@ -21,7 +21,6 @@ function CausalityAgent(name, id) {
 
 
     this.indCausal = -1;
-    this.nextNonCausalCorr = -1000;
     this.currCorr = -1000;
 
     this.geneContext;
@@ -51,11 +50,11 @@ CausalityAgent.prototype.init = function(){
     //Read pnnl data from the server
 
     var dbName = "pnnl";
-    self.pnnlDb = createPNNLDatabase(dbName);
-
-
-
-   self.pnnlDb.init(dbName);
+     self.pnnlDb = createPNNLDatabase(dbName);
+   //
+   //
+   //
+    self.pnnlDb.init(dbName);
 
 
     this.readAllSifRelations(sifFilePath);
@@ -64,12 +63,12 @@ CausalityAgent.prototype.init = function(){
     this.readMutSig(mutSigFilePath);
 
 
-    //   window.indexedDB.deleteDatabase(dbName, 3);
-
-
+   //    window.indexedDB.deleteDatabase(dbName, 3);
    //
    //
-   //  self.sendMessage({text:"Please wait while I'm getting the PNNL data from the server."}, "*");
+   //
+   //
+   //  self.sendMessage("Please wait while I'm getting the PNNL data from the server.", "*");
    //
    //  self.sendRequest('agentPNNLRequest', null, function(pnnlArr) {
    //
@@ -224,13 +223,13 @@ CausalityAgent.prototype.listenToMessages = function(callback){
         if(data.userId != self.agentId) {
             //convert every word to upper case and remove punctuation
 
-            var sentence = (data.comment[0].text.toUpperCase()).replace(/[.,\/#!?$%\^&\*;:{}=\-_`~()]/g, "");
+            var sentence = (data.comment.toUpperCase()).replace(/[.,\/#!?$%\^&\*;:{}=\-_`~()]/g, "");
             var words = sentence.split(' ');
 
             if(sentence.indexOf("YES")>=0) {
                 var agentMsg  = "OK, I am updating my model and the graph..."
                 self.sendMessage(agentMsg, "*", function () {
-                    self.updateAgentModel(data.comment[0].text, function(){
+                    self.updateAgentModel(data.comment, function(){
 
 
                         if (callback) callback();
@@ -248,20 +247,34 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
                 self.tellCorrelation(self.geneContext, callback);
             }
+            else if(words.indexOf("MORE")>=2){ //e.g <show> n more
+                var n =  Number(words[words.indexOf("MORE") -1]); //get the previous word
+                if(self.geneContext) {
+                    self.tellMultiple(self.geneContext, n,  callback);
+                }
+
+            }
             else {
 
 
+
                 self.findRelevantGeneFromSentence(words, function (gene) {
-                    if(self.geneContext !== gene){ //a new gene with different values
+
+                    console.log(self.geneContext  + " " + gene);
+                    if(self.geneContext !== gene) { //a new gene with different values
+
                         self.currCorr = -1000;
-                        self.nextNonCausalCorr = -1000;
-
-                        self.geneContext = gene;
-
                         self.tellMutSig(gene, callback);
 
-                        self.tellCorrelation(gene, callback);
+
                     }
+
+                    //tell anyway
+                    self.geneContext = gene;
+
+
+                    self.tellCorrelation(gene, callback);
+                    // }
 
 
 
@@ -350,7 +363,86 @@ var agentMsg= "";
 
 }
 
+/***
+ * This is the answer to the question "show n more" - so it assumes there is already a correlation index
+ * @param gene
+ * @param callback
+ */
+CausalityAgent.prototype.tellMultiple = function (gene, n, callback) {
 
+    var self = this;
+    var agentMsg =  "";
+
+    self.pnnlDb.getEntry("id1", gene, function(geneCorrArr) {
+
+
+        var indCorrArr = [];
+        for(var cnt = 0; cnt < n; cnt++) {
+            var maxCorr = -1000;
+
+            var indCorr  = -1;
+            for (var j = 0; j < geneCorrArr.length; j++) {
+
+                var corrVal = Math.abs(geneCorrArr[j].correlation);
+
+                if ((corrVal > maxCorr) && (corrVal < Math.abs(self.currCorr) || self.currCorr < -1 )) {
+                    maxCorr = corrVal;
+                    indCorr = j;
+
+                }
+
+            }
+
+            if(indCorr > -1) {
+                self.currCorr = geneCorrArr[indCorr].correlation;
+                indCorrArr.push(indCorr);
+            }
+        }
+
+        agentMsg = self.formMultipleCorrMsg(gene, geneCorrArr, indCorrArr);
+
+
+        self.sendMessage(agentMsg, "*", function () {
+
+            if (callback) callback();
+        });
+
+    });
+}
+
+CausalityAgent.prototype.formMultipleCorrMsg = function(gene, geneCorrArr, indCorrArr){
+    var msg = "";
+    var self = this;
+
+    if(indCorrArr.length == 0)
+        msg = "I can't find any."
+    for(var i = 0; i < indCorrArr.length ; i++){
+        var corr = geneCorrArr[indCorrArr[i]];
+
+        var pSite1Str ="";
+        var pSite2Str ="";
+        if(corr.pSite1)
+            pSite1Str = "-" + corr.pSite1;
+        if(corr.pSite2)
+            pSite2Str = "-" + corr.pSite2;
+
+        var gene2 = corr.id2;
+
+        msg+= (i +1 ) + ". "+  gene +  pSite1Str + " and " + gene2 + pSite2Str + " correlation is: " + parseFloat(corr.correlation).toFixed(3) + "\n";
+
+
+        var causalityInd = self.causalRelationshipInd(gene, gene2);
+        if(causalityInd> -1){
+
+            var relText = self.causality[gene][causalityInd].rel.replace(/[-]/g, " ");
+
+            msg += gene + " " + relText + " " + self.causality[gene][causalityInd].id2 + ".\n";
+
+        }
+    };
+
+    return msg;
+}
 CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
     var self = this;
     //Find non-causal but correlational genes
@@ -371,7 +463,8 @@ CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
         for (var j = 0; j < geneCorrArr.length; j++) {
             var geneCorr = geneCorrArr[j].id2;
 
-            if (!self.hasCausalRelationship(gene, geneCorr)) {
+
+            if (self.causalRelationshipInd(gene, geneCorr) < 0) {
 
                 corrVal = Math.abs(geneCorrArr[j].correlation);
 
@@ -522,7 +615,8 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
                 for (var i = 0; i < self.causality[gene].length; i++) {
                     var geneCausal = self.causality[gene][i].id2;
                     var corrVal = Math.abs(geneCorrArr[j].correlation);
-                    if (geneCausal === geneCorr && corrVal> maxCorr && (self.currCorr < -1 ||  corrVal < Math.abs(self.currCorr))) {
+                    // if (geneCausal === geneCorr && corrVal> maxCorr && (self.currCorr < -1 ||  corrVal < Math.abs(self.currCorr))) {
+                    if (geneCausal === geneCorr && corrVal> maxCorr &&  (self.currCorr < -1 ||  corrVal < Math.abs(self.currCorr))) {
                         self.indCausal = i;
                         indCorr = j;
                         maxCorr = Math.abs(geneCorrArr[j].correlation);
@@ -541,7 +635,8 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
         }
         else { //no causal explanation around gene
 
-            agentMsg = "I can't find any causal relationships about " + gene + ". ";
+            if(self.currCorr < 0)
+                agentMsg = "I can't find any causal relationships about " + gene + ". ";
 
             //Find and assign maximum correlation
 
@@ -561,8 +656,15 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
             if (indCorr > -1) {
                 self.currCorr = geneCorrArr[indCorr].correlation;
 
-                agentMsg += "But the highest unexplainable correlation " + toCorrelationDetailString(geneCorrArr, indCorr);
 
+                if(self.currCorr < 0)
+
+                    agentMsg += "But the highest unexplainable correlation ";
+
+                else
+                    agentMsg += "The next highest unexplainable correlation ";
+
+                agentMsg +=  toCorrelationDetailString(geneCorrArr, indCorr);
 
                 //Search common upstreams of gene and its correlated
                 var commonUpstreams = self.findCommonUpstreams(gene, geneCorr);
@@ -687,6 +789,7 @@ CausalityAgent.prototype.findRelevantGeneFromSentence = function(words, callback
 
     words.forEach(function(word){
         self.pnnlDb.getEntry("id1", word, function(res){
+            console.log(res);
             if(res.length > 0){
                 if(callback) callback(word); //word is a gene
             }
@@ -703,18 +806,24 @@ CausalityAgent.prototype.findRelevantGeneFromSentence = function(words, callback
  * @param gene2
  * @returns {boolean}
  */
-CausalityAgent.prototype.hasCausalRelationship = function(gene1, gene2){
+CausalityAgent.prototype.causalRelationshipInd = function(gene1, gene2){
 
     var self = this;
-    var res = false;
+
+
+    var ind = 0;
+    var causalInd = -1;
 
     if(self.causality[gene1]) {
         self.causality[gene1].forEach(function (gene) {
-            if (gene.id2 === gene2)
+            if (gene.id2 === gene2) {
                 res = true;
+                causalInd = ind;
+            }
+            ind++;
         });
     }
-    return res;
+    return causalInd;
 }
 
 
@@ -749,7 +858,7 @@ CausalityAgent.prototype.findDemoGenes = function(){
     self.geneNameArr.forEach(function(gene1) {
 
         self.geneNameArr.forEach(function(gene2) {
-            if (gene2 !== gene1 && !self.hasCausalRelationship(gene1, gene2)) {
+            if (gene2 !== gene1 && self.causalRelationshipInd(gene1, gene2)< 0) {
                 self.hasCorrelationalRelationship(gene1, gene2, function (val) {
                     var upstreams = self.findCommonUpstreams(gene1, gene2);
                     if (upstreams && upstreams.length > 0) {

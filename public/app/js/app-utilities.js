@@ -66,7 +66,7 @@ appUtilities.currentGridProperties = jquery.extend(true, {}, appUtilities.defaul
 appUtilities.defaultGeneralProperties = {
   compoundPadding: 10,
   extraCompartmentPadding: 14,
-  dynamicLabelSize: 'regular',
+  dynamicLabelSize: 'large', //FUNDA it was regular
   fitLabelsToNodes: true, //FUNDA
   rearrangeAfterExpandCollapse: true,
   animateOnDrawingChanges: false, //FUNDA
