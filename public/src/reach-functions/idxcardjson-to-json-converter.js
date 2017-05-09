@@ -3,7 +3,7 @@
 
 // Author: David Servillo.
 
-//Date of the last change: 08/18/2016
+//Date of the last change: 04/27/2017
 
 module.exports = {
 
@@ -13,6 +13,32 @@ module.exports = {
         jsonObj.nodes = [];
         jsonObj.edges = [];
 
+        var entityBbox = {
+            "compartment": {x:0, y:0, w:60, h:60},
+            "complex": {x:0, y:0, w:60, h:60},
+            "macromolecule": {x:0, y:0, w:70, h:65},
+            "process": {x:0, y:0, w:20, h:20},
+            "source and sink": {x:0, y:0, w:30, h:30}
+        };
+
+        var statesandinfosbbox = {x:20, y:-6, w:40, h:12};
+        var addmodifstatesandinfosbbox = {x:20, y:59, w:40, h:12};
+
+        var stateInfos = {
+            "acetylation": "Ac",
+            "glycosylation": "G",
+            "hydroxylation": "OH",
+            "methylation": "Me",
+            "myristoylation": "My",
+            "palmytoylation": "Pa",
+            "phosphorylation": "P",
+            "prenylation": "Pr",
+            "protonation": "H",
+            "sulfation": "S",
+            "sumoylation": "Su",
+            "ubiquitination": "Ub"
+        }
+
         var i;
         for(i=0; i<idxcardjsonObj.cards.length; i++) {
 
@@ -21,11 +47,11 @@ module.exports = {
                 data: {
                     id:"ele"+i+1,
                     sbgnclass: "macromolecule",
-                    sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"60.0", h:"60.0"},
-                    sbgnstatesandinfos: [{bbox:{x:-27.916666666666668, y:-27.916666666666668, w:"53.0", h:"18.0"},
-                        id:"ele"+i+2,
-                        clazz:"unit of information",
-                        label:{text:"mt:prot"}}],
+                    sbgnbbox: entityBbox.macromolecule,
+                    sbgnstatesandinfos: [{bbox: statesandinfosbbox,
+                        id: "ele"+i+2,
+                        clazz: "unit of information",
+                        label: {text:"mt:prot"}}],
                     parent: "",
                     ports: []
                 }
@@ -43,9 +69,9 @@ module.exports = {
                 data: {
                     id: "ele"+i+3,
                     sbgnclass: "macromolecule",
-                    sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"60.0", h:"60.0"},
+                    sbgnbbox: entityBbox.macromolecule,
                     sbgnlabel: idxcardjsonObj.cards[i].extracted_information.participant_b.entity_text,
-                    sbgnstatesandinfos: [{bbox:{x:-27.916666666666668, y:-27.916666666666668, w:"53.0", h:"18.0"},
+                    sbgnstatesandinfos: [{bbox: statesandinfosbbox,
                         id:"ele"+i+6,
                         clazz:"unit of information",
                         label:{text:"mt:prot"}}],
@@ -63,7 +89,7 @@ module.exports = {
                     sbgnclass: "process",
                     sbgnlabel: "null",
                     sbgnstatesandinfos: [],
-                    sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"20.0", h:"20.0"},
+                    sbgnbbox: entityBbox.process,
                     parent: "",
                     ports: []
                 }
@@ -78,7 +104,7 @@ module.exports = {
                     sbgnclass: "source and sink",
                     sbgnlabel: "null",
                     sbgnstatesandinfos: [],
-                    sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"20.0", h:"20.0"},
+                    sbgnbbox: entityBbox.macromolecule,
                     parent: "",
                     ports: []
                 }
@@ -106,7 +132,7 @@ module.exports = {
             var newEdge1 = {
                 data: {
                     id: newNode2.data.id + "-" + newNode1.data.id,
-                    sbgnclass: "consumption",
+                    sbgnclass: "production",
                     bendPointPositions: [],
                     sbgncardinality: 0,
                     source: newNode2.data.id,
@@ -145,14 +171,9 @@ module.exports = {
                 //The "source and sink" glyph is transformed into a macromolecular glyph
                 newNode3.data.sbgnclass = "macromolecule";
                 newNode3.data.sbgnlabel = idxcardjsonObj.cards[i].extracted_information.participant_b.entity_text;
-                newNode3.data.sbgnbbox.w = "60.0";
-                newNode3.data.sbgnbbox.h = "60.0";
-                newNode3.data.sbgnstatesandinfos[0] = {};
-                newNode3.data.sbgnstatesandinfos[0].bbox = {};
-                newNode3.data.sbgnstatesandinfos[0].bbox.x = -27.916666666666668;
-                newNode3.data.sbgnstatesandinfos[0].bbox.y = -27.916666666666668;
-                newNode3.data.sbgnstatesandinfos[0].bbox.w = "53.0";
-                newNode3.data.sbgnstatesandinfos[0].bbox.h = "18.0";
+                newNode3.data.sbgnbbox = entityBbox.macromolecule;
+                newNode3.data.sbgnstatesandinfos.push({});
+                newNode3.data.sbgnstatesandinfos[0].bbox = statesandinfosbbox;
                 newNode3.data.sbgnstatesandinfos[0].id = "ele"+i+9;
                 newNode3.data.sbgnstatesandinfos[0].clazz = "unit of information";
                 newNode3.data.sbgnstatesandinfos[0].label = {};
@@ -160,11 +181,7 @@ module.exports = {
 
                 //The result of the reaction is a complex
                 newNode1.data.sbgnclass = "complex";
-                newNode1.data.sbgnbbox = {};
-                newNode1.data.sbgnbbox.x = 585.7398209991329;
-                newNode1.data.sbgnbbox.y = 585.7398209991329;
-                newNode1.data.sbgnbbox.w = "60.0";
-                newNode1.data.sbgnbbox.h = "60.0";
+                newNode1.data.sbgnbbox = entityBbox.complex;
                 delete newNode1.data.sbgnlabel;
                 newNode1.data.sbgnstatesandinfos = [];
 
@@ -173,9 +190,9 @@ module.exports = {
                     data: {
                         id:"ele"+i+10,
                         sbgnclass: "macromolecule",
-                        sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"60.0", h:"60.0"},
+                        sbgnbbox: entityBbox.macromolecule,
                         sbgnlabel: idxcardjsonObj.cards[i].extracted_information.participant_b.entity_text,
-                        sbgnstatesandinfos: [{bbox:{x:-27.916666666666668, y:-27.916666666666668, w:"53.0", h:"18.0"},
+                        sbgnstatesandinfos: [{bbox: statesandinfosbbox,
                             id:"ele"+i+4,
                             clazz: "unit of information",
                             label: {text:"mt:prot"}}],
@@ -191,8 +208,8 @@ module.exports = {
                     data: {
                         id: "ele"+i+11,
                         sbgnclass: "macromolecule",
-                        sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"60.0", h:"60.0"},
-                        sbgnstatesandinfos: [{bbox:{x:-27.916666666666668, y:-27.916666666666668, w:"53.0", h:"18.0"},
+                        sbgnbbox: entityBbox.macromolecule,
+                        sbgnstatesandinfos: [{bbox: statesandinfosbbox,
                             id: "ele"+i+12,
                             clazz: "unit of information",
                             label:{text:"mt:prot"}}],
@@ -215,18 +232,13 @@ module.exports = {
                 //That glyph is not a "source and sink" glyph anymore, but a macromolecule
                 newNode3.data.sbgnclass = "macromolecule";
                 newNode3.data.sbgnlabel = idxcardjsonObj.cards[i].extracted_information.participant_b.entity_text;
-                newNode3.data.sbgnbbox.w = "60.0";
-                newNode3.data.sbgnbbox.h = "60.0";
-                newNode3.data.sbgnstatesandinfos[0] = {};
+                newNode3.data.sbgnbbox = entityBbox.macromolecule;
+                newNode3.data.sbgnstatesandinfos,push({});
                 newNode3.data.sbgnstatesandinfos[0].id = "ele"+i+8;
                 newNode3.data.sbgnstatesandinfos[0].clazz = "unit of information";
                 newNode3.data.sbgnstatesandinfos[0].label = {};
                 newNode3.data.sbgnstatesandinfos[0].label.text = "mt:prot";
-                newNode3.data.sbgnstatesandinfos[0].bbox = {};
-                newNode3.data.sbgnstatesandinfos[0].bbox.x = -27.916666666666668;
-                newNode3.data.sbgnstatesandinfos[0].bbox.y = -27.916666666666668;
-                newNode3.data.sbgnstatesandinfos[0].bbox.w = "53.0";
-                newNode3.data.sbgnstatesandinfos[0].bbox.h = "18.0";
+                newNode3.data.sbgnstatesandinfos[0].bbox = statesandinfosbbox;
                 newNode3.data.parent = "";
                 newNode3.data.ports = [];
 
@@ -235,45 +247,9 @@ module.exports = {
                     var newStateInfos = {
                         id: "ele"+i+7,
                         clazz: "state variable",
-                        bbox: {x:-27.0, y:-27.0 , w:"53.0",h: "18.0"},
+                        bbox: addmodifstatesandinfosbbox,
+                        state: {value: stateInfos[idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type]}
                     };
-
-                    //Add a state variable resulting from the interaction
-                    if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "acetylation") //The interaction is an acetylation
-                        newStateInfos.state = {value: "Ac"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "glycosylation") //The interaction is a glycosylation
-                        newStateInfos.state = {value: "G"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "hydroxylation") //The interaction is a hydroxylation
-                        newStateInfos.state = {value: "OH"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "methylation") //The interaction is a methylation
-                        newStateInfos.state = {value: "Me"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "myristoylation") //The interaction is a myristoylation
-                        newStateInfos.state = {value: "My"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "palmytoylation") //The interaction is a palmytoylation
-                        newStateInfos.state = {value: "Pa"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "phosphorylation") //The interaction is a phosphorylation
-                        newStateInfos.state = {value: "P"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "prenylation") //The interaction is a prenylation
-                        newStateInfos.state = {value: "Pr"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "protonation") //The interaction is a protonation
-                        newStateInfos.state = {value: "H"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "sulfation") //The interaction is a sulfation
-                        newStateInfos.state = {value: "S"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "sumoylation") //The interaction is a sumoylation
-                        newStateInfos.state = {value: "Su"};
-
-                    else if(idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type == "ubiquitination") //The interaction is a ubiquitination
-                        newStateInfos.state = {value: "Ub"};
 
                     newNode1.data.sbgnstatesandinfos.push(newStateInfos);
                 }
@@ -288,7 +264,7 @@ module.exports = {
                         data: {
                             id:"ele"+i+10,
                             sbgnclass: "compartment",
-                            sbgnbbox: {x:585.7398209991329, y:585.7398209991329, w:"120.0", h:"120.0"},
+                            sbgnbbox: entityBbox.compartment,
                             sbgnlabel: idxcardjsonObj.cards[i].extracted_information.to_location_text,
                             sbgnstatesandinfos: [],
                             parent: "",
@@ -304,14 +280,9 @@ module.exports = {
                 //The "source and sink" glyph is transformed into a macromolecule
                 newNode3.data.sbgnclass = "macromolecule";
                 newNode3.data.sbgnlabel = idxcardjsonObj.cards[i].extracted_information.participant_b.entity_text;
-                newNode3.data.sbgnbbox.w = "60.0";
-                newNode3.data.sbgnbbox.h = "60.0";
-                newNode3.data.sbgnstatesandinfos[0] = {};
-                newNode3.data.sbgnstatesandinfos[0].bbox = {};
-                newNode3.data.sbgnstatesandinfos[0].bbox.x = -27.916666666666668;
-                newNode3.data.sbgnstatesandinfos[0].bbox.y = -27.916666666666668;
-                newNode3.data.sbgnstatesandinfos[0].bbox.w = "53.0";
-                newNode3.data.sbgnstatesandinfos[0].bbox.h = "18.0";
+                newNode3.data.sbgnbbox = entityBbox.macromolecule;
+                newNode3.data.sbgnstatesandinfos.push({});
+                newNode3.data.sbgnstatesandinfos[0].bbox = statesandinfosbbox;
                 newNode3.data.sbgnstatesandinfos[0].id = "ele"+i+9;
                 newNode3.data.sbgnstatesandinfos[0].clazz = "unit of information";
                 newNode3.data.sbgnstatesandinfos[0].label = {};
@@ -322,8 +293,7 @@ module.exports = {
                     newNode0.sbgnclass = "compartment";
                     newNode0.sbgnstatesandinfos = [];
                     newNode0.sbgnlabel = idxcardjsonObj.cards[i].extracted_information.from_location_text;
-                    newNode0.sbgnbbox.w = "120.0";
-                    newNode0.sbgnbbox.h = "120.0";
+                    newNode0.sbgnbbox = entityBbox.compartment.bbox;
 
                     newNode3.data.parent = "ele"+i+1;
                 } else {

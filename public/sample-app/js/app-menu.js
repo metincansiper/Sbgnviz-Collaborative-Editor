@@ -6,12 +6,12 @@
  * **/
 
 
+var idxcardjson = require('../../src/reach-functions/idxcardjson-to-json-converter.js');
 var sbgnFiltering = require('../../src/utilities/sbgn-filtering.js')();
 var sbgnElementUtilities = require('../../src/utilities/sbgn-element-utilities.js')();
 var expandCollapseUtilities = require('../../src/utilities/expand-collapse-utilities.js')();
 var sbgnmlToJson =require('../../src/utilities/sbgnml-to-json-converter.js')();
 var factoidHandler =  require('./factoid-handler.js');
-
 
 var cytoscape = require('cytoscape');
 
@@ -42,7 +42,288 @@ var beforePerformLayout = function(){
     cy.edges().css('curve-style', 'bezier');
 };
 
+var traverseGraph = function (node, visitedNodes) {
+    // break if we visit a node twice
+    if (visitedNodes.map(visitedNodes => visitedNodes.id()).includes(node.id())) {
+        visitedNodes.push(node);
+        return visitedNodes;
+    }
 
+    // add visited node to collection
+    visitedNodes.push(node);
+
+    // select node
+    node.select();
+
+    // only travel through valid edges
+    const edgesTo = node.outgoers(function () {
+        return this.isEdge();
+    });
+
+    const edgesFrom = node.incomers(function () {
+        return this.isEdge();
+    });
+
+    var i = 0;
+    var previousVisitedNodesLength;
+
+    // travel through edges
+    edgesTo.forEach(edge => {
+        edge.select();
+        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
+            i += 1;
+            if(i > 1)
+                visitedNodes.push(node);
+
+            visitedNodes.push(edge);
+            
+            previousVisitedNodesLength = visitedNodes.length;
+            traverseGraph(edge.target(), visitedNodes);
+            if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
+                visitedNodes.pop();
+        }
+    });
+
+    edgesFrom.forEach(edge => {
+        edge.select();
+        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
+            i += 1;
+            if(i > 1)
+                visitedNodes.push(node);
+
+            visitedNodes.push(edge);
+
+            previousVisitedNodesLength = visitedNodes.length;
+            traverseGraph(edge.source(), visitedNodes);
+            if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
+                visitedNodes.pop();
+        }
+    });
+
+    return visitedNodes;
+};
+
+var mergeNodes = function(rephrase, i, procpos, id, edgesinproc, nonredundantnodes) {
+    edgepos = Math.min(edgesinproc[rephrase[procpos].id()][edgesinproc[rephrase[procpos].id()].length - 1][0], edgesinproc[rephrase[procpos].id()][edgesinproc[rephrase[procpos].id()].length - 1][1]) + 1;
+    edgejs = rephrase[edgepos].json();
+    var j = 0;
+    edgesinproc[rephrase[procpos].id()][edgesinproc[rephrase[procpos].id()].length - 1].forEach(position => {
+        if(i == position) {
+            if(j == 0)
+                edgejs.data.source = nonredundantnodes[id].id();
+            else
+                edgejs.data.target = nonredundantnodes[id].id();
+        }
+
+        j += 1;
+    });
+
+    var cytmp = cytoscape({
+        elements: {nodes: [{data: {id: edgejs.data.source}}, {data: {id: edgejs.data.target}}], edges: [edgejs]},
+        headless: true,
+        styleEnabled: true,
+    });
+
+    rephrase[edgepos] = cytmp.edges()[0];
+    rephrase[i] = nonredundantnodes[id];
+};
+
+var rearrangement = function (tripletpos, tripletids) {
+    Object.keys(tripletids).forEach(triplet => {
+        i = 0;
+        var idtoposition = {};
+        tripletids[triplet].forEach(id => {
+            idtoposition[id] = i;
+            i += 1;
+        });
+
+        var tmp = [];
+        tripletids[triplet].sort();
+        tripletids[triplet].forEach(id => {
+            tmp.push(tripletpos[triplet][idtoposition[id]]);
+        });
+
+        tripletpos[triplet] = tmp;
+    });
+};
+
+var mergeReactions = function(rephrase, tripletpos, neighborprocess, nonconsumptions, edgesinproc, toRemove) {
+    Object.keys(tripletpos).forEach(triplet => {
+        if(neighborprocess[rephrase[tripletpos[triplet][0][0]].id()] != undefined) {
+            var increfprocnode = neighborprocess[rephrase[tripletpos[triplet][0][0]].id()].sort().join("");
+            for(i = 1; i < tripletpos[triplet].length; i++) {
+                if(increfprocnode == neighborprocess[rephrase[tripletpos[triplet][i][0]].id()].sort().join("")) {
+                    //edgesinproc[rephrase[tripletpos[triplet][i][0]].id()].forEach(positions => {
+                    //    j = 0;
+                    //    edgepos = Math.min(positions[0], positions[1]) + 1;
+                    //    edgejs = rephrase[edgepos].json();
+                    //    positions.forEach(position => {
+                    //        if(neighborprocess[rephrase[position].id()] != undefined) {
+                    //            if(j == 0)
+                    //                edgejs.data.source = rephrase[tripletpos[triplet][0][0]].id();
+                    //           else
+                    //                edgejs.data.target = rephrase[tripletpos[triplet][0][0]].id();
+                    //        }
+
+                    //        j = 1;
+                    //    });
+
+                    //    var cytmp = cytoscape({
+                    //        elements: {nodes: [{data: {id: edgejs.data.source}}, {data: {id: edgejs.data.target}}], edges: [edgejs]},
+                    //        headless: true,
+                    //        styleEnabled: true,
+                    //    });
+
+                    //    rephrase[edgepos] = cytmp.edges()[0];
+                    //});
+
+                    toRemove.push(Math.min(tripletpos[triplet][i][0], tripletpos[triplet][i][1]) + 1);
+                    rephrase[tripletpos[triplet][i][0]] = rephrase[tripletpos[triplet][0][0]];
+                }
+            }
+        }
+    });
+};
+
+var descString = function(nodearray) {
+    var id;
+    nodearray.forEach(node => {
+        id = nodearray.data('sbgnlabel') + nodearray.data('sbgnclass') + nodearray.data('parent');
+
+        if(nodearray.data('sbgnstatesandinfos') != undefined && nodearray.data('sbgnstatesandinfos').length > 0) {
+            nodearray.data('sbgnstatesandinfos').forEach(box => {
+                id += box.clazz + JSON.stringify(box.label);
+            });
+        }
+    });
+
+    return id;
+};
+
+var rearrangeRephrase = function(rephrase, leastprioritynodes) {
+    for(i = 0; i < rephrase.length; i++) {
+        if(rephrase[i].isEdge() && rephrase[i].source().id() != rephrase[i - 1].id()) {
+            //Duplicate it !
+            rephrase.splice(i - 1, 0, rephrase[i - 1]);
+            rephrase.splice(i + 2, 0, rephrase[i + 2]);
+
+            tmp = rephrase[i + 2];
+            rephrase[i + 2] = rephrase[i];
+            rephrase[i] = tmp;
+        }
+    }
+}
+
+var mergeNodes = function(rephrase, leastprioritynodes) {
+    var i;
+    var signature;
+    var nonredundantnodes = {};
+    for(i = 0; i < rephrase.length; i++) {
+        signature = descString(rephrase[i].descendants()) + rephrase[i].data('sbgnlabel') + rephrase[i].data('sbgnclass') + rephrase[i].data('parent');
+        if(rephrase[i].data('sbgnstatesandinfos') != undefined && rephrase[i].data('sbgnstatesandinfos').length > 0) {
+            rephrase[i].data('sbgnstatesandinfos').forEach(box => {
+                signature += box.clazz + JSON.stringify(box.label);
+            });
+        }
+
+        if(rephrase[i].isNode() && leastprioritynodes[rephrase[i].data('sbgnclass')] == undefined && signature in nonredundantnodes) {
+            rephrase[i] = nonredundantnodes[signature];
+        } else if(rephrase[i].isNode() && leastprioritynodes[rephrase[i].data('sbgnclass')] == undefined)
+            nonredundantnodes[signature] = rephrase[i];
+    }
+}
+
+var mergeProcessNodes = function(rephrase, leastprioritynodes) {
+    var i, j;
+    var key;
+    var processid;
+    var signature;
+    var idsbysignature = {};
+    var tripletsbyprocid = {};
+    var procidsbytriplet = {};
+    var triplet = new Array(3);
+    for(i = 0; i < rephrase.length; i++) {
+        triplet.shift();
+        triplet.push(rephrase[i]);
+
+        if(triplet[1] != undefined && triplet[1].isEdge()) {
+            processid = triplet[0].id();
+            if(leastprioritynodes[triplet[2].data('sbgnclass')])
+                processid = triplet[2].id();
+
+            if(tripletsbyprocid[processid] == undefined)
+                tripletsbyprocid[processid] = [];
+
+            tripletsbyprocid[processid].push(triplet);
+        }
+    }
+
+    Object.keys(tripletsbyprocid).forEach(id => {
+        signature = "";
+        Object.keys(tripletsbyprocid[id]).forEach(triplet => { 
+            for(i = 0; i < tripletsbyprocid[id].length; i++) {
+                //alert(id);
+                //alert(tripletsbyprocid[id][i][2].descendants());
+                alert(triplet[0].id());
+                //alert(tripletsbyprocid[id][0].length);
+                for(j = 0; j < 3; j++) {
+                    signature += descString(triplet[i][j].descendants()) + triplet[i][j].data('sbgnlabel') + triplet[i][j].data('sbgnclass') + triplet[i][j].data('parent');
+                    if(triplet[i][j].data('sbgnstatesandinfos') != undefined && triplet[i][j].data('sbgnstatesandinfos').length > 0) {
+                        triplet[i][j].data('sbgnstatesandinfos').forEach(box => {
+                            signature += box.clazz + JSON.stringify(box.label);
+                        });
+                    }
+                }
+
+                if(signaturesbyid[id] == undefined)
+                    signaturesbyid[id] = [];
+
+                signaturesbytriplet[id].push(signature);
+            }
+        });
+
+        key = signaturesbytriplet[id].sort().join("");
+        if(idsbysignature[key] == undefined)
+            idsbysignature[key] = [];
+
+        idsbysignature[key].push(id);
+    });
+
+    rephrase = [];
+    Object.keys(idsbysignature).forEach(signature => {
+        tripletsbyprocid[idsbysignature[signature][0]].forEach(triplet => {
+            rephrase.concat(triplet);
+        });
+    });
+}
+
+var mergeEdges = function(rephrase) {
+    var i;
+    var triplet;
+    var signature;
+    var nonredundantedges = {};
+    for(i = 0; i < rephrase.length; i++) {
+        triplet.shift();
+        triplet.push(rephrase[i]);
+
+        if(triplet[1] != undefined && triplet[1].isEdge()) {
+            signature = "";
+            for(i = 0; i < 3; i++) {
+                signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
+                if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
+                    triplet[i].data('sbgnstatesandinfos').forEach(box => {
+                        signature += box.clazz + JSON.stringify(box.label);
+                    });
+                }
+            }
+
+            if(nonredundantedges[signature] != undefined)
+                rephrase.splice(i - 2, 3);
+            else
+                nonredundantedges[signature] = rephrase[i];
+        }
+    }
+}
 
 function getXMLObject(itemId, loadXMLDoc) {
     switch (itemId) {
@@ -75,11 +356,7 @@ function getXMLObject(itemId, loadXMLDoc) {
                 url: './sample-app/samples/vitamins_b6_activation_to_pyridoxal_phosphate.xml', success: loadXMLDoc
             });
             break;
-
-
     }
-
-
 };
 
 module.exports = function(){
@@ -127,7 +404,6 @@ module.exports = function(){
 
              //var labelMap = {}; //keeps label names in association with jsons -- an object of arrays
              var jsonObj = jsonGraphs[0].json;
-
 
              var sentenceNodeMap = {};
              var idxCardNodeMap = {};
@@ -216,6 +492,7 @@ module.exports = function(){
 
              return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
          },
+
          mergeJsonWithCurrent: function(jsonGraph){
              var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
              var currJson = sbgnmlToJson.convert(currSbgnml);
@@ -1736,15 +2013,44 @@ module.exports = function(){
 
             $("#redo-last-action").click(function (e) {
                 if(!editorActions.manager.isRedoStackEmpty()) { //funda added this check
-                editorActions.manager.redo();
-                
-            }
+                    editorActions.manager.redo();
+                }
             });
 
             $("#undo-last-action-global").click(function (e) {
                 if(editorActions.modelManager.isUndoPossible()){
                     editorActions.modelManager.undoCommand();
-                    
+
+                    var rephrase = traverseGraph(cy.nodes()[2], []);
+                    var leastprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
+
+                    //alert("Il est passe par ici...");
+                    //rephrase.forEach(node => {
+                    //    alert(node.id());
+                    //});
+                    rearrangeRephrase(rephrase, leastprioritynodes);
+                    //alert("Il repassera par la.");
+                    //rephrase.forEach(node => {
+                    //    alert(node.id());
+                    //});
+                    mergeNodes(rephrase, leastprioritynodes);
+                    //alert("Loup y es-tu ?");
+                    //rephrase.forEach(node => {
+                    //    alert(node.id());
+                    //});
+                    mergeProcessNodes(rephrase, leastprioritynodes);
+                    mergeEdges(rephrase);
+
+                    rephrase.forEach(element => {
+                        if(element.isNode())
+                            jsonObj.nodes.push(element.json());
+                        else
+                            jsonObj.edges.push(element.json());
+                    });
+
+                    sbgnContainer = (new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions));
+                    editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);
+                    editorActions.modelManager.setSampleInd(-1, "me"); //to notify other clients
                 }
             });
 
@@ -1887,7 +2193,35 @@ module.exports = function(){
 
             //TODO: Funda
 
-            $("#send-message").click(function(evt) {
+        $("#send-message").click(function(evt) {
+	    var httpRequest;
+	    if (window.XMLHttpRequest)
+	        httpRequest = new XMLHttpRequest();
+	    else
+	        httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+
+	    //Let REACH process the message posted in the chat box.
+	    httpRequest.open("POST", "http://agathon.sista.arizona.edu:8080/odinweb/api/text", true);
+    	    httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    	    httpRequest.send("text="+document.getElementById("inputs-comment").value+"&output=indexcard");
+   	    httpRequest.onreadystatechange = function () { 
+    	        if (httpRequest.readyState == 4 && httpRequest.status == 200) {
+		    var reachResponse = JSON.parse(httpRequest.responseText);
+                    alert(JSON.stringify(reachResponse));
+		    var jsonObj = idxcardjson.createJson(reachResponse); //Translate the index card JSON data format into a valid JSON model for SBGNviz.
+		    //var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
+		    //var currJson = sbgnmlToJson.convert(currSbgnml);
+		    //var jsonObj = jsonMerger.merge(newJson, currJson); //Merge the two SBGN models.
+
+               	    //get another sbgncontainer and display the new SBGN model.
+            	    //editorActions.modelManager.deleteAll(cy.nodes(), cy.edges(), "me");
+	            sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+                    editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);
+                }
+            }
+        });
+
+            $("#end-message").click(function(evt) {
 
                 var msg = document.getElementById("inputs-comment").value;
                 socket.emit("REACHQuery", "fries", msg); //for agent
