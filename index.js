@@ -4,6 +4,10 @@
  *	Author: Funda Durupinar Babur<f.durupinar@gmail.com>
  */
 var app = module.exports = require('derby').createApp('cwc', __filename);
+var _ = require('./public/node_modules/underscore');
+
+var bs;
+
 
 
 app.loadViews(__dirname + '/views');
@@ -11,6 +15,7 @@ app.loadViews(__dirname + '/views');
 //app.serverUse(module, 'derby-stylus');
 
 
+var testMode = true;
 var ONE_DAY = 1000 * 60 * 60 * 24;
 
 var ONE_HOUR = 1000 * 60 * 60;
@@ -21,42 +26,14 @@ var docReady = false;
 
 var useQunit = true;
 
-var menu;
+var factoidHandler;
 
-var userCount;
 var socket;
+var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
 
 var modelManager;
-
 var oneColor = require('onecolor');
-
 app.on('model', function (model) {
-
-
-    model.fn('pluckUserIds', function (items, additional) {
-        var ids, item, key;
-
-
-        if (items == null) {
-            items = {};
-        }
-        ids = {};
-        if (additional) {
-            ids[additional] = true;
-
-        }
-        for (key in items) {
-            item = items[key];
-            //do not include previous messages
-
-            if (item != null ? item.userId : void 0) {
-                ids[item.userId] = true;
-            }
-        }
-
-
-        return Object.keys(ids);
-    });
 
     model.fn('biggerTime', function (item) {
         var duration = model.get('_page.durationId');
@@ -69,22 +46,26 @@ app.on('model', function (model) {
         return item.date > startTime;
     });
 
-
     model.fn('biggerThanCurrentTime', function (item) {
 
-        clickTime = model.get('_page.clickTime');
+        var clickTime = model.get('_page.clickTime');
 
 
         return item.date > clickTime;
     });
 
 
+
 });
+
 
 app.get('/', function (page, model, params) {
     function getId() {
         return model.id();
     }
+
+
+
 
     function idIsReserved() {
         var ret = model.get('documents.' + docId) != undefined;
@@ -113,126 +94,103 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 
-    var docPath = 'documents.' + arg.docId;
+    model.subscribe('documents', function () {
+        var docPath = 'documents.' + arg.docId;
+        model.ref('_page.doc', ('documents.' + arg.docId));
 
 
 
-    model.subscribe(docPath, 'cy', function(err) {
-            if (err) {
-                return next(err);
-            }
-            model.setNull(docPath, { // create the empty new doc if it doesn't already exist
+
+        model.subscribe(docPath, function (err) {
+            if (err) return next(err);
+
+            model.createNull(docPath, { // create the empty new doc if it doesn't already exist
                 id: arg.docId
             });
 
+            // //chat related
+            model.set('_page.room', room);
+            //
+            model.set('_page.durations', [{name: 'All', id: -1}, {name: 'One day', id: ONE_DAY}, {
+                name: 'One hour',
+                id: ONE_HOUR
+            }, {name: 'One minute', id: ONE_MINUTE}]);
+
 
             // create a reference to the document
-            model.ref('_page.doc', 'documents.' + arg.docId);
-            model.subscribe(docPath, 'history');
-            model.subscribe(docPath, 'undoIndex');
-            model.subscribe(docPath, 'context');
-            model.subscribe(docPath, 'factoid');
+            var cy = model.at((docPath + '.cy'));
+            var history = model.at((docPath + '.history'));
+            var undoIndex = model.at((docPath + '.undoIndex'));
+            var context = model.at((docPath + '.context'));
+            var images = model.at((docPath + '.images'));
+
+            var users = model.at((docPath + '.users'));//user lists with names and color codes
+            var userIds = model.at((docPath + '.userIds')); //used for keeping a list of subscribed users
+            var messages = model.at((docPath + '.messages'));
+
+            cy.subscribe(function () {
+            });
+            history.subscribe(function () {
+            });
+
+            undoIndex.subscribe(function () {
+            });
+            context.subscribe(function () {
+            });
+
+            images.subscribe(function () {
+            });
+
+            messages.subscribe(function () {
+            });
 
 
-        }
-
-    );
-    model.subscribe(docPath, 'images');
+            userIds.subscribe(function () {
+                var userId = model.get('_session.userId');
 
 
-
-    //chat related
-    model.set('_page.room', room);
-
-    model.set('_page.durations', [
-        {name: 'All', id: -1},
-        {name: 'One day', id: ONE_DAY},
-        {name: 'One hour',  id: ONE_HOUR},
-        {name: 'One minute', id: ONE_MINUTE}
-
-    ]);
+                var userIdsList = userIds.get();
 
 
-    model.set('_sbgnviz.samples',
-        [{name: 'Activated STAT1alpha induction of the IRF1 gene', id: 0},
-            {name: 'Glycolysis', id: 1},
-            {name: 'MAPK cascade', id: 2},
-            {name: 'PolyQ proteins interference', id: 3},
-            {name: 'Insulin-like Growth Factor (IGF) signalling', id: 4},
-            {name: 'ATM mediated phosphorylation of repair proteins', id: 5},
-            {name: 'Vitamins B6 activation to pyridoxal phosphate', id: 6}
-
-
-        ]);
-
-
-    
-
-    //model.subscribe('messages');
-    var userId = model.get('_session.userId');
-
-    messagesQuery = model.query('messages', {
-        room: room,
-        date: {
-            $gt: 0
-        },
-        targets: {
-                $elemMatch:{id: userId}
-            }
-    });
-
-    messagesQuery.subscribe(function (err) {
-
-        if (err) {
-            return next(err);
-        }
-
-
-        //just to initialize
-        model.set('_page.doc.userIds',[model.get('_session.userId')]);
-
-        model.subscribe('users');
-        var  usersQuery = model.query('users', '_page.doc.userIds');
-        usersQuery.subscribe(function (err) {
-            if (err) {
-                return next(err);
-            }
-            var  user = model.at('users.' + model.get('_session.userId'));
-
-
-
-            userCount = model.at('chat.userCount');
-
-
-
-            return userCount.fetch(function (err) {
-                if(user.get()) {
-                    if(user.get('colorCode') == null ){
-                        user.set('colorCode', getNewColor());
-                    }
-                    if(user.get('name') != null)
-                        return page.render();
-
+                if (!userIdsList) {
+                    userIdsList = [userId];
+                    userIds.push(userId);
                 }
-                if (err) {
-                    return next(err);
-                }
+                else if (userIdsList.indexOf(userId) < 0) //does not exist
+                    userIds.push(userId);
 
-                return userCount.increment(function (err) {
-                    if (err) {
-                        return next(err);
+                userIdsList = userIds.get();
+
+
+                users.subscribe(function () {
+
+                    console.log("User is being subscribed");
+
+                    var colorCode = null;
+                    var userName = null;
+                    if (users.get(userId)) {
+                        userName = users.get(userId).name;
+                        colorCode = users.get(userId).colorCode;
                     }
-                    user.set({
-                        name: 'User ' + userCount.get(),
-                        colorCode: getNewColor()
-                    });
+                    if (userName == null)
+                        userName = 'User ' + userIdsList.length;
+                    if (colorCode == null)
+                        colorCode = getNewColor();
+
+
+                    users.set(userId, {name: userName, colorCode: colorCode});
+
 
                     return page.render();
-
                 });
             });
+
         });
     });
+
+
+
+
 });
 
 
@@ -254,7 +212,6 @@ function getNewColor(){
 function triggerContentChange(divId){
     //TODO: triggering here is not good
 
-
     $(('#' + divId)).trigger('contentchanged');
 
 }
@@ -272,53 +229,776 @@ function playSound() {
 }
 
 
-app.proto.clearHistory = function(){
-
-    this.model.set('_page.clickTime', new Date);
-
-    return this.model.filter('messages', 'biggerThanCurrentTime').ref('_page.list');
-}
-
 
 app.proto.changeDuration = function () {
 
-    return this.model.filter('messages', 'biggerTime').ref('_page.list');
+    return this.model.filter('_page.doc.messages', 'biggerTime').ref('_page.list');
 
 };
 
-//TODO: open this
-function updateServerGraph(){
-    //hack: setTimeout has its own stack  -- waits for the stack to clear
-     setTimeout(function(){
-         menu.updateServerGraph();
-     },0);
+/***
+ * Human listens to agent socket and performs menu operations requested by the agent
+ */
+app.proto.listenToAgentSocket = function(model){
+
+    var self = this;
+    var modelOp;
+
+
+    //For debugging
+    socket.on('message', function (msg){
+
+        console.log(msg.comment);
+    });
+    socket.on('loadFile', function(txtFile, callback){
+        try {
+
+            sbgnviz.loadSBGNMLText(txtFile);
+            if(callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+
+    });
+
+    socket.on('newFile', function(data, callback){
+        try{
+            cy.remove(cy.elements());
+            modelManager.newModel("me"); //do not delete cytoscape, only the model
+            if(callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+    socket.on('runLayout', function(data, callback){
+        try {
+            $("#perform-layout").trigger('click');
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    socket.on('addNode', function(data, callback){
+        try {
+            //does not trigger cy events
+            var newNode = chise.elementUtilities.addNode(data.x, data.y, data.class);
+
+            //notifies other clients
+            modelManager.addModelNode(newNode.id(), data, "me");
+            modelManager.initModelNode(newNode, "me");
+
+            if (callback) callback(newNode.id());
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+
+    socket.on('deleteEles', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+
+            data.elementIds.forEach(function (id) {
+                cy.getElementById(id).select();
+            });
+
+
+            if (data.type === "simple")
+                $("#delete-selected-simple").trigger('click');
+            else { //"smart"
+                $("#delete-selected-smart").trigger('click');
+            }
+
+
+            var p1 = new Promise(function (resolve) {
+                if(modelOp === "delete"){
+                    var undoInd =  model.get('_page.doc.undoIndex');
+
+                    var cmd = model.get('_page.doc.history.' + undoInd);
+                    console.log(cmd.opName);
+                    resolve("success");
+                }
+            });
+            p1.then(function(){
+
+                if(callback) callback("deleted!!");
+            });
+
+
+
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    model.on('change', '_page.doc.undoIndex', function(id, cmdInd){
+
+        var cmd = model.get('_page.doc.history.' + id);
+            modelOp = cmd.opName;
+            //console.log(modelOp);
+
+
+    });
+
+
+    socket.on('addEdge', function(data, callback){
+        try {
+            //does not trigger cy events
+            var newEdge = chise.elementUtilities.addEdge(source, target, sbgnclass, id, visibility);
+
+            //notifies other clients
+            modelManager.addModelEdge(newNode.id(), data, "me");
+            // modelManager.initModelEdge(newEdge, "me");
+
+            if (callback) callback(newEdge.id());
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    socket.on('align', function(data, callback){
+        try {
+            var nodes = cy.collection();
+            if(data.nodeIds === '*' || data.nodeIds === 'all')
+                nodes = cy.nodes();
+            else
+                data.nodeIds.forEach(function(nodeId){
+                    nodes.add(cy.getElementById(nodeId));
+                });
+
+            chise.align(nodes, data.horizontal, data.vertical, cy.getElementById(data.alignTo));
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+
+    });
+    socket.on('updateVisibility', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            if (data.val === "showAll")
+                $("#show-all").trigger('click');
+            else {
+                data.elementIds.forEach(function (id) {
+                    cy.getElementById(id).select();
+                });
+
+                if (data.val == "hide")
+                    $("#hide-selected").trigger('click');
+                else
+                    $("#show-selected").trigger('click');
+            }
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+    socket.on('searchByLabel', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            chise.searchByLabel(data.label);
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+    socket.on('updateHighlight', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            if(data.val === "remove"){
+                $("#remove-highlights").trigger('click');
+            }
+            else{
+                data.elementIds.forEach(function (id) {
+                    cy.getElementById(id).select();
+                });
+
+                if (data.val === "neighbors")
+                    $("#highlight-neighbors-of-selected").trigger('click');
+                else if (data.val === "processes")
+                    $("#highlight-processes-of-selected").trigger('click');
+            }
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+    socket.on('updateExpandCollapse', function(data, callback){
+        try {
+
+            //unselect all others
+            cy.elements().unselect();
+
+            data.elementIds.forEach(function (id) {
+                cy.getElementById(id).select();
+            });
+
+            if (data.val === "collapse")
+                $("#collapse-selected").trigger('click');
+            else
+                $("#expand-selected").trigger('click');
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    socket.on('addCompound', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            data.elementIds.forEach(function (nodeId) {
+
+                cy.getElementById(nodeId).select();
+            });
+
+            if (data.val === "complex")
+                $("#add-complex-for-selected").trigger('click');
+            else
+                $("#add-compartment-for-selected").trigger('click');
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+
+    });
+
+    socket.on('clone', function(data, callback){
+        try {
+            cy.elements().unselect();
+
+            data.elementIds.forEach(function (nodeId) {
+                cy.getElementById(nodeId).select();
+            });
+
+            $("#clone-selected").trigger('click');
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+
+    socket.on("mergeSbgn", function(data, callback){
+        self.mergeSbgn(data, function(){
+            if(callback) callback("success");
+        });
+
+
+    });
+
+    socket.on("mergeJsonWithCurrent", function(data){
+        self.mergeJsonWithCurrent(data);
+    });
+
+
+
+    // socket.on('agentContextQuestion', function(socketId){
+    //     setTimeout(function() {
+    //         var answer = confirm("Do you agree with the context?");
+    //         socket.emit('contextAnswer', {socketId: socketId, value:answer});
+    //         //if (callback) callback(answer);
+    //     }, 1000); //wait for the human to read
+    //
+    // });
+
+
+
 }
 
-app.proto.init = function (model) {
-    var timeSort;
+/***
+ * Called only once in a browser after first page rendering
+ * @param model
+ * @returns {*}
+ */
+
+app.proto.create = function (model) {
+    model.set('_page.showTime', true);
+
+    var self = this;
+    docReady = true;
+
+    var isQueryWindow = false;
+
+    socket = io();
+
+    $('#messages').contentchanged = function () {
+
+        $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+
+    }
+
+
+    //change scroll position
+    $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+
+
+    var id = model.get('_session.userId');
+    var name = model.get('_page.doc.users.' + id +'.name');
+
+    modelManager = require('./public/collaborative-app/modelManager.js')(model, model.get('_page.room') );
+    modelManager.setName( model.get('_session.userId'),name);
+
+    factoidHandler = require('./public/collaborative-app/factoid-handler')(this, modelManager) ;
+    factoidHandler.initialize();
+
+
+    //$(window).on('resize', _.debounce(this.dynamicResize, 100));
+
+    var images = model.get('_page.doc.images');
+    self.dynamicResize(model.get('_page.doc.images'));
+
+    $(window).on('resize', function(){
+        var images = model.get('_page.doc.images');
+        self.dynamicResize(images);
+    });
+
+
+
+
+    //Notify server about the client connection
+    socket.emit("subscribeHuman", { userName:name, room:  model.get('_page.room'), userId: id}, function(){
+
+    }); //subscribe to current doc as a new room
+
+    // //If we get a message on a separate window
+
+    window.addEventListener('message', function(event) {
+        if(event.data) { //initialization for a query winddow
+            isQueryWindow = true;
+
+            modelManager.newModel("me"); //do not delete cytoscape, only the model
+
+             chise.updateGraph(JSON.parse(event.data));
+
+
+            setTimeout(function() {
+
+                modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+            },2000);
+        }
+
+    }, false);
+
+
+    this.listenToAgentSocket(model);
+
+
+
+    //Loading cytoscape and clients
+    setTimeout(function(){
+
+    if(!isQueryWindow) { //initialization for a regular window
+        var isModelEmpty = self.loadCyFromModel();
+        console.log("no query");
+        //TODO????????????????
+        setTimeout(function () {
+            if (isModelEmpty)
+                modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+
+
+
+        }, 1000);
+
+    }
+
+        require('./public/collaborative-app/editor-listener.js')(modelManager, id);
+        //Listen to these after cy is loaded
+        $("#undo-last-action, #undo-icon").click(function (e) {
+            if(modelManager.isUndoPossible()){
+                modelManager.undoCommand();
+
+            }
+        });
+
+        $("#redo-last-action, #redo-icon").click(function (e) {
+            if(modelManager.isRedoPossible()){
+                modelManager.redoCommand();
+
+            }
+        });
+
+
+    }, 2000);
+
+
+
+    this.atBottom = true;
+
+
+
+    return model.on('all', '_page.list', (function (_this) {
+
+        return function () {
+            if (!_this.atBottom) {
+                return;
+            }
+
+            document.getElementById("messages").scrollTop= document.getElementById("messages").scrollHeight;
+
+            // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+
+            return _this.container.scrollTop = _this.list.offsetHeight;
+        };
+    })(this));
+};
+
+app.proto.loadCyFromModel = function(){
+
+
+    var jsonArr = modelManager.getJsonFromModel();
+
+
+    if (jsonArr!= null) {
+        //Updates data fields and sets style fields to default
+        chise.updateGraph({
+            nodes: jsonArr.nodes,
+            edges: jsonArr.edges
+        });
+
+
+        //Update position fields separately
+        cy.nodes().forEach(function(node){
+
+            var position = modelManager.getModelNodeAttribute('position',node.id());
+
+            node.position({x:position.x, y: position.y});
+
+        });
+
+        var props;
+        //update app utilities as well
+        props = modelManager.getLayoutProperties();
+        if(props) appUtilities.currentLayoutProperties = props;
+
+        props = modelManager.getGeneralProperties();
+        if(props) appUtilities.currentGeneralProperties = props;
+
+        props = modelManager.getGridProperties();
+        if(props) appUtilities.currentGridProperties = props;
+
+    }
+    return (jsonArr == null);
+}
+
+function moveNodeAndChildren(positionDiff, node, notCalcTopMostNodes) {
+        var oldX = node.position("x");
+        var oldY = node.position("y");
+        node.position({
+            x: oldX + positionDiff.x,
+            y: oldY + positionDiff.y
+        });
+        var children = node.children();
+        children.forEach(function(child){
+            moveNodeAndChildren(positionDiff, child, true);
+        });
+}
+
+app.proto.listenToNodeOperations = function(model){
 
 
     model.on('all', '_page.doc.factoid.*', function(id, op, val, prev, passed){
 
         if(docReady &&  passed.user == null) {
-            menu.factoidHandler.setFactoidModel(val);
+            factoidHandler.setFactoidModel(val);
         }
 
 
     });
+
+    //Update inspector
+
+//TODO: Open later
+    // model.on('all', '_page.doc.cy.nodes.**', function(id, op, val, prev, passed){
+    //     inspectorUtilities.handleSBGNInspector();
+    // });
+
     model.on('all', '_page.doc.cy.nodes.*', function(id, op, val, prev, passed){
 
+
         if(docReady &&  passed.user == null) {
+
             var node  = model.get('_page.doc.cy.nodes.' + id);
 
+
             if(!node || !node.id){ //node is deleted
-
-               menu.deleteElement(id, false);
-
+                cy.getElementById(id).remove();
             }
         }
 
 
+
+    });
+
+
+
+
+    model.on('all', '_page.doc.cy.nodes.*.addedLater', function(id, op, idName, prev, passed){ //this property must be something that is only changed during insertion
+
+
+        if(docReady && passed.user == null) {
+            var pos = model.get('_page.doc.cy.nodes.'+ id + '.position');
+            var sbgnclass = model.get('_page.doc.cy.nodes.'+ id + '.data.class');
+            var visibility = model.get('_page.doc.cy.nodes.'+ id + '.visibility');
+            var parent = model.get('_page.doc.cy.nodes.'+ id + '.data.parent');
+
+            if(parent == undefined) parent = null;
+
+
+            var newNode = chise.elementUtilities.addNode(pos.x, pos.y, sbgnclass, id, parent, visibility);
+
+            // modelManager.initModelNode(newNode,"me", true);
+
+
+            newNode.move({"parent":parent});
+
+        }
+
+    });
+
+
+
+    model.on('all', '_page.doc.cy.nodes.*.position', function(id, op, pos,prev, passed){
+
+        if(docReady && passed.user == null) {
+            var posDiff = {x: (pos.x - cy.getElementById(id).position("x")), y:(pos.y - cy.getElementById(id).position("y"))} ;
+            moveNodeAndChildren(posDiff, cy.getElementById(id)); //children need to be updated manually here
+
+        }
+    });
+    model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val,prev, passed){
+
+        if(docReady && passed.user == null) {
+            if(val == null){
+                cy.getElementById(id).css({
+                    "overlay-color": null,
+                    "overlay-padding": 10,
+                    "overlay-opacity": 0
+                });
+
+            }
+            else
+                cy.getElementById(id).css({
+                    "overlay-color": val,
+                    "overlay-padding": 10,
+                    "overlay-opacity": 0.25
+                });
+
+            console.log("changed highlightcolor");
+        }
+
+    });
+
+    //Called by agents to change bbox
+    model.on('all', '_page.doc.cy.nodes.*.data.*.*', function(id, att1,att2, op, val,prev, passed){
+        if(docReady && passed.user == null) {
+
+            var newAtt = cy.getElementById(id).data(att1);
+            newAtt[att2] = val;
+            cy.getElementById(id).data(att1, newAtt);
+
+
+        }
+    });
+
+
+    //Called by agents to change specific properties of data
+    model.on('all', '_page.doc.cy.nodes.*.data.*', function(id, att, op, val,prev, passed){
+        if(docReady && passed.user == null) {
+
+            cy.getElementById(id).data(att, val);
+            if(att === "parent")
+                cy.getElementById(id).move({"parent":val});
+        }
+    });
+
+
+    model.on('all', '_page.doc.cy.nodes.*.data', function(id,  op, data,prev, passed){
+
+        console.log("only data");
+
+
+
+
+        if(docReady && passed.user == null) {
+
+            //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
+            cy.getElementById(id)._private.data = data;
+
+            //to update parent
+            var newParent = data.parent;
+            if(newParent == undefined)
+                newParent = null;  //must be null explicitly
+
+            cy.getElementById(id).move({"parent":newParent});
+            cy.getElementById(id).updateStyle();
+
+
+        }
+    });
+
+
+
+    model.on('all', '_page.doc.cy.nodes.*.expandCollapseStatus', function(id, op, val,prev, passed){
+
+
+
+        if(docReady && passed.user == null) {
+            var expandCollapse = cy.expandCollapse('get'); //we can't call chise.expand or collapse directly as it causes infinite calls
+            if(val === "collapse")
+                expandCollapse.collapse(cy.getElementById(id));
+            else
+                expandCollapse.expand(cy.getElementById(id));
+
+        }
+
+    });
+
+
+    model.on('all', '_page.doc.cy.nodes.*.highlightStatus', function(id, op, highlightStatus, prev, passed){ //this property must be something that is only changed during insertion
+        if(docReady && passed.user == null) {
+            try{
+                var viewUtilities = cy.viewUtilities('get');
+
+                console.log(highlightStatus);
+                if(highlightStatus === "highlighted")
+                    viewUtilities.highlight(cy.getElementById(id));
+                else
+                    viewUtilities.unhighlight(cy.getElementById(id));
+
+                //    cy.getElementById(id).updateStyle();
+            }
+            catch(e){
+                console.log(e);
+            }
+
+        }
+    });
+
+    model.on('all', '_page.doc.cy.nodes.*.visibilityStatus', function(id, op, visibilityStatus, prev, passed){ //this property must be something that is only changed during insertion
+        if(docReady && passed.user == null) {
+            try{
+                var viewUtilities = cy.viewUtilities('get');
+
+
+                if(visibilityStatus === "hide")
+                    viewUtilities.hide(cy.getElementById(id));
+                else
+                    viewUtilities.show(cy.getElementById(id));
+
+            }
+            catch(e){
+                console.log(e);
+            }
+
+        }
+    });
+
+}
+
+app.proto.listenToEdgeOperations = function(model){
+
+
+
+
+    //Update inspector
+    //TODO: open later
+    // model.on('all', '_page.doc.cy.edges.**', function(id, op, val, prev, passed){
+    //     inspectorUtilities.handleSBGNInspector();
+    // });
+
+
+    model.on('all', '_page.doc.cy.edges.*.highlightColor', function(id, op, val,prev, passed){
+
+        if(docReady && passed.user == null) {
+            if(val == null){
+
+                cy.getElementById(id).css({
+                    "overlay-color": null,
+                    "overlay-padding": 10,
+                    "overlay-opacity": 0
+                });
+
+            }
+            else {
+                cy.getElementById(id).css({
+                    "overlay-color": val,
+                    "overlay-padding": 10,
+                    "overlay-opacity": 0.25
+                });
+            }
+
+
+        }
     });
 
     model.on('all', '_page.doc.cy.edges.*', function(id, op, val, prev, passed){
@@ -328,51 +1008,9 @@ app.proto.init = function (model) {
             var edge  = model.get('_page.doc.cy.edges.' + id); //check
 
             if(!edge|| !edge.id){ //edge is deleted
-                menu.deleteElement(id, false);
+                cy.getElementById(id).remove();
 
             }
-            //else insertion
-        }
-
-    });
-
-    model.on('all', '_page.doc.sampleInd', function(op, ind, prev, passed){
-
-
-        if(docReady && passed.user == null) {
-
-            menu.updateSample(ind, false); //false = do not delete, sample changing client deleted them already
-
-        }
-
-    });
-
-
-
-    model.on('all', '_page.doc.layoutProperties', function(index){
-
-
-        if(docReady && menu ){
-            var layoutProps = model.get('_page.doc.layoutProperties');
-
-            menu.updateLayoutProperties(layoutProps);
-
-
-        }
-
-    });
-
-    model.on('all', '_page.doc.cy.nodes.*.addedLater', function(id, op, idName, prev, passed){ //this property must be something that is only changed during insertion
-
-
-        if(docReady && passed.user == null) {
-
-            
-              var pos = model.get('_page.doc.cy.nodes.'+ id + '.position');
-              var sbgnlabel = model.get('_page.doc.cy.nodes.'+ id + '.sbgnlabel');
-             var sbgnclass = model.get('_page.doc.cy.nodes.'+ id + '.sbgnclass');
-              menu.addNode(id, pos.x, pos.y, sbgnclass, sbgnlabel,false);
-
         }
 
     });
@@ -381,316 +1019,185 @@ app.proto.init = function (model) {
 
 
         if(docReady && passed.user == null ){
-            //check if edge id exists in the current inspector graph
-            var source = model.get('_page.doc.cy.edges.'+ id + '.source');
-            var target = model.get('_page.doc.cy.edges.'+ id + '.target');
-            var sbgnclass = model.get('_page.doc.cy.edges.'+ id + '.sbgnclass');
+            var source = model.get('_page.doc.cy.edges.'+ id + '.data.source');
+            var target = model.get('_page.doc.cy.edges.'+ id + '.data.target');
+            var sbgnclass = model.get('_page.doc.cy.edges.'+ id + '.data.class');
+            var visibility = model.get('_page.doc.cy.nodes.'+ id + '.visibility');
 
-            menu.addEdge(id, source, target, sbgnclass, false);
+
+            var newEdge = chise.elementUtilities.addEdge(source, target, sbgnclass, id, visibility);
+
+
+
+
+            modelManager.initModelEdge(newEdge,"me", true);
 
         }
 
     });
-    model.on('all', '_page.doc.cy.nodes.*.sbgnclass', function(id, op, sbgnclass, prev, passed){ //this property must be something that is only changed during insertion
+    //Called by agents to change specific properties of data
+    model.on('all', '_page.doc.cy.edges.*.data.*', function(id, att, op, val,prev, passed){
+        if(docReady && passed.user == null) {
+            cy.getElementById(id).data(att, val);
+        }
+    });
 
+    model.on('all', '_page.doc.cy.edges.*.data', function(id, op, data,prev, passed){
 
         if(docReady && passed.user == null) {
-
-            menu.changeElementProperty(id, 'sbgnclass', 'sbgnclass', sbgnclass, 'data', false);
+            //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
+            cy.getElementById(id)._private.data = data;
 
         }
-
-
-
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.sbgnclass', function(id,op, sbgnclass, prev, passed){//this property must be something that is only changed during insertion
-
-        if(docReady && passed.user == null ){
-            menu.changeElementProperty(id, 'sbgnclass', 'sbgnclass', sbgnclass, 'data', false);
-        }
-    });
-    model.on('all', '_page.doc.cy.edges.*.source', function(id,op, source, prev, passed){//this property must be something that is only changed during insertion
-
-        if(docReady && passed.user == null ){
-            menu.changeElementProperty(id, 'source', 'source', source, 'data', false);
-        }
-
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.target', function(id,op, target, prev, passed){//this property must be something that is only changed during insertion
-
-        if(docReady && passed.user == null ){
-            menu.changeElementProperty(id, 'target', 'target', target, 'data', false);
-        }
-
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.portsource', function(id,op, portsource, prev, passed){//this property must be something that is only changed during insertion
-
-        if(docReady && passed.user == null ){
-            menu.changeElementProperty(id, 'portsource', 'portsource', portsource, 'data', false);
-        }
-
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.porttarget', function(id,op, porttarget, prev, passed){//this property must be something that is only changed during insertion
-
-        if(docReady && passed.user == null ){
-            menu.changeElementProperty(id, 'porttarget', 'porttarget', porttarget, 'data', false);
-        }
-
     });
 
 
-
-    model.on('change', '_page.doc.cy.nodes.*.position', function(id, pos, prev, passed){
-
-        if(docReady && passed.user == null){
-            menu.changePosition(id,  pos, false);
-
-
-        }
-
-
-    });
-
-    model.on('change', '_page.doc.cy.nodes.*.highlightColor', function(id, highlightColor, prev,passed){
-
+    model.on('all', '_page.doc.cy.edges.*.bendPoints', function(id, op, bendPoints, prev, passed){ //this property must be something that is only changed during insertion
         if(docReady && passed.user == null) {
 
-            var color;
+            try{
+                var edge = cy.getElementById(id);
+                if(bendPoints.weights && bendPoints.weights.length > 0) {
+                    edge.scratch('cyedgebendeditingWeights', bendPoints.weights);
+                    edge.scratch('cyedgebendeditingDistances', bendPoints.distances);
+                    edge.addClass('edgebendediting-hasbendpoints');
+                }
+                else{
+                    edge.removeScratch('cyedgebendeditingWeights');
+                    edge.removeScratch('cyedgebendeditingDistances');
+                    edge.removeClass('edgebendediting-hasbendpoints');
+                }
 
-            if (highlightColor != null)
-                color =  highlightColor;
-            else
-                color = model.get('_page.doc.cy.nodes.' + id + '.backgroundColor');
+                edge.trigger('cyedgebendediting.changeBendPoints');
+             //   cy.getElementById(id).updateStyle();
 
-            menu.changeHighlightColor(id, color);
+            }
+            catch(e){
+                console.log(e);
+            }
 
-            //node is selected
-            if(menu.factoidHandler && model.get('_page.doc.factoid'))
-                menu.factoidHandler.highlightSentenceInText(id, highlightColor);
-
-                //factoidHandler.highlightSentenceInText(model.get('_page.doc.cy.nodes.' + id + '.sbgnlabel'), highlightColor);
         }
-
     });
 
-    model.on('all', '_page.doc.cy.edges.*.highlightColor', function(id, op, highlightColor,prev, passed){
-
+    model.on('all', '_page.doc.cy.edges.*.highlightStatus', function(id, op, highlightStatus, prev, passed){ //this property must be something that is only changed during insertion
         if(docReady && passed.user == null) {
-            var color;
-            if (highlightColor != null)
-                color = highlightColor;
-            else
-                color = model.get('_page.doc.cy.edges.' + id + '.lineColor');
+            var viewUtilities = cy.viewUtilities('get');
+            try{
+                if(highlightStatus === "highlighted")
+                    viewUtilities.highlight(cy.getElementById(id));
+                else
+                    viewUtilities.unhighlight(cy.getElementById(id));
 
-            menu.changeElementProperty(id, 'line-color', 'lineColor', color, 'css', false);
+            }
+            catch(e){
+                console.log(e);
+            }
 
         }
-
     });
-    model.on('all', '_page.doc.cy.nodes.*.sbgnlabel', function(id, op, label,prev, passed){
 
+    model.on('all', '_page.doc.cy.edges.*.visibilityStatus', function(id, op, visibilityStatus, prev, passed){ //this property must be something that is only changed during insertion
         if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'sbgnlabel', 'sbgnlabel', label, 'data', false);
-
-        }
-    });
-    model.on('all', '_page.doc.cy.nodes.*.borderColor', function(id, op, borderColor,prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'borderColor', 'borderColor', borderColor, 'data', false);
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.nodes.*.borderWidth', function(id,  op,borderWidth,prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'border-width', 'borderWidth', borderWidth, 'css', false);
-
+            var viewUtilities = cy.viewUtilities('get');
+            try{
+                if(visibilityStatus === "hide")
+                    viewUtilities.hide(cy.getElementById(id));
+                else
+                    viewUtilities.show(cy.getElementById(id));
+            }
+            catch(e){
+                console.log(e);
+            }
         }
     });
 
-    model.on('all', '_page.doc.cy.nodes.*.backgroundColor', function(id,  op, backgroundColor,prev, passed){
+}
 
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'background-color', 'backgroundColor', backgroundColor, 'css', false);
 
+app.proto.init = function (model) {
+    var timeSort;
+
+    var self = this;
+    this.listenToNodeOperations(model);
+    this.listenToEdgeOperations(model);
+
+
+
+    //Listen to other model operations
+
+
+    // model.on('all', '_page.doc.messages.**', function(id, op, val, prev, passed){
+    //
+    //     // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+    //     $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+    //
+    //
+    // });
+
+
+
+    model.on('all', '_page.doc.factoid.*', function(id, op, val, prev, passed){
+
+        if(docReady &&  passed.user == null) {
+            factoidHandler.setFactoidModel(val);
         }
+
+
     });
 
-    model.on('all', '_page.doc.cy.nodes.*.backgroundOpacity', function(id,  op, backgroundOpacity,prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'backgroundOpacity', 'backgroundOpacity', backgroundOpacity, 'data', false);
-
-        }
-    });
 
 
-    model.on('all', '_page.doc.cy.nodes.*.isMultimer', function(id,  op,isMultimer,prev, passed){
+    //Cy updated by other clients
+    model.on('change', '_page.doc.cy.initTime', function( val, prev, passed){
 
-        if(docReady && passed.user == null) {
-            menu.changeMultimerStatus(id, isMultimer);
+        if(docReady &&  passed.user == null) {
 
-
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.nodes.*.isCloneMarker', function(id,  op,isCloneMarker,prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeCloneMarkerStatus(id, isCloneMarker);
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.nodes.*.parent', function(id,  op,parent,prev, passed){
-
-
-        if(docReady && passed.user == null) {
-
-            menu.changeElementProperty(id, 'parent', 'parent', parent, 'data', false);
-
+            self.loadCyFromModel();
 
         }
     });
 
-
-    model.on('all', '_page.doc.cy.nodes.*.ports', function(id, op, ports, prev, passed){ //this property must be something that is only changed during insertion
-
-
-        if(docReady && passed.user == null) {
-
-            menu.changeElementProperty(id, 'ports', 'ports', ports, 'data', false);
+    model.on('all', '_page.doc.cy.layoutProperties', function(op, val) {
+        if (docReady){
+            for(var att in val){ //assign each attribute separately to keep the functions in currentlayoutproperties
+                if(appUtilities.currentLayoutProperties[att])
+                    appUtilities.currentLayoutProperties[att] = val[att];
+            }
 
         }
 
     });
 
-
-    model.on('all', '_page.doc.cy.nodes.*.width', function(id,  op, width ,prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'width', 'width', width, 'data', false);
-
+    model.on('all', '_page.doc.cy.generalProperties', function(op, val) {
+        if (docReady){
+            for(var att in val){ //assign each attribute separately to keep the functions in currentgeneralproperties
+                if(appUtilities.currentGeneralProperties[att])
+                    appUtilities.currentGeneralProperties[att] = val[att];
+            }
 
         }
+
     });
 
-    model.on('all', '_page.doc.cy.edges.*.width', function(id,  op, width ,prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'width', 'width', width, 'css', false);
-
-
-        }
-    });
-
-
-    model.on('all', '_page.doc.cy.nodes.*.height', function(id,  op, height, prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'height', 'height', height, 'data', false);
+    model.on('all', '_page.doc.cy.gridProperties', function(op, val) {
+        if (docReady){
+            for(var att in val){ //assign each attribute separately to keep the functions in currentgridproperties
+                if(appUtilities.currentGridProperties[att])
+                    appUtilities.currentGridProperties[att] = val[att];
+            }
 
         }
+
     });
 
 
-
-    model.on('all', '_page.doc.cy.nodes.*.sbgnStatesAndInfos', function(id,  op, sbgnStatesAndInfos,prev, passed){
-
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'sbgnstatesandinfos', 'sbgnStatesAndInfos', sbgnStatesAndInfos, 'data', false);
-
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.bendPointPositions', function(id,  op, bendPointPositions, prev, passed){
-
-        if(docReady && passed.user == null) {
-            //if(prev.length < bendPointPositions.length)
-            menu.changeBendPoints(id, bendPointPositions, false);
-
-        }
-    });
-    model.on('all', '_page.doc.cy.edges.*.lineColor', function(id,  op, lineColor,prev, passed){
-
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'line-color', 'lineColor', lineColor, 'css', false);
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.nodes.*.expandCollapseStatus', function(id,  op, expandCollapseStatus, prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeExpandCollapseStatus(id, expandCollapseStatus, false);
-
-        }
-    });
-
-
-    model.on('all', '_page.doc.cy.nodes.*.highlightStatus', function(id,  op, highlightStatus, prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'highlightStatus', 'highlightStatus', highlightStatus, 'data', false);
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.highlightStatus', function(id,  op, highlightStatus, prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'highlightStatus', 'highlightStatus', highlightStatus, 'data', false);
-
-        }
-    });
-    model.on('all', '_page.doc.cy.nodes.*.visibilityStatus', function(id,  op, visibilityStatus, prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'visibilityStatus', 'visibilityStatus', visibilityStatus, 'data', false);
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.visibilityStatus', function(id,  op, visibilityStatus, prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'visibilityStatus', 'visibilityStatus', visibilityStatus, 'data', false);
-
-        }
-    });
-
-
-
-
-
-    model.on('all', '_page.doc.cy.edges.*.width', function(id,  op, width,prev, passed){
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'width', 'width', width, 'css', false);
-
-        }
-    });
-
-    model.on('all', '_page.doc.cy.edges.*.sbgncardinality', function(id, op,  sbgncardinality,prev, passed){
-
-        if(docReady && passed.user == null) {
-            menu.changeElementProperty(id, 'sbgncardinality', 'sbgncardinality', sbgncardinality, 'data', false);
-
-        }
-    });
-
+    //Sometimes works
     model.on('all', '_page.doc.images', function() {
-        if (docReady)
+        if (docReady) {
+            triggerContentChange('static-image-container');
             triggerContentChange('receivedImages');
+
+        }
     });
 
     model.on('all', '_page.doc.history', function(){
@@ -699,11 +1206,6 @@ app.proto.init = function (model) {
         }
     });
 
-
-    model.on('all', '_page.doc.undoIndex', function(){
-        menu.refreshGlobalUndoRedoButtonsStatus();
-
-    });
     model.on('insert', '_page.list', function (index) {
 
 
@@ -713,6 +1215,7 @@ app.proto.init = function (model) {
 
         if(docReady){
             triggerContentChange('messages');
+
 
         }
 
@@ -731,137 +1234,13 @@ app.proto.init = function (model) {
 
 
 
-    return model.sort('messages', timeSort).ref('_page.list');
+    return model.sort('_page.doc.messages', timeSort).ref('_page.list');
 };
 
 
-app.proto.create = function (model) {
-    model.set('_page.showTime', true);
-    docReady = true;
-
-
-    socket = io();
-
-    var id = model.get('_session.userId');
-    var name = model.get('users.' + id +'.name');
-   socket.emit("subscribeHuman", {userName:name,room:  model.get('_page.room'), userId: id}, function(userList){
-
-
-        var userIds =[];
-        userList.forEach(function(user){
-            userIds.push(user.userId);
-        });
-
-        model.set('_page.doc.userIds', userIds );
-    }); //subscribe to current doc as a new room
-
-
-
-
-    //to capture user disconnection, this has to be throuagh sockets-- not model
-    socket.on('userList', function(userList){
-        var userIds =[];
-        userList.forEach(function(user){
-            userIds.push(user.userId);
-        });
-
-        model.set('_page.doc.userIds', userIds );
-
-    });
-
-    // socket.on('loadFile', function(txtFile){
-    //     menu.loadFile(txtFile);
-    // });
-
-    socket.on('newFile', function(){
-        menu.newFile();
-       // $('#new-file').trigger("click");
-    });
-
-    //better through sockets-- model operation causes complications
-    socket.on('runLayout', function(){
-        $("#perform-layout").trigger('click');
-    });
-
-    socket.on("mergeSbgn", function(data){
-       menu.mergeSbgn(data);
-    });
-
-    socket.on("mergeJsonWithCurrent", function(data){
-        menu.mergeJsonWithCurrent(data);
-    });
-
-
-    // socket.on('addNode', function(data, callback){
-    //     var nodeId = menu.addNode(null, data.x, data.y, data.sbgnclass, data.sbgnlabel, true);
-    //
-    //     if(callback) callback(nodeId);
-    //
-    // });
-    //
-    // // socket.on('agentContextQuestion', function(socketId){
-    // //     setTimeout(function() {
-    // //         var answer = confirm("Do you agree with the context?");
-    // //         socket.emit('contextAnswer', {socketId: socketId, value:answer});
-    // //         //if (callback) callback(answer);
-    // //     }, 1000); //wait for the human to read
-    // //
-    // // });
-    //
-    // //TODO: make this a function in menu-functions
-    // socket.on('addCompound', function(data, callback){
-    //
-    //     //unselect all others
-    //     cy.nodes().unselect();
-    //
-    //     data.selectedNodeIds.forEach(function(nodeId){
-    //
-    //         cy.getElementById( nodeId).select();
-    //     });
-    //
-    //
-    //
-    //     var compoundId = -1;
-    //     if(data.type == "complex")
-    //         compoundId = menu.makeCompoundComplex();
-    //     else
-    //         compoundId = menu.makeCompoundCompartment();
-    //
-    //     if(callback) callback(compoundId);
-    //
-    // });
-
-
-    modelManager = require('./public/sample-app/js/modelManager.js')(model, model.get('_page.room'), model.get('_session.userId'),name );
-
-
-    menu =  require('./public/sample-app/js/app-menu.js')();
-
-
-
-    //send modelManager to web client
-    //make sure cytoscape is loaded
-    menu.start(modelManager);
-
-
-
-    this.atBottom = true;
-
-
-
-    return model.on('all', '_page.list', (function (_this) {
-
-        return function () {
-            if (!_this.atBottom) {
-                return;
-            }
-            return _this.container.scrollTop = _this.list.offsetHeight;
-        };
-    })(this));
-};
-
-
-app.proto.onScroll = function () {
+app.proto.onScroll = function (element) {
+    console.log(element);
+    console.log(this);
     var bottom, containerHeight, scrollBottom;
     bottom = this.list.offsetHeight;
     containerHeight = this.container.offsetHeight;
@@ -872,28 +1251,45 @@ app.proto.onScroll = function () {
 };
 
 
+
 app.proto.changeColorCode = function(){
 
-    var  user = this.model.at('users.' + this.model.get('_session.userId'));
-
+    var  user = this.model.at('_page.doc.users.' + this.model.get('_session.userId'));
     user.set('colorCode', getNewColor());
 
 };
 app.proto.runUnitTests = function(){
-    require("./public/test/testsMenuFunctions.js")();
-    require("./public/test/testsModelManager.js")();
 
+    var room = this.model.get('_page.room');
+    require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
+    //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
+    // require("./public/test/testsModelManager.js")();
     require("./public/test/testOptions.js")(); //to print out results
+
+
+
 
 }
 
+app.proto.enterMessage= function(event){
 
+    if (event.keyCode == 13 && !event.shiftKey) {
+       this.add(event);
 
-app.proto.add = function (model, filePath) {
+       //  $('#inputs-comment')[0].value = "abc";
+       // // $('#inputs-comment')[0].focus();
+       //  $('#inputs-comment')[0].setSelectionRange(0,0);
+
+        // prevent default behavior
+        event.preventDefault();
+
+    }
+}
+app.proto.add = function (event, model, filePath) {
 
     if(model == null)
-
         model = this.model;
+
     this.atBottom = true;
 
 
@@ -916,22 +1312,92 @@ app.proto.add = function (model, filePath) {
         }
 
         var msgUserId = model.get('_session.userId');
-        var msgUserName = model.get('users.' + msgUserId +'.name');
+        var msgUserName = model.get('_page.doc.users.' + msgUserId +'.name');
 
-        model.add('messages', {
-            room: model.get('_page.room'),
-            targets: targets,
-            userId: msgUserId,
-            userName: msgUserName,
-            comment: comment,
-            date: -1//val //server assigns the correct time
-        });
+       socket.emit('getDate', function(date){ //get the date from the server
+
+           comment.style = "font-size:large";
+            model.add('_page.doc.messages', {
+                room: model.get('_page.room'),
+                targets: targets,
+                userId: msgUserId,
+                userName: msgUserName,
+                comment: comment,
+                date: date
+            });
+
+
+           event.preventDefault();
+
+            //change scroll position
+           $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+
+
+
+       });
 
 
 };
 
+app.proto.clearHistory = function () {
+    this.model.set('_page.clickTime', new Date);
+
+    return this.model.filter('_page.doc.messages', 'biggerThanCurrentTime').ref('_page.list');
+    
+}
+
+app.proto.dynamicResize = function (images) {
+    var win = $(window);
+
+    var windowWidth = win.width();
+    var windowHeight = win.height();
+
+    var canvasWidth = 1200;
+    var canvasHeight = 680;
 
 
+    if (windowWidth > canvasWidth)
+    {
+        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.55);
+        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.55);
+
+
+        if(images) {
+            images.forEach(function (img) {
+                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.55);
+            });
+        }
+        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.45);
+
+        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.45);
+        // var w = $("#sbgn-inspector-and-canvas").width(); //funda
+        var w = $("#canvas-tab-area").width();
+        $(".nav-menu").width(w);
+        $(".navbar").width(w);
+        $("#sbgn-toolbar").width(w);
+    }
+    else{
+        if(images) {
+            images.forEach(function (img) {
+                $("#static-image-container-" + img.tabIndex).width(800);
+                $("#static-image-container-" + img.tabIndex).height(680);
+            });
+        }
+    }
+
+    if (windowHeight > canvasHeight)
+    {
+        $("#canvas-tab-area").height(windowHeight * 0.84);
+        $("#sbgn-network-container").height(windowHeight * 0.84);
+        if(images) {
+            images.forEach(function (img) {
+
+                $("#static-image-container-" + img.tabIndex).height(windowHeight * 0.84);
+            });
+        }
+        $("#inspector-tab-area").height(windowHeight * 0.84);
+    }
+};
 
 app.proto.uploadFile = function(evt){
 
@@ -943,17 +1409,21 @@ app.proto.uploadFile = function(evt){
         var file = evt.target.files[0];
 
         var reader = new FileReader();
+        var images = this.model.get('_page.doc.images');
+        var imgCnt = 0;
+        if(images)
+            imgCnt = images.length;
         reader.onload = function(evt){
-            modelManager.addImage({ img: evt.target.result,room: room, filePath: filePath});
+            modelManager.addImage({ img: evt.target.result,room: room, fileName: filePath, tabIndex:imgCnt, tabLabel:filePath});
 
         };
 
         reader.readAsDataURL(file);
 
         //Add file name as a text message
-        this.model.set('_page.newComment', "Sent image: "  + filePath );
+        this.model.set('_page.newComment',  ("Sent image: "  + filePath) );
 
-        this.app.proto.add(this.model, filePath);
+        this.app.proto.add(evt,this.model, filePath);
 
 
     }
@@ -973,6 +1443,8 @@ app.proto.count = function (value) {
 app.proto.formatTime = function (message) {
     var hours, minutes, seconds, period, time;
     time = message && message.date;
+
+
     if (!time) {
         return;
     }
@@ -989,6 +1461,7 @@ app.proto.formatTime = function (message) {
     if (seconds < 10) {
         seconds = '0' + seconds;
     }
+
     return hours + ':' + minutes + ':' + seconds;
 };
 
@@ -998,21 +1471,149 @@ app.proto.formatObj = function(obj){
 };
 
 
-app.proto.processReach = function(msg) {
-    var httpRequest;
-    if (window.XMLHttpRequest) {
-        httpRequest = new XMLHttpRequest();
-    } else {
-        httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+app.proto.mergeJsons = function(jsonGraphs){
+
+    if(jsonGraphs.length == 0 )
+        return;
+
+    modelManager.setRollbackPoint(); //before merging everything
+
+    //clear the canvas first
+    cy.remove(cy.elements());
+    modelManager.newModel("me"); //do not delete cytoscape, only the model
+
+
+    //var labelMap = {}; //keeps label names in association with jsons -- an object of arrays
+    var jsonObj = jsonGraphs[0].json;
+
+
+    var sentenceNodeMap = {};
+    var idxCardNodeMap = {};
+
+
+
+    jsonGraphs[0].json.nodes.forEach(function(node){ //do for the first graph before any changes
+
+        sentenceNodeMap[node.data.id] = [jsonGraphs[0].sentence];
+        idxCardNodeMap[node.data.id] = [jsonGraphs[0].idxCard];
+    });
+
+
+
+
+    for(var i = 0; i  < jsonGraphs.length - 1; i++){
+
+        var mergeResult = jsonMerger.merge(jsonObj, jsonGraphs[i+1].json); //jsonobj's ids remain the same
+
+
+        mergeResult.whichJsn.jsn2.forEach(function(nd){
+
+            if(sentenceNodeMap[nd] !== undefined) {
+                sentenceNodeMap[nd].push(jsonGraphs[i + 1].sentence);
+                idxCardNodeMap[nd].push(jsonGraphs[i + 1].idxCard);
+            }
+            else {
+                sentenceNodeMap[nd] = [jsonGraphs[i + 1].sentence];
+                idxCardNodeMap[nd] = [jsonGraphs[i + 1].idxCard];
+            }
+
+
+        });
+
+
+        jsonObj = mergeResult.wholeJson;
+
     }
-    httpRequest.open("POST", "http://agathon.sista.arizona.edu:8080/odinweb/api/text", true);
-    httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    httpRequest.send("text="+msg+"&output=indexcard");
-    //httpRequest.send("text="+msg);
-    httpRequest.onreadystatechange = function () {
-        if (httpRequest.readyState == 4 && httpRequest.status == 200) {
-            //alert(JSON.parse(httpRequest.responseText).cards[0].extracted_information.participant_a.entity_text);
-            alert(httpRequest.responseText);
-        }
-    }
-};
+
+
+    //Map
+
+    modelManager.newModel( "me", true);
+
+    chise.updateGraph(jsonObj);
+
+    setTimeout(function(){
+        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+    },1000); //wait for chise to complete updating graph
+
+
+    $("#perform-layout").trigger('click');
+
+    //Call merge notification after the layout
+    setTimeout(function(){
+        modelManager.mergeJsons("me", true);
+    }, 1000);
+
+
+    return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
+}
+
+app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
+
+
+    var self = this;
+    var currJson = sbgnviz.createJson();
+
+
+    modelManager.setRollbackPoint(); //before merging
+
+
+
+
+    var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
+    var jsonObj = mergeResult.wholeJson;
+    var newJsonIds = mergeResult.jsonToMerge;
+
+
+
+
+
+    //get another sbgncontainer and display the new SBGN model.
+    modelManager.newModel( "me", true);
+
+    //this takes a while so wait before initing the model
+    chise.updateGraph(jsonObj);
+
+    //DEBUG
+    // cy.nodes().forEach(function (node){
+    //     if(node._private.data == null){
+    //         console.log("Data not assigned");
+    //         console.log(node);
+    //     }
+    // });
+
+    setTimeout(function(){
+        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+
+        //select the new graph
+        newJsonIds.nodes.forEach(function(node){
+                cy.getElementById(node.data.id).select();
+
+
+
+        });
+
+        //Call Layout
+
+
+        $("#perform-layout").trigger('click');
+
+        //Call merge notification after the layout
+        setTimeout(function(){
+            modelManager.mergeJsons("me", true);
+            if(callback) callback("success");
+        }, 1000);
+
+    },2000); //wait for chise to complete updating graph
+
+}
+
+app.proto.mergeSbgn = function(sbgnText, callback){
+
+
+    var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
+    this.mergeJsonWithCurrent(newJson, callback);
+
+
+
+}

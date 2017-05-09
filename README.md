@@ -15,75 +15,62 @@ Installation
 
 ### Install dependencies on Debian/Ubuntu
 
-Install node.js, mongodb and redis servers first.
+Install node.js and mongodb servers first.
 
 Node:
 
 ```
-curl -sL https://deb.nodesource.com/setup_0.12 | sudo -E bash -
-sudo apt-get install -y nodejs
+curl -sL https://deb.nodesource.com/setup_0.12 | sudo -E bash - <br />
+sudo apt-get install -y nodejs <br />
 ```
-Redis:
-
-```
-sudo apt-get update
-sudo apt-get install build-essential
-sudo apt-get install tcl8.5
-wget http://download.redis.io/releases/redis-stable.tar.gz
-tar xzf redis-stable.tar.gz
-cd redis-stable
-make
-```
-
-You can run redis as
-```
-src/redis-server
-```
-
-For more defailed instructions, see [https://redis.io/download#installation](https://redis.io/download#installation).
 
 Mongo:
 ```
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com/ --recv EA312927
-echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list
-sudo apt-get update
-sudo apt-get install -y mongodb-org
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com/ --recv EA312927 <br />
+echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.2.list <br />
+sudo apt-get update <br />
+sudo apt-get install -y mongodb-org <br />
 ```
-You can start mongodb as:
-```
-sudo service mongod start
-```
-
 If mongo does not work:
 ```
 sudo apt-get install upstart-sysv
 ```
 
-For more detailed instructions, see [https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-debian/)
-
 ### Install dependencies on Mac
 
 ```
-brew install node@4
+brew install node
 brew install tcl-tk
-brew install redis
 brew install mongodb
+brew install nodejs
 ```
 
 ### Clone from github and install node modules
 ```
-git clone https://github.com/fdurupinar/Sbgnviz-Collaborative-Editor.git
-cd Sbgnviz-Collaborative-Editor
+git clone https://github.com/fdurupinar/Sbgnviz-Collaborative-Editor/tree/collaborativeChise
+cd Sbgnviz-Collaborative-Editor Chise Version
 npm install
 ```
-If the folder `Sbgnviz-Collaborative-Editor/node_modules` exists and is not empty, it can be removed with `rm -rf node_modules` before doing `npm install`.
 
+### Install cytoscape extensions
+```
+cd public
+npm install
+npm run build-bundle-js
+cd ..
+
+```
 Running the server
 ------------------
-First, make sure that mongodb and redis are running. Then, in the `Sbgnviz-Collaborative-Editor` folder, run the server as
 ```
 node server
 ```
+or if you made changes to newt or chise (under public/app) run the script: runbundle:
+
+```
+./runbundle.sh
+  ```
+
 In order to open a client enter `http://localhost:3000` in the address bar of your browser.
 
 Computer Agent API
@@ -105,7 +92,7 @@ should be a string in hsla format as: “hsla(*H*, *S*, *L*%, 1)”, where
 lightness values.
 - **selectedNode**: The node object on which the agent is performing
 operations. It has attributes such as position
-={x:< posX >,y:< posY >}, width, height, borderWidth,
+{x:< posX >,y:< posY >}, width, height, borderWidth,
 borderHeight, backgroundColor, sbgnLabel, sbgnStatesAndInfos =
 {clazz:< className >, state =
 {value:< stateValue >,variable:< stateVariable >}}.
@@ -123,45 +110,15 @@ string after http:<ip>:3000/ in the server address.
 - **socket**: The web socket between the server and agent
 - **pageDoc**: The document that the shared model is stored.
 
-### Methods:
+
+#### Requests to send to the server:
 
 
-| **Name**                | **Function**                                                                                                                     |      **Parameters**              |       **Returns**                                                             |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------- |
-|  connectToServer        | Connects the server and returns socket.io socket                                                                                 |     url, callback                |      socket                                                                   |
-|  loadModel              | Gets the model for the current room                                                                                              |     callback                     |                                                                               |
-|  loadOperationHistory   | Gets history of operations from the node.js server and assigns them to opHistory                                                 |     callback                     |                                                                               |
-|  loadUserList           | Gets user list from the node.js server and assigns them to userList                                                              |     callback                     |                                                                               |
-|  loadChatHistory        | Gets history of chat messages from the node.js server and assigns them to chatHistory                                            |      callback                    |                                                                               |
-|  getNodeList            |                                                                                                                                  |      callback                    |   The node list in the shared model as an object of node ids                  |
-|  getLayoutProperties    |                                                                                                                                  |     callback                     |  Layout properties of the shared model as an object with attributes as:       |
-|                         |                                                                                                                                  |                                  |   {name: < layout name >,                                                       |
-|                         |                                                                                                                                  |                                  |   nodeRepulsion: < node repulsion value > ,                                     |
-|                         |                                                                                                                                  |                                  |   nodeOverlap:< node overlap percentage >,                                      |
-|                         |                                                                                                                                  |                                  |   idealEdgeLength:< ideal edge length value >,                                  |
-|                         |                                                                                                                                  |                                  |   edgeElasticity:< edge elasticity value >,                                     |
-|                         |                                                                                                                                  |                                  |   nestingFactor:< nesting factor value >,                                       |
-|                         |                                                                                                                                  |                                  |   gravity:< gravity value >,                                                    |
-|                         |                                                                                                                                  |                                  |   numIter:< number of iterations >,                                             |
-|                         |                                                                                                                                  |                                  |     tile:< boolean value to tile disconnected >,                                |
-|                         |                                                                                                                                  |                                  |   animate:< boolean value >,                                                    |
-|                         |                                                                                                                                  |                                  |   randomize:< boolean value >}                                                  |
-|  changeName             | Sends request to the server to change agent's name                                                                               |       newName                    |                                                                               |
-|  getNodeRequest         | Requests the node with < id > from the server                                                                                      |     id, callback                 |  Node with id                                                                 |
-|  getEdgeRequest         | Requests the edge with < id > from the server                                                                                      |      id, callback                |   Edge with id                                                                |
-|  agentMessage            | Sends chat message < comments > as a string to < targets > as an array of targeted user ids \[{id: < id1 >},..., {id: < idn >}\]       |    comment, targets, callback  |                                                                               |
-|  listen                 | Socket listener for server requests. Can get “operation”, “message”, “userList” or “imageFile” from the server.                  |   callback                       |                                                                               |
-|  sendRequest            | Sends an operation request to the node.js server. Model update operations are done using this method.                            |  [*reqName, param*](#sendrequest)|                                                                               |
-
-
-#### sendRequest:
-
-
-|**reqName**                          |  **param**                                                                         |
+ **reqName**                          |  **param**                                                                         |
 | ----------------------------------- | ---------------------------------------------------- |
-| “agentAddImageRequest”              | {img: < image file >,                         |
-|                                     | filePath: < path of image file > }             |
-| "agentSetLayoutProperties"          | {name: < layout name >,                       |
+| “agentSendImageRequest”              | {room:< room >, userId:< agentId >, img: < image file >,                         |
+|                                     | fileName < name of image file >, tabIndex: < index or id of the tab to display image >, tabLabel:< Label of tab to be displayed >}             |
+| "agentSetLayoutPropertiesRequest"   | {room:< room >, userId:< agentId >,name: < layout name >,                       |
 |                                     | nodeRepulsion: < node repulsion value > ,        |
 |                                     | nodeOverlap:< node overlap percentage >,          |
 |                                     | idealEdgeLength:< ideal edge length value >,      |
@@ -172,36 +129,47 @@ string after http:<ip>:3000/ in the server address.
 |                                     | tile:< boolean value to tile disconnected >,|
 |                                     | animate:< boolean value >,    |
 |                                     | randomize:< boolean value >}  |
-|  “agentRunLayoutRequest”            | -                           |
-|  “agentAddNodeRequest”              | {x: < position x >,           |
+|"agentSetGeneralPropertiesRequest"  | {room:< room >, userId:< agentId >} |
+|"agentSetGridPropertiesRequest"  | {room:< room >, userId:< agentId >} |
+|  “agentRunLayoutRequest”            | {room:< room >, userId:< agentId >}                          |
+|  “agentAddNodeRequest”              | {room:< room >, userId:< agentId >,x: < position x >,           |
 |                                     | y: < position y >,         |
-|                                     | sbgnclass: < sbgn class >}   |
-|  “agentAddEdgeRequest”              | {source: < source node id >,  |
+|                                     | class: < sbgn class >}   |
+|  “agentAddEdgeRequest”              | {room:< room >, userId:< agentId >,source: < source node id >,  |
 |                                     | target: < target node id >,   |
-|                                     | sbgnclass: < sbgn class >}    |
-|  “agentChangeNodeAttributeRequest”  | {id: < node id >,             |
+|                                     | class: < sbgn class >}    |
+|"agentSearchByLabelRequest"          | {room:< room >, userId:< agentId >,label: < label to be highlighted>}   |
+|"agentDeleteElesRequest"             | {room:< room >, userId:< agentId >,type: < "smart" or "simple" > elementIds: < element ids to delete simply >} |
+|"agentUpdateVisibilityStatusRequest"       | {room:< room >, userId:< agentId >,val:< "hide" or "show" or "showAll" >,  elementIds:< array of element ids or null for showAll >|
+|"agentUpdateHighlightStatusRequest"       | {room:< room >, userId:< agentId >,val:< "neighbors" or "processes" or "remove">,  elementIds:< array of element ids or null for remove >|
+|"agentUpdateExpandCollapseStatusRequest"       | {room:< room >, userId:< agentId >,val:< "expand" or "collapse" >,  elementIds:<array of element ids>|
+| “agentChangeNodeAttributeRequest”  | {room:< room >, userId:< agentId >,id: < node id >,             |
 |                                     | attStr: < node attribute name in the model >             |
 |                                     | attVal:< node attribute value >}                          |
-|                                     | attStr takes the following values: “sbgnclass”, “highlightColor”, “backgroundColor”, “sbgnlabel”, “borderColor”, “borderWidth”, “isMultimer”, “isCloneMarker”, “parent”, “children”, “width”, “height”, “sbgnbboxW”, “sbgnbboxH”, “sbgnStatesAndInfos”   |
-|  “agentChangeEdgeAttributeRequest”  | {id: < node id >,                                   |
+|                                     | attStr takes the following values: “data”, “data.bbox”, “data.bbox.w”, “data.bbox.h”, “data.class”, “data.cloneMarker”, "data.font-family", "data.font-size", "data.font-weight", "data.font-style", "data.statesandinfos", "data.label", "data.labelsize", "data.parent", "data.ports", "data.border-width", "data.background-color", "data.background-opacity", "highlightColor, expandCollapseStatus", "highlightStatus", "visibilityStatus"   |
+|  “agentChangeEdgeAttributeRequest”  | {room:< room >, userId:< agentId >,id: < node id >,                                   |
 |                                     | attStr: < edge attribute name in the model >        |
 |                                     | attVal:< edge attribute value >}                     |
-|                                     | attStr takes the following values: “lineColor”, “highlightColor”, “width”, “cardinality”    |
-|  “agentMoveNodeRequest”             | {id: < node id >,                                                    |
-|                                     | pos: {x:< new position x >, y: <  new position y >}}                   |
-|  “agentAddCompoundRequest”          | {type: < compound type as “complex” or “compartment” >,              |
+|                                     | attStr takes the following values: “data.source”, “data.target”, “data.portsource”, “data.porttarget”, “data.class”,   “data.line-color”,  “data.width”, “data.cardinality”,“highlightColor”, "visibilityStatus", "highlightStatus" , "bendPoints"   |
+|  “agentMoveNodeRequest”             | {room:< room >, userId:< agentId >,id: < node id >,   pos: {x:< new position x >, y: <  new position y >}}                   |
+|  “agentAlignRequest”               | {room:< room >, userId:< agentId >,nodeIds: < node ids to align >, horizontal:<" top", "bottom", "center", "none" >, vertical:< "top", "bottom", "center", "none" > , alignTo:< node id to align nodes with nodeIds >     |
+|  “agentAddCompoundRequest”          | {room:< room >, userId:< agentId >,type: < compound type as “complex” or “compartment” >,              |
 |                                     | selectedNodeArr: < array of node ids >}                              |
-|  “agentMergeGraphRequest”           |  {graph: < graph to be added >, type: < file type as "sbgn" or "json" > }                        |
-|		"agentActiveRoomsRequest"					| -																																			|
+|		"agentActiveRoomsRequest"					| {room:< room >, userId:< agentId >}-																																			|
+|   "agentUndoRequest"          |  {room:< room >, userId:< agentId >} |
+|   "agentRedoRequest"          |   {room:< room >, userId:< agentId >}|
+|   "agentMessage"          |{room: <room>, userId: <agentId>, comment:  <message string -- can be raw html>, targets: < user ids or * to include all users in the room >}   |
+
 
 
 In order to set up and run an agent:
 
 ```javascript
 agent = new Agent(agentName, agentId);
-    agent.connectToServer(serverIp, function(socket){
+    var socket = agent.connectToServer(serverIp, function(){
         //callback operations
-   
+
+
     agent.loadModel(function() {
         agent.loadOperationHistory(function(){
             agent.loadChatHistory(function(){
@@ -231,9 +199,14 @@ agent = new Agent(agentName, agentId);
             //callback operations
         });
     });
+
 });
+
+
 ```
 An example web-based agent can be found in: `Sbgnviz-Collaborative-Editor/agent-interaction/computerAgent.html`
+
+You can zoom and pan with the mouse wheel and left click + moving the mouse
 
 Command History:
 
@@ -249,7 +222,7 @@ JSON array as:
         {
         x: //node position x
         y: //node position y
-        sbgnclass: //node or edge sbgnclass
+        class: //node or edge sbgnclass
         source: //edge source
         target: //edge target
         }
@@ -293,45 +266,54 @@ sbgncardinality
             -   relevance
             -   confidence
         -   cy //sbgn-related
-            -   sampleInd //temporary
             -   layoutProperties
             -   nodes
                 -   \[nodeId\]
-                    -   id
                     -   addedLater //to sync. node addition
-                    -   sbgnclass
-                    -   position
-                    -   highlightColor
-                    -   sbgnlabel
-                    -   borderColor
-                    -   borderWidth
-                    -   backgroundColor
-                    -   backgroundOpacity
-                    -   isMultimer
-                    -   isCloneMarker
-                    -   ports
-                    -   width
-                    -   height
-                    -   sbgnStatesAndInfos
-                    -   expandCollapseStatus
-                    -   highlightStatus
                     -   visibilityStatus
+                    -   highlightStatus
+                    -   expandCollapseStatus
+                    -   highlightColor
+                    -   position
+                    -   data
+                        -   id
+                        -   class
+                        -   label
+                        -   bbox
+                            -   w
+                            -   h
+                        -   border-color
+                        -   border-width
+                        -   background-color
+                        -   background-opacity
+                        -   font-color
+                        -   font-weight
+                        -   font-style
+                        -   font-size
+                        -   cloneMarker
+                        -   parent
+                        -   ports
+                        -   statesAndInfos
+
             -   edges
                 -   \[edgeId\]
                     -   id
                     -   addedLater //to sync. edge addition
-                    -   sbgnclass
-                    -   source
-                    -   target
-                    -   portsource
-                    -   porttarget
-                    -   highlightColor
-                    -   lineColor
-                    -   width
-                    -   bendPointPositions
                     -   highlightStatus
                     -   visibilityStatus
-                    -   sbgnCardinality
+                    -   expandCollapseStatus
+                    -   highlightColor
+                    -   bendPoints
+                    -   data
+                        -   class
+                        -   source
+                        -   target
+                        -   portsource
+                        -   porttarget
+                        -   line-color
+                        -   width
+                        -   bendPointPositions
+                        -   cardinality
         -   py // pysb-related
         -   //biopax-related
 

@@ -10,7 +10,7 @@ body {
 }
 #serverIpForm {
 
-   margin-top: 20px;
+    margin-top: 20px;
     margin-bottom: 20px;
 
 }
@@ -182,9 +182,9 @@ tr:nth-child(even) {
     background-color: #dddddd;
 }
 
-input[type="file"] {
-    display: none;
-}
+/*input[type="file"] {*/
+    /*!*display: none;*!*/
+/*}*/
 .image-file {
     border: 1px solid #ccc;
     display: inline-block;

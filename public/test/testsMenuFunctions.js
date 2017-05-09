@@ -34,15 +34,15 @@ module.exports = function(){
 
     QUnit.module( "Editor-actions tests to see if model is updated correctly." );
 
-    var editorActions = require('../sample-app/js/EditorActionsManager.js');
+    var synchronizationManager = require('./synchronizationManager.js');
     function addNodeFromEditorActionsTest() {
 
-        QUnit.test('editorActions.addNode()', function (assert) {
+        QUnit.test('synchronizationManager.addNode()', function (assert) {
 
-            var node = editorActions.addNode({x:50, y:70, sbgnclass:"macromolecule", sync: true});
+            var node = synchronizationManager.addNode({x:50, y:70, sbgnclass:"macromolecule", sync: true});
 
             var modelNode = ModelManager.getModelNode(node.id());
-            assert.ok(modelNode, "Node added to model through editorActions.")
+            assert.ok(modelNode, "Node added to model through synchronizationManager.")
             assert.equal(modelNode.id, node.id(), "Node id correctly added.");
             assert.equal(modelNode.sbgnclass, "macromolecule", "Node sbgnclass correctly added.");
             assert.equal(modelNode.position.x, 50, "Node position x correctly added.");
@@ -58,7 +58,6 @@ module.exports = function(){
             assert.equal(modelNode.borderColor, node.css('border-color'), "Node borderColor correctly initialized.");
             assert.equal(modelNode.borderWidth, node.css('border-width'), "Node borderWidth correctly initialized.");
             assert.equal(modelNode.isCloneMarker, node.data('sbgnclonemarker'), "Node isCloneMarker correctly initialized.");
-            assert.equal(modelNode.isMultimer, node.data('sbgnclass').indexOf(' multimer') > 0, "Node isMultimer correctly initialized.");
             assert.equal(modelNode.sbgnStatesAndInfos.length, 0, "Node sbgnStatesAndInfos correctly initialized.");
             assert.equal(modelNode.parent, node.data('parent'), "Node parent correctly initialized.");
             assert.equal(modelNode.children, node.data('children'), "Node children correctly initialized.");
@@ -72,13 +71,13 @@ module.exports = function(){
     
     function changeHighlightStatusTest(){
         
-        QUnit.test('editorActions.higlightSelected() for neighbors', function(assert){
+        QUnit.test('synchronizationManager.higlightSelected() for neighbors', function(assert){
             var param = {
                 sync: true,
                 selectedEles : cy.getElementById("glyph2"),
                 highlightNeighboursofSelected: true
             };
-            editorActions.highlightSelected(param);
+            synchronizationManager.highlightSelected(param);
 
             //Not-highlighted nodes
             cy.nodes().forEach(function(node){
@@ -106,9 +105,9 @@ module.exports = function(){
 
         });
         
-        QUnit.test('editorActions.removeHighlights()', function(assert){
+        QUnit.test('synchronizationManager.removeHighlights()', function(assert){
 
-            editorActions.removeHighlights({sync:true});
+            synchronizationManager.removeHighlights({sync:true});
         
             //Not-highlighted nodes
             cy.nodes().forEach(function(node){
@@ -127,13 +126,13 @@ module.exports = function(){
         });
 
 
-        QUnit.test('editorActions.higlightSelected() for processes', function(assert){
+        QUnit.test('synchronizationManager.higlightSelected() for processes', function(assert){
             var param = {
                 sync: true,
                 selectedEles : cy.getElementById("glyph2"),
                 highlightProcessesOfSelected: true
             };
-            editorActions.highlightSelected(param);
+            synchronizationManager.highlightSelected(param);
 
 
             cy.nodes().forEach(function(node){
@@ -163,9 +162,9 @@ module.exports = function(){
        });
 
 
-        QUnit.test('editorActions.removeHighlights() again', function(assert){
+        QUnit.test('synchronizationManager.removeHighlights() again', function(assert){
 
-            editorActions.removeHighlights({sync:true});
+            synchronizationManager.removeHighlights({sync:true});
 
             //Not-highlighted nodes
             cy.nodes().forEach(function(node){
@@ -186,13 +185,13 @@ module.exports = function(){
     }
     
     function changeVisibilityStatusTest(){
-        QUnit.test('editorActions.showSelected()', function(assert){
+        QUnit.test('synchronizationManager.showSelected()', function(assert){
             var param = {
                 sync: true,
                 selectedEles : cy.getElementById("glyph2"),
 
             };
-            editorActions.showSelected(param);
+            synchronizationManager.showSelected(param);
 
             cy.nodes().forEach(function(node){
                 //Visible nodes
@@ -208,8 +207,8 @@ module.exports = function(){
 
         });
 
-        QUnit.test('editorActions.showAll()', function(assert){
-            editorActions.showAll({sync:true});
+        QUnit.test('synchronizationManager.showAll()', function(assert){
+            synchronizationManager.showAll({sync:true});
 
             cy.nodes().forEach(function(node){
                 assert.equal(ModelManager.getModelNode(node.id()).visibilityStatus, "visible", (node.id() + " shown correctly in model."));
@@ -219,13 +218,13 @@ module.exports = function(){
 
         });
 
-        QUnit.test('editorActions.hideSelected()', function(assert){
+        QUnit.test('synchronizationManager.hideSelected()', function(assert){
             var param = {
                 sync: true,
                 selectedEles : cy.getElementById("glyph2"),
 
             };
-            editorActions.hideSelected(param);
+            synchronizationManager.hideSelected(param);
 
             cy.nodes().forEach(function(node){
                 //Hidden nodes
@@ -241,8 +240,8 @@ module.exports = function(){
 
         });
 
-        QUnit.test('editorActions.showAll() again', function(assert){
-            editorActions.showAll({sync:true});
+        QUnit.test('synchronizationManager.showAll() again', function(assert){
+            synchronizationManager.showAll({sync:true});
 
             cy.nodes().forEach(function(node){
                 assert.equal(ModelManager.getModelNode(node.id()).visibilityStatus, "visible", (node.id() + " shown correctly in model."));
