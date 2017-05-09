@@ -59,8 +59,11 @@ module.exports = {
 
             if('participant_a' in idxcardjsonObj.cards[i].extracted_information)
                 newNode0.data.sbgnlabel = idxcardjsonObj.cards[i].extracted_information.participant_a.entity_text;
-            else
-                newNode0.data.sbgnlabel = "";
+            else {
+                newNode0.data.sbgnlabel = "null";
+                newNode0.data.sbgnclass = "source and sink";
+				newNode0.data.sbgnstatesandinfos = [];
+			}
 
             jsonObj.nodes.push(newNode0);
 

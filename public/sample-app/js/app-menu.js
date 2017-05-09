@@ -7,12 +7,13 @@
 
 
 var idxcardjson = require('../../src/reach-functions/idxcardjson-to-json-converter.js');
-var sbgnFiltering = require('../../src/utilities/sbgn-filtering.js')();
-var sbgnElementUtilities = require('../../src/utilities/sbgn-element-utilities.js')();
-var expandCollapseUtilities = require('../../src/utilities/expand-collapse-utilities.js')();
-var sbgnmlToJson =require('../../src/utilities/sbgnml-to-json-converter.js')();
 var factoidHandler =  require('./factoid-handler.js');
-
+var jsonMerger = require('../../../src/utilities/json-merger.js');
+var idxcardjson = require('../../../src/utilities/idxcardjson-to-json-converter.js');
+var sbgnFiltering = require('../../../src/utilities/sbgn-filtering.js')();
+var sbgnElementUtilities = require('../../../src/utilities/sbgn-element-utilities.js')();
+var expandCollapseUtilities = require('../../../src/utilities/expand-collapse-utilities.js')();
+var sbgnmlToJson =require('../../../src/utilities/sbgnml-to-json-converter.js')();
 var cytoscape = require('cytoscape');
 
     var jsonMerger = require('../../src/reach-functions/json-merger.js');
@@ -390,6 +391,11 @@ module.exports = function(){
 
          },
 
+             //get another sbgncontainer and display the new JSON model.
+             editorActions.modelManager.newModel( "me", true);
+
+             sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
+             editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", true);
 
          mergeJsons:function(jsonGraphs){
 
@@ -476,12 +482,6 @@ module.exports = function(){
              sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
              editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", true);
 
-             editorActions.modelManager.setSampleInd(-1, "me", true); //to notify other clients
-
-             beforePerformLayout();
-
-             sbgnLayout.applyLayout(editorActions.modelManager);
-
             //Call merge notification after the layout
              editorActions.performLayoutFunction(true, function(){
 
@@ -497,12 +497,12 @@ module.exports = function(){
              var currSbgnml = jsonToSbgnml.createSbgnml(cy.nodes(":visible"), cy.edges(":visible"));
              var currJson = sbgnmlToJson.convert(currSbgnml);
 
-
+			 this.stateBeforeMerge(jsonGraph, currJson);
              editorActions.modelManager.setRollbackPoint(); //before merging
 
 
 
-             var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
+             var mergeResult = jsonMerger.merge(currJson, jsonGraph); //Merge the two SBGN models.
              var jsonObj = mergeResult.wholeJson;
              var newJsonIds = mergeResult.jsonToMerge;
 
@@ -543,7 +543,6 @@ module.exports = function(){
          },
 
          mergeSbgn: function(sbgnGraph){
-
              var newJson = sbgnmlToJson.convert(sbgnGraph);
              this.mergeJsonWithCurrent(newJson);
          },
@@ -1636,7 +1635,6 @@ module.exports = function(){
 
                 
 
-              
                editorActions.removeEles(selectedEles);
 
 
@@ -1940,7 +1938,7 @@ module.exports = function(){
                         (sbgnStyleRules['incremental-layout-after-expand-collapse'] == 'true');
                 }
                 if (incrementalLayoutAfterExpandCollapse)
-                    ditorActions.collapseGivenNodes({
+                   editorActions.collapseGivenNodes({
                         nodes: cy.nodes(),
                         sync: true
                     });
@@ -1974,6 +1972,7 @@ module.exports = function(){
                     $("#perform-layout").trigger('click');
                 }
             });
+
 
             $("#perform-layout").click(function (e) {
 
@@ -2190,7 +2189,6 @@ module.exports = function(){
                 expanderOpts.widow = 0;
             });
 
-
             //TODO: Funda
 
         $("#send-message").click(function(evt) {
@@ -2221,21 +2219,20 @@ module.exports = function(){
             }
         });
 
-            $("#end-message").click(function(evt) {
+        //    $("#end-message").click(function(evt) {
 
-                var msg = document.getElementById("inputs-comment").value;
-                socket.emit("REACHQuery", "fries", msg); //for agent
-
-
-                if(msg.toUpperCase().indexOf("PROCESS READY") > -1) {
-                    var sbgnSelected = jsonToSbgnml.createSbgnml(cy.nodes(":selected"), cy.edges(":selected"));
+        //        var msg = document.getElementById("inputs-comment").value;
+        //        socket.emit("REACHQuery", "fries", msg); //for agent
 
 
-                    socket.emit('BioPAXRequest', sbgnSelected, "partialBiopax");
+        //        if(msg.toUpperCase().indexOf("PROCESS READY") > -1) {
+        //            var sbgnSelected = jsonToSbgnml.createSbgnml(cy.nodes(":selected"), cy.edges(":selected"));
 
-                }
-            });
 
+        //            socket.emit('BioPAXRequest', sbgnSelected, "partialBiopax"); **/
+
+        //        }
+        //    });
 
             $("#node-label-textbox").keydown(function (e) {
                 if (e.which === 13) {
