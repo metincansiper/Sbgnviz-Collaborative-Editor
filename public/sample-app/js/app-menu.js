@@ -6,18 +6,15 @@
  * **/
 
 
-var idxcardjson = require('../../src/reach-functions/idxcardjson-to-json-converter.js');
 var factoidHandler =  require('./factoid-handler.js');
-var jsonMerger = require('../../../src/utilities/json-merger.js');
-var idxcardjson = require('../../../src/utilities/idxcardjson-to-json-converter.js');
-var sbgnFiltering = require('../../../src/utilities/sbgn-filtering.js')();
-var sbgnElementUtilities = require('../../../src/utilities/sbgn-element-utilities.js')();
-var expandCollapseUtilities = require('../../../src/utilities/expand-collapse-utilities.js')();
-var sbgnmlToJson =require('../../../src/utilities/sbgnml-to-json-converter.js')();
+var sbgnFiltering = require('../../src/utilities/sbgn-filtering.js')();
+var sbgnElementUtilities = require('../../src/utilities/sbgn-element-utilities.js')();
+var expandCollapseUtilities = require('../../src/utilities/expand-collapse-utilities.js')();
+var sbgnmlToJson =require('../../src/utilities/sbgnml-to-json-converter.js')();
 var cytoscape = require('cytoscape');
 
-    var jsonMerger = require('../../src/reach-functions/json-merger.js');
-    var idxcardjson = require('../../src/reach-functions/idxcardjson-to-json-converter.js');
+var jsonMerger = require('../../src/reach-functions/json-merger.js');
+var idxcardjson = require('../../src/reach-functions/idxcardjson-to-json-converter.js');
 
 //Local functions
 var setFileContent = function (fileName) {
@@ -235,14 +232,15 @@ var mergeNodes = function(rephrase, leastprioritynodes) {
 }
 
 var mergeProcessNodes = function(rephrase, leastprioritynodes) {
-    var i, j;
+    var i;
     var key;
     var processid;
     var signature;
     var idsbysignature = {};
+    var signaturesbyid = {};
     var tripletsbyprocid = {};
-    var procidsbytriplet = {};
     var triplet = new Array(3);
+    var triplet2 = new Array(3);
     for(i = 0; i < rephrase.length; i++) {
         triplet.shift();
         triplet.push(rephrase[i]);
@@ -255,52 +253,51 @@ var mergeProcessNodes = function(rephrase, leastprioritynodes) {
             if(tripletsbyprocid[processid] == undefined)
                 tripletsbyprocid[processid] = [];
 
-            tripletsbyprocid[processid].push(triplet);
+            tripletsbyprocid[processid].push([triplet[0], triplet[1], triplet[2]]);
         }
     }
 
     Object.keys(tripletsbyprocid).forEach(id => {
         signature = "";
-        Object.keys(tripletsbyprocid[id]).forEach(triplet => { 
-            for(i = 0; i < tripletsbyprocid[id].length; i++) {
-                //alert(id);
-                //alert(tripletsbyprocid[id][i][2].descendants());
-                alert(triplet[0].id());
-                //alert(tripletsbyprocid[id][0].length);
-                for(j = 0; j < 3; j++) {
-                    signature += descString(triplet[i][j].descendants()) + triplet[i][j].data('sbgnlabel') + triplet[i][j].data('sbgnclass') + triplet[i][j].data('parent');
-                    if(triplet[i][j].data('sbgnstatesandinfos') != undefined && triplet[i][j].data('sbgnstatesandinfos').length > 0) {
-                        triplet[i][j].data('sbgnstatesandinfos').forEach(box => {
-                            signature += box.clazz + JSON.stringify(box.label);
-                        });
-                    }
+        tripletsbyprocid[id].forEach(triplet => { 
+            for(i = 0; i < 3; i++) {
+                signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
+                if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
+                    triplet[i].data('sbgnstatesandinfos').forEach(box => {
+                        signature += box.clazz + JSON.stringify(box.label);
+                    });
                 }
 
                 if(signaturesbyid[id] == undefined)
                     signaturesbyid[id] = [];
 
-                signaturesbytriplet[id].push(signature);
+                signaturesbyid[id].push(signature);
             }
         });
 
-        key = signaturesbytriplet[id].sort().join("");
+        key = signaturesbyid[id].sort().join("");
         if(idsbysignature[key] == undefined)
             idsbysignature[key] = [];
 
         idsbysignature[key].push(id);
     });
 
-    rephrase = [];
+    i = 0;
     Object.keys(idsbysignature).forEach(signature => {
         tripletsbyprocid[idsbysignature[signature][0]].forEach(triplet => {
-            rephrase.concat(triplet);
+            rephrase[i] = triplet[0];
+            rephrase[i + 1] = triplet[1];
+            rephrase[i + 2] = triplet[2];
+            i = i + 3;
         });
     });
+
+    rephrase.splice(i, i - rephrase.length);
 }
 
 var mergeEdges = function(rephrase) {
-    var i;
-    var triplet;
+    var i, j;
+    var triplet = new Array(3);
     var signature;
     var nonredundantedges = {};
     for(i = 0; i < rephrase.length; i++) {
@@ -309,19 +306,21 @@ var mergeEdges = function(rephrase) {
 
         if(triplet[1] != undefined && triplet[1].isEdge()) {
             signature = "";
-            for(i = 0; i < 3; i++) {
-                signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
-                if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
-                    triplet[i].data('sbgnstatesandinfos').forEach(box => {
+            for(j = 0; j < 3; j++) {
+                signature += descString(triplet[j].descendants()) + triplet[j].data('sbgnlabel') + triplet[j].data('sbgnclass') + triplet[j].data('parent');
+                if(triplet[j].data('sbgnstatesandinfos') != undefined && triplet[j].data('sbgnstatesandinfos').length > 0) {
+                    triplet[j].data('sbgnstatesandinfos').forEach(box => {
                         signature += box.clazz + JSON.stringify(box.label);
                     });
                 }
             }
 
-            if(nonredundantedges[signature] != undefined)
-                rephrase.splice(i - 2, 3);
-            else
-                nonredundantedges[signature] = rephrase[i];
+            if(nonredundantedges[signature]) {
+                rephrase[i - 2] = triplet[0];
+                rephrase[i - 1] = triplet[1];
+                rephrase[i] = triplet[2];
+            } else
+                nonredundantedges[signature] = 1;
         }
     }
 }
@@ -390,12 +389,6 @@ module.exports = function(){
              editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);
 
          },
-
-             //get another sbgncontainer and display the new JSON model.
-             editorActions.modelManager.newModel( "me", true);
-
-             sbgnContainer = new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions);
-             editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", true);
 
          mergeJsons:function(jsonGraphs){
 
@@ -2020,32 +2013,29 @@ module.exports = function(){
                 if(editorActions.modelManager.isUndoPossible()){
                     editorActions.modelManager.undoCommand();
 
+                    var i;
+                    var cytmp;
+                    var edgejs;
+                    var jsonObj = {"nodes": [], "edges": []};
                     var rephrase = traverseGraph(cy.nodes()[2], []);
                     var leastprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
 
-                    //alert("Il est passe par ici...");
-                    //rephrase.forEach(node => {
-                    //    alert(node.id());
-                    //});
                     rearrangeRephrase(rephrase, leastprioritynodes);
-                    //alert("Il repassera par la.");
-                    //rephrase.forEach(node => {
-                    //    alert(node.id());
-                    //});
                     mergeNodes(rephrase, leastprioritynodes);
-                    //alert("Loup y es-tu ?");
-                    //rephrase.forEach(node => {
-                    //    alert(node.id());
-                    //});
                     mergeProcessNodes(rephrase, leastprioritynodes);
                     mergeEdges(rephrase);
 
-                    rephrase.forEach(element => {
-                        if(element.isNode())
-                            jsonObj.nodes.push(element.json());
-                        else
-                            jsonObj.edges.push(element.json());
-                    });
+                    for(i = 0; i < rephrase.length; i++) {
+                        if(rephrase[i].isNode())
+                            jsonObj.nodes.push(rephrase[i].json());
+                        else {
+                            edgejs = rephrase[i].json();
+                            edgejs.data.source = rephrase[i - 1].id();
+                            edgejs.data.target = rephrase[i + 1].id();
+
+                            jsonObj.edges.push(edgejs);
+                        }
+                    }
 
                     sbgnContainer = (new cyMod.SBGNContainer('#sbgn-network-container', jsonObj, editorActions));
                     editorActions.modelManager.initModel(jsonObj, cy.nodes(), cy.edges(), "me", false);

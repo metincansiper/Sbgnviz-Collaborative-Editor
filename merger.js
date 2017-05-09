@@ -70,6 +70,7 @@ var traverseGraph = function (node, visitedNodes) {
 var rearrangeRephrase = function(rephrase, leastprioritynodes) {
     for(i = 0; i < rephrase.length; i++) {
         if(rephrase[i].isEdge() && rephrase[i].source().id() != rephrase[i - 1].id()) {
+            //Duplicate the nodes around the edge.
             rephrase.splice(i - 1, 0, rephrase[i - 1]);
             rephrase.splice(i + 2, 0, rephrase[i + 2]);
 
@@ -105,16 +106,16 @@ var mergeNodes = function(rephrase, leastprioritynodes) {
 // the process nodes that have the same set of triplet as neighbors
 // (i.e. the reactions that have the same inputs and outputs).
 // Among the duplicates, select only one of them.
-// Right now I'm having issues here.
 var mergeProcessNodes = function(rephrase, leastprioritynodes) {
-    var i, j;
+    var i;
     var key;
     var processid;
     var signature;
     var idsbysignature = {};
+    var signaturesbyid = {};
     var tripletsbyprocid = {};
-    var procidsbytriplet = {};
     var triplet = new Array(3);
+    var triplet2 = new Array(3);
     for(i = 0; i < rephrase.length; i++) {
         triplet.shift();
         triplet.push(rephrase[i]);
@@ -133,21 +134,19 @@ var mergeProcessNodes = function(rephrase, leastprioritynodes) {
 
     Object.keys(tripletsbyprocid).forEach(id => {
         signature = "";
-        Object.keys(tripletsbyprocid[id]).forEach(triplet => { 
+        tripletsbyprocid[id].forEach(triplet => { 
             for(i = 0; i < tripletsbyprocid[id].length; i++) {
-                for(j = 0; j < 3; j++) {
-                    signature += descString(triplet[i][j].descendants()) + triplet[i][j].data('sbgnlabel') + triplet[i][j].data('sbgnclass') + triplet[i][j].data('parent');
-                    if(triplet[i][j].data('sbgnstatesandinfos') != undefined && triplet[i][j].data('sbgnstatesandinfos').length > 0) {
-                        triplet[i][j].data('sbgnstatesandinfos').forEach(box => {
-                            signature += box.clazz + JSON.stringify(box.label);
-                        });
-                    }
+                signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
+                if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
+                    triplet[i].data('sbgnstatesandinfos').forEach(box => {
+                        signature += box.clazz + JSON.stringify(box.label);
+                    });
                 }
 
                 if(signaturesbyid[id] == undefined)
                     signaturesbyid[id] = [];
 
-                signaturesbytriplet[id].push(signature);
+                signaturesbyid[id].push(signature);
             }
         });
 
@@ -158,19 +157,24 @@ var mergeProcessNodes = function(rephrase, leastprioritynodes) {
         idsbysignature[key].push(id);
     });
 
-    rephrase = [];
+    i = 0;
     Object.keys(idsbysignature).forEach(signature => {
         tripletsbyprocid[idsbysignature[signature][0]].forEach(triplet => {
-            rephrase.concat(triplet);
+            rephrase[i] = triplet[0];
+            rephrase[i + 1] = triplet[1];
+            rephrase[i + 2] = triplet[2];
+            i = i + 3;
         });
     });
+
+    rephrase.splice(i, i - rephrase.length);
 }
 
 // Divide the rephrase in triplets of node-edge-node and identify
 // the duplicates and remove them.
 var mergeEdges = function(rephrase) {
-    var i;
-    var triplet;
+    var i, j;
+    var triplet = new Array(3);
     var signature;
     var nonredundantedges = {};
     for(i = 0; i < rephrase.length; i++) {
@@ -179,18 +183,20 @@ var mergeEdges = function(rephrase) {
 
         if(triplet[1] != undefined && triplet[1].isEdge()) {
             signature = "";
-            for(i = 0; i < 3; i++) {
-                signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
-                if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
-                    triplet[i].data('sbgnstatesandinfos').forEach(box => {
+            for(j = 0; j < 3; j++) {
+                signature += descString(triplet[j].descendants()) + triplet[j].data('sbgnlabel') + triplet[j].data('sbgnclass') + triplet[j].data('parent');
+                if(triplet[j].data('sbgnstatesandinfos') != undefined && triplet[j].data('sbgnstatesandinfos').length > 0) {
+                    triplet[j].data('sbgnstatesandinfos').forEach(box => {
                         signature += box.clazz + JSON.stringify(box.label);
                     });
                 }
             }
 
-            if(nonredundantedges[signature] != undefined)
-                rephrase.splice(i - 2, 3);
-            else
+            if(nonredundantedges[signature] != undefined) {
+                rephrase[i - 2] = triplet[0];
+                rephrase[i - 1] = triplet[1];
+                rephrase[i] = triplet[2];
+            } else
                 nonredundantedges[signature] = rephrase[i];
         }
     }
@@ -199,6 +205,17 @@ var mergeEdges = function(rephrase) {
 //**************
 // Main code
 //**************
+
+// The strategy that have been adopted here is to
+// merge the different elements of a graph sequentially,
+// according to their level of priority: when merging,
+// the molecules/complexes/etc... must be merged first,
+// the process nodes must be merged second and
+// the edges must be merged at last.
+// Only such a procedure guarantees a proper merge.
+var i;
+var cytmp;
+var edgejs;
 var jsonObj = {"nodes": [], "edges": []};
 var rephrase = traverseGraph(cy.nodes()[2], []); //Traverse the graph and get the "rephrase" (the array representing the chronological order by which the nodes and the edges were visited).
 var leastprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
@@ -211,6 +228,11 @@ mergeEdges(rephrase); //Merge the edges.
 rephrase.forEach(element => {
     if(element.isNode())
         jsonObj.nodes.push(element.json());
-    else
-        jsonObj.edges.push(element.json());
+    else {
+        edgejs = rephrase[i].json();
+        edgejs.data.source = rephrase[i - 1].id();
+        edgejs.data.target = rephrase[i + 1].id();
+
+        jsonObj.edges.push(edgejs);
+    }
 });
