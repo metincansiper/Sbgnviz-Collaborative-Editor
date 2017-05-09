@@ -19,7 +19,7 @@ appUtilities.defaultLayoutProperties = {
   nestingFactor: 0.1,
   gravity: 0.25,
   numIter: 2500,
-  tile: true,
+  tile: false, //funda
   animationEasing: 'cubic-bezier(0.19, 1, 0.22, 1)',
   animate: 'end',
   animationDuration: 0,//FUNDA1000,

@@ -34,7 +34,7 @@ CausalityAgent.prototype.init = function(){
 
     var self = this;
     var sifFilePath = "./CausalPath/PC.sif";
-    var causalityFilePath = "./CausalPath/causative.sif";
+    var causalityFilePath = "./CausalPath/causative-data-centric.sif";
     var mutSigFilePath = "./TCGA/OV/scores-mutsig.txt";
 
     // self.sendMessage({text:"Please wait while I am loading the phosphoproteomics dataset from PNNL."}, "*");
@@ -134,6 +134,8 @@ var convertToOppositeRel = function(rel){
     return oppRel;
 
 }
+
+
 /**
  * Read causal relationships and their PC links and store them in this.causality
  * * @param causalityFilePath: path to causative.sif
@@ -149,6 +151,16 @@ CausalityAgent.prototype.readCausality = function(causalityFilePath, callback){
             var vals = line.split("\t");
             var id1 = vals[0].toUpperCase();
             var id2 = vals[2].toUpperCase();
+
+            var idStr1 = id1.split('-');
+            var geneName1 = idStr1[0];
+            var pSite1 = idStr1[1];
+
+            var idStr2 = id2.split('-');
+            var geneName2 = idStr2[0];
+            var pSite2 = idStr2[1];
+
+
 
             var uriArr = [];
 
@@ -168,25 +180,25 @@ CausalityAgent.prototype.readCausality = function(causalityFilePath, callback){
 
 
 
-            if(self.causality[id1])
-                self.causality[id1].push({rel: vals[1], id2: id2, uriStr: uriStr});
+            if(self.causality[geneName1])
+                self.causality[geneName1].push({pSite1: pSite1, pSite2: pSite2, rel: vals[1], id2: geneName2, uriStr: uriStr});
             else
-                self.causality[id1] = [{rel: vals[1], id2: id2, uriStr: uriStr}];
+                self.causality[geneName1] = [{pSite1: pSite1, pSite2: pSite2, rel: vals[1], id2: geneName2, uriStr: uriStr}];
 
 
-            if(self.causality[id2])
-                self.causality[id2].push({rel: convertToOppositeRel(vals[1]), id2: id1, uriStr: uriStr});
+            if(self.causality[geneName2])
+                self.causality[geneName2].push({pSite1: pSite2, pSite2: pSite1, rel: convertToOppositeRel(vals[1]), id2: geneName1, uriStr: uriStr});
             else
-                self.causality[id2] = [{rel: convertToOppositeRel(vals[1]), id2: id1, uriStr: uriStr}];
+                self.causality[geneName2] = [{pSite1: pSite2, pSite2: pSite1, rel: convertToOppositeRel(vals[1]), id2: geneName1, uriStr: uriStr}];
 
 
 
             //all the gene names we are working on
-            if(self.geneNameArr.indexOf(id1)< 0)
-                self.geneNameArr.push(id1);
+            if(self.geneNameArr.indexOf(geneName1)< 0)
+                self.geneNameArr.push(geneName1);
 
-            if(self.geneNameArr.indexOf(id2)< 0)
-                self.geneNameArr.push(id2);
+            if(self.geneNameArr.indexOf(geneName2)< 0)
+                self.geneNameArr.push(geneName2);
         });
 
         if(callback) callback();
@@ -240,7 +252,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
 
             }
-            else if(sentence.indexOf("NO")>=0) {
+            else if(sentence.indexOf("NO")>=0 || sentence.indexOf("ELSE")>=0) { //also works for KNOW!!!!
                 // setTimeout(function () {
                 //     self.tellNextNonCausalityNonCausality(self.geneContext, callback);
                 // }, 1000);
@@ -432,12 +444,12 @@ CausalityAgent.prototype.formMultipleCorrMsg = function(gene, geneCorrArr, indCo
         msg+= (i +1 ) + ". "+  gene +  pSite1Str + " and " + gene2 + pSite2Str + " correlation is: " + parseFloat(corr.correlation).toFixed(3) + "\n";
 
 
-        var causalityInd = self.causalRelationshipInd(gene, gene2);
+        var causalityInd = self.causalRelationshipInd(gene, corr);
         if(causalityInd> -1){
 
             var relText = self.causality[gene][causalityInd].rel.replace(/[-]/g, " ");
 
-            msg += gene + " " + relText + " " + self.causality[gene][causalityInd].id2 + ".\n";
+            msg += "<b>" + gene + " " + relText + " " + self.causality[gene][causalityInd].id2 + ".</b>\n";
 
         }
     };
@@ -462,17 +474,17 @@ CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
 
 
         for (var j = 0; j < geneCorrArr.length; j++) {
-            var geneCorr = geneCorrArr[j].id2;
 
 
-            if (self.causalRelationshipInd(gene, geneCorr) < 0) {
+
+            if (self.causalRelationshipInd(gene, geneCorrArr[j]) < 0) {
 
                 corrVal = Math.abs(geneCorrArr[j].correlation);
 
                 if((corrVal > maxNonCausalCorr) && (corrVal < Math.abs(self.currCorr) ||self.currCorr < - 1 )){
                     maxNonCausalCorr = corrVal;
                     indCorr = j;
-                    geneNonCausal = geneCorr;
+                    geneNonCausal = geneCorrArr[j].id2;
 
                 }
 
@@ -487,9 +499,9 @@ CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
             var agentMsg = "I am looking at the next highest correlation about " + gene + ". ";
 
 
-            agentMsg += "I can't find any causal relationships between " + gene +" and " + geneNonCausal + " although they have a correlation of " + parseFloat(maxNonCausalCorr).toFixed(3) + ". ";
+            agentMsg += "I can't find any causal relationship between " + gene +" and " + geneNonCausal + " although their correlation comes next. ";
 
-            agentMsg += "But the highest correlation " + toCorrelationDetailString(geneCorrArr, indCorr);
+            agentMsg += "The next highest correlation " + toCorrelationDetailString(geneCorrArr, indCorr);
 
 
             var commonUpstreams = self.findCommonUpstreams(gene, geneNonCausal);
@@ -588,7 +600,6 @@ function toCorrelationDetailString(geneCorrArr, indCorr, maxCorr){
 
 }
 
-
 /***
  * Respond to queries from other actors to find explainable relationships around gene
  * @param gene: gene name
@@ -611,16 +622,26 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
 
         if (self.causality[gene]) { //gene has causal relationships
             for (var j = 0; j < geneCorrArr.length; j++) {
-                var geneCorr = geneCorrArr[j].id2;
+
+                var corr = geneCorrArr[j];
 
                 for (var i = 0; i < self.causality[gene].length; i++) {
-                    var geneCausal = self.causality[gene][i].id2;
-                    var corrVal = Math.abs(geneCorrArr[j].correlation);
-                    // if (geneCausal === geneCorr && corrVal> maxCorr && (self.currCorr < -1 ||  corrVal < Math.abs(self.currCorr))) {
-                    if (geneCausal === geneCorr && corrVal> maxCorr &&  (self.currCorr < -1 ||  corrVal < Math.abs(self.currCorr))) {
-                        self.indCausal = i;
-                        indCorr = j;
-                        maxCorr = Math.abs(geneCorrArr[j].correlation);
+                    // var geneCausal = self.causality[gene][i].id2;
+                    var geneCausal = self.causality[gene][i];
+
+
+                    var corrVal = Math.abs(corr.correlation);
+
+
+                    if(corr.id2 === self.causality[gene][i].id2 &&
+                        corr.pSite1 === self.causality[gene][i].pSite1 &&
+                        corr.pSite2 === self.causality[gene][i].pSite2 ) {
+
+                        if (corrVal > maxCorr && (self.currCorr < -1 || corrVal < Math.abs(self.currCorr))) {
+                            self.indCausal = i;
+                            indCorr = j;
+                            maxCorr = corr.correlation; //already absolute value
+                        }
                     }
                 }
             }
@@ -803,21 +824,20 @@ CausalityAgent.prototype.findRelevantGeneFromSentence = function(words, callback
 }
 /***
  *
- * @param gene1
- * @param gene2
+ * @param gene
+ * @param corr: correlations of gene
  * @returns {boolean}
  */
-CausalityAgent.prototype.causalRelationshipInd = function(gene1, gene2){
+CausalityAgent.prototype.causalRelationshipInd = function(gene,  corr){
 
     var self = this;
-
 
     var ind = 0;
     var causalInd = -1;
 
-    if(self.causality[gene1]) {
-        self.causality[gene1].forEach(function (gene) {
-            if (gene.id2 === gene2) {
+    if(self.causality[gene]) {
+        self.causality[gene].forEach(function (gene2) {
+            if (gene2.id2 === corr.id2 && gene2.pSite1 === corr.pSite1 && gene2.pSite2 === corr.pSite2  ) {
                 res = true;
                 causalInd = ind;
             }
@@ -848,31 +868,31 @@ CausalityAgent.prototype.hasCorrelationalRelationship = function(gene1, gene2, c
 
 }
 
-
-/***
- * Temporary method to find genes that don't have causal relationship but have a common upstream and high correlation
- */
-CausalityAgent.prototype.findDemoGenes = function(){
-    var self = this;
-    var commonGenes = [];
-
-    self.geneNameArr.forEach(function(gene1) {
-
-        self.geneNameArr.forEach(function(gene2) {
-            if (gene2 !== gene1 && self.causalRelationshipInd(gene1, gene2)< 0) {
-                self.hasCorrelationalRelationship(gene1, gene2, function (val) {
-                    var upstreams = self.findCommonUpstreams(gene1, gene2);
-                    if (upstreams && upstreams.length > 0) {
-                        commonGenes.push(gene1 + "\t" + gene2 + "\n");
-                    }
-                });
-            }
-        });
-    });
-
-
-    setTimeout(function(){
-        saveFile(commonGenes, "./CausalPath/noncausal.txt", "txt");
-    },240000);
-
-}
+//
+// /***
+//  * Temporary method to find genes that don't have causal relationship but have a common upstream and high correlation
+//  */
+// CausalityAgent.prototype.findDemoGenes = function(){
+//     var self = this;
+//     var commonGenes = [];
+//
+//     self.geneNameArr.forEach(function(gene1) {
+//
+//         self.geneNameArr.forEach(function(gene2) {
+//             if (gene2 !== gene1 && self.causalRelationshipInd(gene1, gene2)< 0) {
+//                 self.hasCorrelationalRelationship(gene1, gene2, function (val) {
+//                     var upstreams = self.findCommonUpstreams(gene1, gene2);
+//                     if (upstreams && upstreams.length > 0) {
+//                         commonGenes.push(gene1 + "\t" + gene2 + "\n");
+//                     }
+//                 });
+//             }
+//         });
+//     });
+//
+//
+//     setTimeout(function(){
+//         saveFile(commonGenes, "./CausalPath/noncausal.txt", "txt");
+//     },240000);
+//
+// }
