@@ -7,6 +7,7 @@
 *.iml
 out
 gen
+<<<<<<< HEAD
 .DS_Store
 .gitignore
 node_modules/
@@ -931,3 +932,7 @@ agent-interaction/CausalPath/causative.sif
 agent-interaction/CausalPath/PC.sif
 /agent-interaction/CausalPath/noncausal.txt
 agent-interaction/CausalPath/
+=======
+/public/node_modules/
+/node_modules/
+>>>>>>> master
