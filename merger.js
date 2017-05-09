@@ -67,7 +67,7 @@ var traverseGraph = function (node, visitedNodes) {
 
 // Make sure the sources of the edges are placed before and
 // the targets after the edges in the rephrase.
-var rearrangeRephrase = function(rephrase, leastprioritynodes) {
+var rearrangeRephrase = function(rephrase, intermedprioritynodes) {
     for(i = 0; i < rephrase.length; i++) {
         if(rephrase[i].isEdge() && rephrase[i].source().id() != rephrase[i - 1].id()) {
             //Duplicate the nodes around the edge.
@@ -83,7 +83,7 @@ var rearrangeRephrase = function(rephrase, leastprioritynodes) {
 
 // When two nodes in the rephrase are the same but the ids differ
 // make the two nodes exactly (they point to the same cytoscape object).
-var mergeNodes = function(rephrase, leastprioritynodes) {
+var mergeNodes = function(rephrase, intermedprioritynodes) {
     var i;
     var signature;
     var nonredundantnodes = {};
@@ -95,9 +95,9 @@ var mergeNodes = function(rephrase, leastprioritynodes) {
             });
         }
 
-        if(rephrase[i].isNode() && leastprioritynodes[rephrase[i].data('sbgnclass')] == undefined && signature in nonredundantnodes) {
+        if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined && signature in nonredundantnodes) {
             rephrase[i] = nonredundantnodes[signature];
-        } else if(rephrase[i].isNode() && leastprioritynodes[rephrase[i].data('sbgnclass')] == undefined)
+        } else if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined)
             nonredundantnodes[signature] = rephrase[i];
     }
 }
@@ -106,7 +106,7 @@ var mergeNodes = function(rephrase, leastprioritynodes) {
 // the process nodes that have the same set of triplet as neighbors
 // (i.e. the reactions that have the same inputs and outputs).
 // Among the duplicates, select only one of them.
-var mergeProcessNodes = function(rephrase, leastprioritynodes) {
+var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
     var i;
     var key;
     var processid;
@@ -122,7 +122,7 @@ var mergeProcessNodes = function(rephrase, leastprioritynodes) {
 
         if(triplet[1] != undefined && triplet[1].isEdge()) {
             processid = triplet[0].id();
-            if(leastprioritynodes[triplet[2].data('sbgnclass')])
+            if(intermedprioritynodes[triplet[2].data('sbgnclass')])
                 processid = triplet[2].id();
 
             if(tripletsbyprocid[processid] == undefined)
@@ -218,14 +218,20 @@ var cytmp;
 var edgejs;
 var jsonObj = {"nodes": [], "edges": []};
 var rephrase = traverseGraph(cy.nodes()[2], []); //Traverse the graph and get the "rephrase" (the array representing the chronological order by which the nodes and the edges were visited).
-var leastprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
+var intermedprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
 
-rearrangeRephrase(rephrase, leastprioritynodes); //Rearrange the orders of the nodes around the edges in the rephrase for the subsequent operations.
-mergeNodes(rephrase, leastprioritynodes); //Merge the nodes.
-mergeProcessNodes(rephrase, leastprioritynodes); //Merge the process nodes and the whole reaction they are involved in.
+rearrangeRephrase(rephrase, intermedprioritynodes); //Rearrange the orders of the nodes around the edges in the rephrase for the subsequent operations.
+mergeNodes(rephrase, intermedprioritynodes); //Merge the nodes.
+mergeProcessNodes(rephrase, intermedprioritynodes); //Merge the process nodes and the whole reaction they are involved in.
 mergeEdges(rephrase); //Merge the edges.
 
 rephrase.forEach(element => {
+    // Get what's inside a complex and add it to the final json.
+    desc = rephrase[i].descendants();
+    desc.forEach(child => {
+        jsonObj.nodes.push(child.json());
+    });
+
     if(element.isNode())
         jsonObj.nodes.push(element.json());
     else {

@@ -198,7 +198,7 @@ var descString = function(nodearray) {
     return id;
 };
 
-var rearrangeRephrase = function(rephrase, leastprioritynodes) {
+var rearrangeRephrase = function(rephrase, intermedprioritynodes) {
     for(i = 0; i < rephrase.length; i++) {
         if(rephrase[i].isEdge() && rephrase[i].source().id() != rephrase[i - 1].id()) {
             //Duplicate it !
@@ -212,7 +212,7 @@ var rearrangeRephrase = function(rephrase, leastprioritynodes) {
     }
 }
 
-var mergeNodes = function(rephrase, leastprioritynodes) {
+var mergeNodes = function(rephrase, intermedprioritynodes) {
     var i;
     var signature;
     var nonredundantnodes = {};
@@ -224,14 +224,14 @@ var mergeNodes = function(rephrase, leastprioritynodes) {
             });
         }
 
-        if(rephrase[i].isNode() && leastprioritynodes[rephrase[i].data('sbgnclass')] == undefined && signature in nonredundantnodes) {
+        if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined && signature in nonredundantnodes) {
             rephrase[i] = nonredundantnodes[signature];
-        } else if(rephrase[i].isNode() && leastprioritynodes[rephrase[i].data('sbgnclass')] == undefined)
+        } else if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined)
             nonredundantnodes[signature] = rephrase[i];
     }
 }
 
-var mergeProcessNodes = function(rephrase, leastprioritynodes) {
+var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
     var i;
     var key;
     var processid;
@@ -247,7 +247,7 @@ var mergeProcessNodes = function(rephrase, leastprioritynodes) {
 
         if(triplet[1] != undefined && triplet[1].isEdge()) {
             processid = triplet[0].id();
-            if(leastprioritynodes[triplet[2].data('sbgnclass')])
+            if(intermedprioritynodes[triplet[2].data('sbgnclass')])
                 processid = triplet[2].id();
 
             if(tripletsbyprocid[processid] == undefined)
@@ -2018,14 +2018,19 @@ module.exports = function(){
                     var edgejs;
                     var jsonObj = {"nodes": [], "edges": []};
                     var rephrase = traverseGraph(cy.nodes()[2], []);
-                    var leastprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
+                    var intermedprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
 
-                    rearrangeRephrase(rephrase, leastprioritynodes);
-                    mergeNodes(rephrase, leastprioritynodes);
-                    mergeProcessNodes(rephrase, leastprioritynodes);
+                    rearrangeRephrase(rephrase, intermedprioritynodes);
+                    mergeNodes(rephrase, intermedprioritynodes);
+                    mergeProcessNodes(rephrase, intermedprioritynodes);
                     mergeEdges(rephrase);
 
                     for(i = 0; i < rephrase.length; i++) {
+                        desc = rephrase[i].descendants();
+                        desc.forEach(child => {
+                            jsonObj.nodes.push(child.json());
+                        });
+
                         if(rephrase[i].isNode())
                             jsonObj.nodes.push(rephrase[i].json());
                         else {
