@@ -29,7 +29,7 @@ var traverseGraph = function (node, visitedNodes) {
     var previousVisitedNodesLength;
 
     
-    //FUNDA: Code duplication -- can be put into a function
+    //FUNDA: Code duplication * -- can be put into a function
     // travel through the edges leaving the node
     edgesTo.forEach(edge => {
         edge.select();
@@ -47,7 +47,7 @@ var traverseGraph = function (node, visitedNodes) {
         }
     });
 
-    //FUNDA: Code duplication -- can be put into a function
+    //FUNDA: Code duplication * -- can be put into a function
     // travel through the edges entering the node
     edgesFrom.forEach(edge => {
         edge.select();
@@ -60,6 +60,7 @@ var traverseGraph = function (node, visitedNodes) {
 
             previousVisitedNodesLength = visitedNodes.length;
             traverseGraph(edge.source(), visitedNodes);
+            //FUNDA : better use === and !==
             if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
                 visitedNodes.pop();
         }
@@ -77,6 +78,7 @@ var rearrangeRephrase = function(rephrase, intermedprioritynodes) {
             rephrase.splice(i - 1, 0, rephrase[i - 1]);
             rephrase.splice(i + 2, 0, rephrase[i + 2]);
 
+            //FUNDA:  var tmp = rephrase[i + 2]; -- Don't forget "var"
             tmp = rephrase[i + 2];
             rephrase[i + 2] = rephrase[i];
             rephrase[i] = tmp;
@@ -139,6 +141,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
         signature = "";
         tripletsbyprocid[id].forEach(triplet => { 
             for(i = 0; i < tripletsbyprocid[id].length; i++) {
+                //FUNDA : code duplication **
                 signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
                 if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
                     triplet[i].data('sbgnstatesandinfos').forEach(box => {
@@ -163,6 +166,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
     i = 0;
     Object.keys(idsbysignature).forEach(signature => {
         tripletsbyprocid[idsbysignature[signature][0]].forEach(triplet => {
+            //FUNDA  use a loop for these
             rephrase[i] = triplet[0];
             rephrase[i + 1] = triplet[1];
             rephrase[i + 2] = triplet[2];
@@ -187,6 +191,7 @@ var mergeEdges = function(rephrase) {
         if(triplet[1] != undefined && triplet[1].isEdge()) {
             signature = "";
             for(j = 0; j < 3; j++) {
+                //FUNDA : code duplication **
                 signature += descString(triplet[j].descendants()) + triplet[j].data('sbgnlabel') + triplet[j].data('sbgnclass') + triplet[j].data('parent');
                 if(triplet[j].data('sbgnstatesandinfos') != undefined && triplet[j].data('sbgnstatesandinfos').length > 0) {
                     triplet[j].data('sbgnstatesandinfos').forEach(box => {
@@ -196,11 +201,13 @@ var mergeEdges = function(rephrase) {
             }
 
             if(nonredundantedges[signature] != undefined) {
+                //FUNDA  use a loop for these
                 rephrase[i - 2] = nonredundantedges[signature][0];
                 rephrase[i - 1] = nonredundantedges[signature][1];
                 rephrase[i] = nonredundantedges[signature][2];
             } else {
                 nonredundantedges[signature] = new Array(3);
+                //FUNDA  use a loop for these
                 nonredundantedges[signature][0] = triplet[0];
                 nonredundantedges[signature][1] = triplet[1];
                 nonredundantedges[signature][2] = triplet[2];
