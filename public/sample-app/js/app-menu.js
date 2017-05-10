@@ -220,7 +220,7 @@ var mergeNodes = function(rephrase, intermedprioritynodes) {
         signature = descString(rephrase[i].descendants()) + rephrase[i].data('sbgnlabel') + rephrase[i].data('sbgnclass') + rephrase[i].data('parent');
         if(rephrase[i].data('sbgnstatesandinfos') != undefined && rephrase[i].data('sbgnstatesandinfos').length > 0) {
             rephrase[i].data('sbgnstatesandinfos').forEach(box => {
-                signature += box.clazz + JSON.stringify(box.label);
+                signature += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
             });
         }
 
@@ -258,21 +258,21 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
     }
 
     Object.keys(tripletsbyprocid).forEach(id => {
-        signature = "";
         tripletsbyprocid[id].forEach(triplet => { 
+            signature = "";
             for(i = 0; i < 3; i++) {
                 signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
                 if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
                     triplet[i].data('sbgnstatesandinfos').forEach(box => {
-                        signature += box.clazz + JSON.stringify(box.label);
+                        signature += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
                     });
                 }
-
-                if(signaturesbyid[id] == undefined)
-                    signaturesbyid[id] = [];
-
-                signaturesbyid[id].push(signature);
             }
+
+            if(signaturesbyid[id] == undefined)
+                signaturesbyid[id] = [];
+
+            signaturesbyid[id].push(signature);
         });
 
         key = signaturesbyid[id].sort().join("");
@@ -292,7 +292,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
         });
     });
 
-    rephrase.splice(i, i - rephrase.length);
+    rephrase.splice(i, rephrase.length - i);
 }
 
 var mergeEdges = function(rephrase) {
@@ -310,17 +310,21 @@ var mergeEdges = function(rephrase) {
                 signature += descString(triplet[j].descendants()) + triplet[j].data('sbgnlabel') + triplet[j].data('sbgnclass') + triplet[j].data('parent');
                 if(triplet[j].data('sbgnstatesandinfos') != undefined && triplet[j].data('sbgnstatesandinfos').length > 0) {
                     triplet[j].data('sbgnstatesandinfos').forEach(box => {
-                        signature += box.clazz + JSON.stringify(box.label);
+                        signature += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
                     });
                 }
             }
 
-            if(nonredundantedges[signature]) {
-                rephrase[i - 2] = triplet[0];
-                rephrase[i - 1] = triplet[1];
-                rephrase[i] = triplet[2];
-            } else
-                nonredundantedges[signature] = 1;
+            if(nonredundantedges[signature] && triplet[0] == nonredundantedges[signature][0] && triplet[2] == nonredundantedges[signature][2]) {
+                rephrase[i - 2] = nonredundantedges[signature][0];
+                rephrase[i - 1] = nonredundantedges[signature][1];
+                rephrase[i] = nonredundantedges[signature][2];
+            } else {
+                nonredundantedges[signature] = new Array(3);
+                nonredundantedges[signature][0] = triplet[0];
+                nonredundantedges[signature][1] = triplet[1];
+                nonredundantedges[signature][2] = triplet[2];
+            }
         }
     }
 }

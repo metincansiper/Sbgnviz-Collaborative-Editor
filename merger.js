@@ -91,7 +91,7 @@ var mergeNodes = function(rephrase, intermedprioritynodes) {
         signature = descString(rephrase[i].descendants()) + rephrase[i].data('sbgnlabel') + rephrase[i].data('sbgnclass') + rephrase[i].data('parent');
         if(rephrase[i].data('sbgnstatesandinfos') != undefined && rephrase[i].data('sbgnstatesandinfos').length > 0) {
             rephrase[i].data('sbgnstatesandinfos').forEach(box => {
-                signature += box.clazz + JSON.stringify(box.label);
+                signature += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
             });
         }
 
@@ -139,7 +139,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
                 signature += descString(triplet[i].descendants()) + triplet[i].data('sbgnlabel') + triplet[i].data('sbgnclass') + triplet[i].data('parent');
                 if(triplet[i].data('sbgnstatesandinfos') != undefined && triplet[i].data('sbgnstatesandinfos').length > 0) {
                     triplet[i].data('sbgnstatesandinfos').forEach(box => {
-                        signature += box.clazz + JSON.stringify(box.label);
+                        signature += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
                     });
                 }
 
@@ -167,7 +167,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes) {
         });
     });
 
-    rephrase.splice(i, i - rephrase.length);
+    rephrase.splice(i, rephrase.length - i);
 }
 
 // Divide the rephrase in triplets of node-edge-node and identify
@@ -187,17 +187,21 @@ var mergeEdges = function(rephrase) {
                 signature += descString(triplet[j].descendants()) + triplet[j].data('sbgnlabel') + triplet[j].data('sbgnclass') + triplet[j].data('parent');
                 if(triplet[j].data('sbgnstatesandinfos') != undefined && triplet[j].data('sbgnstatesandinfos').length > 0) {
                     triplet[j].data('sbgnstatesandinfos').forEach(box => {
-                        signature += box.clazz + JSON.stringify(box.label);
+                        signature += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
                     });
                 }
             }
 
             if(nonredundantedges[signature] != undefined) {
-                rephrase[i - 2] = triplet[0];
-                rephrase[i - 1] = triplet[1];
-                rephrase[i] = triplet[2];
-            } else
-                nonredundantedges[signature] = rephrase[i];
+                rephrase[i - 2] = nonredundantedges[signature][0];
+                rephrase[i - 1] = nonredundantedges[signature][1];
+                rephrase[i] = nonredundantedges[signature][2];
+            } else {
+                nonredundantedges[signature] = new Array(3);
+                nonredundantedges[signature][0] = triplet[0];
+                nonredundantedges[signature][1] = triplet[1];
+                nonredundantedges[signature][2] = triplet[2];
+            }
         }
     }
 }
@@ -225,14 +229,14 @@ mergeNodes(rephrase, intermedprioritynodes); //Merge the nodes.
 mergeProcessNodes(rephrase, intermedprioritynodes); //Merge the process nodes and the whole reaction they are involved in.
 mergeEdges(rephrase); //Merge the edges.
 
-rephrase.forEach(element => {
+for(i = 0; i < rephrase.length; i++) {
     // Get what's inside a complex and add it to the final json.
     desc = rephrase[i].descendants();
     desc.forEach(child => {
         jsonObj.nodes.push(child.json());
     });
 
-    if(element.isNode())
+    if(rephrase[i].isNode())
         jsonObj.nodes.push(element.json());
     else {
         edgejs = rephrase[i].json();
