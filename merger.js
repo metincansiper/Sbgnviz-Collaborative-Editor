@@ -28,6 +28,8 @@ var traverseGraph = function (node, visitedNodes) {
     var i = 0;
     var previousVisitedNodesLength;
 
+    
+    //FUNDA: Code duplication -- can be put into a function
     // travel through the edges leaving the node
     edgesTo.forEach(edge => {
         edge.select();
@@ -45,6 +47,7 @@ var traverseGraph = function (node, visitedNodes) {
         }
     });
 
+    //FUNDA: Code duplication -- can be put into a function
     // travel through the edges entering the node
     edgesFrom.forEach(edge => {
         edge.select();
