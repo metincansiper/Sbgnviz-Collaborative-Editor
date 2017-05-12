@@ -1,3 +1,29 @@
+var traverseThroughEdges = function(node, edges, npassages, backtosource, visitedNodes) {
+    var next;
+    var previousVisitedNodesLength;
+    edges.forEach(edge => {
+        edge.select();
+        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
+            npassages += 1;
+            if(npassages > 1)
+                visitedNodes.push(node);
+
+            visitedNodes.push(edge);
+            
+            previousVisitedNodesLength = visitedNodes.length;
+            next = edge.target();
+            if(backtosource)
+                next = edge.source();
+
+            traverseGraph(next, visitedNodes);
+            if((visitedNodes.length === previousVisitedNodesLength) && (npassages > 1))
+                visitedNodes.pop();
+        }
+    });
+
+    return npassages;
+};
+
 //Traverse the graph with the cytoscape library.
 //Return the visited nodes in an order that reflects
 //the chronology in which they were visited.
@@ -25,46 +51,11 @@ var traverseGraph = function (node, visitedNodes) {
         return this.isEdge();
     });
 
-    var i = 0;
-    var previousVisitedNodesLength;
-
-    
-    //FUNDA: Code duplication * -- can be put into a function
     // travel through the edges leaving the node
-    edgesTo.forEach(edge => {
-        edge.select();
-        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
-            i += 1;
-            if(i > 1)
-                visitedNodes.push(node);
+    var npassages = traverseThroughEdges(node, edgesTo, 0, 0, visitedNodes);
 
-            visitedNodes.push(edge);
-            
-            previousVisitedNodesLength = visitedNodes.length;
-            traverseGraph(edge.target(), visitedNodes);
-            if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
-                visitedNodes.pop();
-        }
-    });
-
-    //FUNDA: Code duplication * -- can be put into a function
     // travel through the edges entering the node
-    edgesFrom.forEach(edge => {
-        edge.select();
-        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
-            i += 1;
-            if(i > 1)
-                visitedNodes.push(node);
-
-            visitedNodes.push(edge);
-
-            previousVisitedNodesLength = visitedNodes.length;
-            traverseGraph(edge.source(), visitedNodes);
-            //FUNDA : better use === and !==
-            if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
-                visitedNodes.pop();
-        }
-    });
+    traverseThroughEdges(node, edgesFrom, npassages, 1, visitedNodes);
 
     return visitedNodes;
 };
@@ -168,13 +159,13 @@ var getElementSignatures = function(rephrase) {
 // Make sure the sources of the edges are placed before and
 // the targets after the edges in the rephrase.
 var rearrangeRephrase = function(rephrase, intermedprioritynodes) {
+    var tmp;
     for(i = 0; i < rephrase.length; i++) {
         if(rephrase[i].isEdge() && rephrase[i].source().id() != rephrase[i - 1].id()) {
             //Duplicate the nodes around the edge.
             rephrase.splice(i - 1, 0, rephrase[i - 1]);
             rephrase.splice(i + 2, 0, rephrase[i + 2]);
 
-            //FUNDA:  var tmp = rephrase[i + 2]; -- Don't forget "var"
             tmp = rephrase[i + 2];
             rephrase[i + 2] = rephrase[i];
             rephrase[i] = tmp;
@@ -200,7 +191,7 @@ var mergeNodes = function(rephrase, intermedprioritynodes, id2signature) {
 // (i.e. the reactions that have the same inputs and outputs).
 // Among the duplicates, select only one of them.
 var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) {
-    var i;
+    var i, j;
     var key;
     var processid;
     var signature;
@@ -248,10 +239,9 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) 
     i = 0;
     Object.keys(idsbysignature).forEach(signature => {
         tripletsbyprocid[idsbysignature[signature][0]].forEach(triplet => {
-            //FUNDA  use a loop for these
-            rephrase[i] = triplet[0];
-            rephrase[i + 1] = triplet[1];
-            rephrase[i + 2] = triplet[2];
+            for(j = 0; j < 3; j++)
+                rephrase[i + j] = triplet[j];
+
             i = i + 3;
             toremove = rephrase.length - i
         });
@@ -277,16 +267,12 @@ var mergeEdges = function(rephrase, id2signature) {
                 signature += id2signature[triplet[j].id()];
 
             if(nonredundantedges[signature] && triplet[0] == nonredundantedges[signature][0] && triplet[2] == nonredundantedges[signature][2]) {
-                //FUNDA  use a loop for these
-                rephrase[i - 2] = nonredundantedges[signature][0];
-                rephrase[i - 1] = nonredundantedges[signature][1];
-                rephrase[i] = nonredundantedges[signature][2];
+                for(j = 0; j < 3; j++)
+                    rephrase[i - (2 - j)] = nonredundantedges[signature][j];
             } else {
                 nonredundantedges[signature] = new Array(3);
-                //FUNDA  use a loop for these
-                nonredundantedges[signature][0] = triplet[0];
-                nonredundantedges[signature][1] = triplet[1];
-                nonredundantedges[signature][2] = triplet[2];
+                for(j = 0; j < 3; j++)
+                    nonredundantedges[signature][j] = triplet[j];
             }
         }
     }

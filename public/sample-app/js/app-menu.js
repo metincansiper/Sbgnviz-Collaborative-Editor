@@ -40,6 +40,32 @@ var beforePerformLayout = function(){
     cy.edges().css('curve-style', 'bezier');
 };
 
+var traverseThroughEdges = function(node, edges, npassages, backtosource, visitedNodes) {
+    var next;
+    var previousVisitedNodesLength;
+    edges.forEach(edge => {
+        edge.select();
+        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
+            npassages += 1;
+            if(npassages > 1)
+                visitedNodes.push(node);
+
+            visitedNodes.push(edge);
+            
+            previousVisitedNodesLength = visitedNodes.length;
+            next = edge.target();
+            if(backtosource)
+                next = edge.source();
+
+            traverseGraph(next, visitedNodes);
+            if((visitedNodes.length == previousVisitedNodesLength) && (npassages > 1))
+                visitedNodes.pop();
+        }
+    });
+
+    return npassages;
+};
+
 var traverseGraph = function (node, visitedNodes) {
     // break if we visit a node twice
     if (visitedNodes.map(visitedNodes => visitedNodes.id()).includes(node.id())) {
@@ -62,41 +88,11 @@ var traverseGraph = function (node, visitedNodes) {
         return this.isEdge();
     });
 
-    var i = 0;
-    var previousVisitedNodesLength;
+    // travel through edges leaving the node.
+    var npassages = traverseThroughEdges(node, edgesTo, 0, 0, visitedNodes);
 
-    // travel through edges
-    edgesTo.forEach(edge => {
-        edge.select();
-        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
-            i += 1;
-            if(i > 1)
-                visitedNodes.push(node);
-
-            visitedNodes.push(edge);
-            
-            previousVisitedNodesLength = visitedNodes.length;
-            traverseGraph(edge.target(), visitedNodes);
-            if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
-                visitedNodes.pop();
-        }
-    });
-
-    edgesFrom.forEach(edge => {
-        edge.select();
-        if (!visitedNodes.map(visitedNodes => visitedNodes.id()).includes(edge.id())) {
-            i += 1;
-            if(i > 1)
-                visitedNodes.push(node);
-
-            visitedNodes.push(edge);
-
-            previousVisitedNodesLength = visitedNodes.length;
-            traverseGraph(edge.source(), visitedNodes);
-            if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
-                visitedNodes.pop();
-        }
-    });
+    // travel through edges entring the node.
+    traverseThroughEdges(node, edgesFrom, npassages, 1, visitedNodes);
 
     return visitedNodes;
 };
@@ -224,7 +220,7 @@ var mergeNodes = function(rephrase, intermedprioritynodes, id2signature) {
 };
 
 var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) {
-    var i;
+    var i, j;
     var key;
     var processid;
     var signature;
@@ -272,9 +268,9 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) 
     i = 0;
     Object.keys(idsbysignature).forEach(signature => {
         tripletsbyprocid[idsbysignature[signature][0]].forEach(triplet => {
-            rephrase[i] = triplet[0];
-            rephrase[i + 1] = triplet[1];
-            rephrase[i + 2] = triplet[2];
+            for(j = 0; j < 3; j++)
+                rephrase[i + j] = triplet[j];
+
             i = i + 3;
             toremove = rephrase.length - i
         });
@@ -298,14 +294,12 @@ var mergeEdges = function(rephrase, id2signature) {
                 signature += id2signature[triplet[j].id()];
 
             if(nonredundantedges[signature] && triplet[0] == nonredundantedges[signature][0] && triplet[2] == nonredundantedges[signature][2]) {
-                rephrase[i - 2] = nonredundantedges[signature][0];
-                rephrase[i - 1] = nonredundantedges[signature][1];
-                rephrase[i] = nonredundantedges[signature][2];
+                for(j = 0; j < 3; j++)
+                    rephrase[i - (2 - j)] = nonredundantedges[signature][j];
             } else {
                 nonredundantedges[signature] = new Array(3);
-                nonredundantedges[signature][0] = triplet[0];
-                nonredundantedges[signature][1] = triplet[1];
-                nonredundantedges[signature][2] = triplet[2];
+                for(j = 0; j < 3; j++)
+                    nonredundantedges[signature][j] = triplet[j];
             }
         }
     }
