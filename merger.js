@@ -28,6 +28,8 @@ var traverseGraph = function (node, visitedNodes) {
     var i = 0;
     var previousVisitedNodesLength;
 
+    
+    //FUNDA: Code duplication * -- can be put into a function
     // travel through the edges leaving the node
     edgesTo.forEach(edge => {
         edge.select();
@@ -45,6 +47,7 @@ var traverseGraph = function (node, visitedNodes) {
         }
     });
 
+    //FUNDA: Code duplication * -- can be put into a function
     // travel through the edges entering the node
     edgesFrom.forEach(edge => {
         edge.select();
@@ -57,6 +60,7 @@ var traverseGraph = function (node, visitedNodes) {
 
             previousVisitedNodesLength = visitedNodes.length;
             traverseGraph(edge.source(), visitedNodes);
+            //FUNDA : better use === and !==
             if((visitedNodes.length == previousVisitedNodesLength) && (i > 1))
                 visitedNodes.pop();
         }
@@ -170,6 +174,7 @@ var rearrangeRephrase = function(rephrase, intermedprioritynodes) {
             rephrase.splice(i - 1, 0, rephrase[i - 1]);
             rephrase.splice(i + 2, 0, rephrase[i + 2]);
 
+            //FUNDA:  var tmp = rephrase[i + 2]; -- Don't forget "var"
             tmp = rephrase[i + 2];
             rephrase[i + 2] = rephrase[i];
             rephrase[i] = tmp;
@@ -243,6 +248,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) 
     i = 0;
     Object.keys(idsbysignature).forEach(signature => {
         tripletsbyprocid[idsbysignature[signature][0]].forEach(triplet => {
+            //FUNDA  use a loop for these
             rephrase[i] = triplet[0];
             rephrase[i + 1] = triplet[1];
             rephrase[i + 2] = triplet[2];
@@ -271,11 +277,13 @@ var mergeEdges = function(rephrase, id2signature) {
                 signature += id2signature[triplet[j].id()];
 
             if(nonredundantedges[signature] && triplet[0] == nonredundantedges[signature][0] && triplet[2] == nonredundantedges[signature][2]) {
+                //FUNDA  use a loop for these
                 rephrase[i - 2] = nonredundantedges[signature][0];
                 rephrase[i - 1] = nonredundantedges[signature][1];
                 rephrase[i] = nonredundantedges[signature][2];
             } else {
                 nonredundantedges[signature] = new Array(3);
+                //FUNDA  use a loop for these
                 nonredundantedges[signature][0] = triplet[0];
                 nonredundantedges[signature][1] = triplet[1];
                 nonredundantedges[signature][2] = triplet[2];
