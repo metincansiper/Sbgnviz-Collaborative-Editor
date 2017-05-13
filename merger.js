@@ -1,3 +1,4 @@
+// Travel through the edges leaving the node.
 var traverseThroughEdges = function(node, edges, npassages, backtosource, visitedNodes) {
     var next;
     var previousVisitedNodesLength;
@@ -60,6 +61,9 @@ var traverseGraph = function (node, visitedNodes) {
     return visitedNodes;
 };
 
+//Read the cytoscape object, traverse the graph and 
+//returns the "rephrase", i.e. an array of nodes and edges
+//whose the order reflects the one to which the elements were visited.
 var cytoscape2rephrase = function(cytoscape) {
     var i;
     var tmp;
@@ -94,6 +98,9 @@ var cytoscape2rephrase = function(cytoscape) {
     return rephrase;
 };
 
+//Divide the rephrase into triplets of node-edge-node and 
+//when a triplet comes with no edge that is when a lonely node
+//, i.e. not surrounded by an edge and linked to nothing, is identified.
 var getLonelyNodes = function(rephrase) {
     var i;
     var lonelynodes = [];
@@ -113,13 +120,18 @@ var getLonelyNodes = function(rephrase) {
     return lonelynodes;
 };
 
+//Get that string of characters made of 
+//attribute values characterizing specifically a node,
+//that I call a "signature".
+//I use that function to output the signature of the elements
+//contained in a complex.
 var descString = function(nodearray) {
-    var id;
+    var id = "";
     nodearray.forEach(node => {
-        id = nodearray.data('sbgnlabel') + nodearray.data('sbgnclass');
+        id += node.data('sbgnlabel') + node.data('sbgnclass');
 
-        if(nodearray.data('sbgnstatesandinfos') != undefined && nodearray.data('sbgnstatesandinfos').length > 0) {
-            nodearray.data('sbgnstatesandinfos').forEach(box => {
+        if(node.data('sbgnstatesandinfos') != undefined && node.data('sbgnstatesandinfos').length > 0) {
+            node.data('sbgnstatesandinfos').forEach(box => {
                 id += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
             });
         }
@@ -128,10 +140,14 @@ var descString = function(nodearray) {
     return id;
 };
 
+//Get that string of characters made of 
+//attribute values characterizing specifically a node,
+//that I call a "signature".
 var getElementSignatures = function(rephrase) {
     var i;
     var signature;
     var id2signature = {};
+    var id2nbsignaturealteration = {};
     for(i = 0; i < rephrase.length; i++) {
         if(rephrase[i].isNode()) {
             signature = rephrase[i].data('sbgnlabel') + rephrase[i].data('sbgnclass');
@@ -145,12 +161,15 @@ var getElementSignatures = function(rephrase) {
                 signature += descString(rephrase[i].descendants());
 
             id2signature[rephrase[i].id()] = signature;
+            id2nbsignaturealteration[rephrase[i].id()] = 0;
         }
     }
 
     for(i = 0; i < rephrase.length; i++) {
-        if(id2signature[rephrase[i].data('parent')])
-           id2signature[rephrase[i].id()] += id2signature[rephrase[i].data('parent')];
+        if(id2signature[rephrase[i].data('parent')] && !id2nbsignaturealteration[rephrase[i].id()]) {
+            id2signature[rephrase[i].id()] += id2signature[rephrase[i].data('parent')];
+            id2nbsignaturealteration[rephrase[i].id()] = 1;
+        }
     }
 
     return id2signature;
@@ -174,7 +193,7 @@ var rearrangeRephrase = function(rephrase, intermedprioritynodes) {
 };
 
 // When two nodes in the rephrase are the same but the ids differ
-// make the two nodes exactly (they point to the same cytoscape object).
+// make the two nodes the same (they point to the same cytoscape object).
 var mergeNodes = function(rephrase, intermedprioritynodes, id2signature) {
     var i;
     var nonredundantnodes = {};
@@ -186,8 +205,8 @@ var mergeNodes = function(rephrase, intermedprioritynodes, id2signature) {
     }
 }
 
-// Divide the rephrase in triplets of node-edge-node and identify
-// the process nodes that have the same set of triplet as neighbors
+// Divide the rephrase into triplets of node-edge-node and identify
+// the process nodes that have the same set of triplets as neighbors
 // (i.e. the reactions that have the same inputs and outputs).
 // Among the duplicates, select only one of them.
 var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) {
@@ -278,6 +297,15 @@ var mergeEdges = function(rephrase, id2signature) {
     }
 };
 
+//Convert a json object to acytoscape object.
+var json2cytoscape = function(jsObj) {
+    return cytoscape({
+        elements: jsObj,
+        headless: true,
+        styleEnabled: true,
+    });
+};
+
 //**************
 // Main code
 //**************
@@ -289,72 +317,83 @@ var mergeEdges = function(rephrase, id2signature) {
 // the process nodes must be merged second and
 // the edges must be merged at last.
 // Only such a procedure guarantees a proper merge.
-var i;
-var edgejs;
-var nodejs;
-var tmp = [];
-var rephrase2;
-var idlist = {};
-var old2newids = {};
-var rephrase = cytoscape2rephrase(cy);
-var jsonObj = {"nodes": [], "edges": []};
-var lonelynodes = getLonelyNodes(rephrase);
-var id2signature = getElementSignatures(rephrase);
-var intermedprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
 
-rearrangeRephrase(rephrase, intermedprioritynodes); //Rearrange the orders of the nodes around the edges in the rephrase for the subsequent operations.
+//Here, I merge an array of json objects to output a single json object.
+var mergeJsons = function(jsons) {
+    var i;
+    var edgejs;
+    var nodejs;
+    var tmp = [];
+    var rephrase2;
+    var idlist = {};
+    var old2newids = {};
+    var intermedprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
 
-if(lonelynodes.length) {
-    rephrase2 = new Array(rephrase.length);
-    for(i = 0; i < rephrase.length; i++)
-        rephrase2[i] = rephrase[i];
-}
+    var jsonObj = {"nodes": [], "edges": []};
+    var cy = json2cytoscape(jsonObj);
 
-mergeNodes(rephrase, intermedprioritynodes, id2signature); //Merge the nodes.
+    //Convert the jsons into one single cytoscape object.
+    for(i = 0; i < jsons.length; i++)
+        cy.add(json2cytoscape(jsons[i]));
+    
+    var rephrase = cytoscape2rephrase(cy); //Rephrase the cytoscape object, in order to get the array of nodes and edges.
 
-if(lonelynodes.length) {
+    //Save the lonely nodes. It is mostly made to handle the nodes contained in complexes.
+    //Since they are not connected to any edge, they will be discarded when merging process nodes.
+    var lonelynodes = getLonelyNodes(rephrase);
+    var id2signature = getElementSignatures(rephrase);
+
+    rearrangeRephrase(rephrase, intermedprioritynodes); //Rearrange the orders of the nodes around the edges in the rephrase for the subsequent operations.
+
+    if(lonelynodes.length) {
+        rephrase2 = new Array(rephrase.length);
+        for(i = 0; i < rephrase.length; i++)
+            rephrase2[i] = rephrase[i];
+    }
+
+    mergeNodes(rephrase, intermedprioritynodes, id2signature); //Merge the nodes.
+
+    //After merging the nodes, some nodes have disappeared to be replaced by others.
+    //Update the collection of lonely nodes previously saved.
+    if(lonelynodes.length) {
+        for(i = 0; i < rephrase.length; i++) {
+            idlist[rephrase[i].id()] = 1;
+            old2newids[rephrase2[i].id()] = rephrase[i].id();
+        }
+
+        for(i = 0; i < lonelynodes.length; i++) {
+            if(lonelynodes[i].id() in idlist)
+                tmp.push(lonelynodes[i]);
+        }
+    }
+
+    lonelynodes = tmp;
+
+    mergeProcessNodes(rephrase, intermedprioritynodes, id2signature); //Merge the process nodes and the whole reaction they are involved in.
+    mergeEdges(rephrase, id2signature); //Merge the edges.
+
+    //Create the merged json object.
     for(i = 0; i < rephrase.length; i++) {
-        idlist[rephrase[i].id()] = 1;
-        old2newids[rephrase2[i].id()] = rephrase[i].id();
+        if(rephrase[i].isNode()) {
+            nodejs = rephrase[i].json();
+            if(nodejs.data.parent)
+                nodejs.data.parent = old2newids[nodejs.data.parent];
+
+            jsonObj.nodes.push(nodejs);
+        } else {
+            edgejs = rephrase[i].json();
+            edgejs.data.source = rephrase[i - 1].id();
+            edgejs.data.target = rephrase[i + 1].id();
+
+            jsonObj.edges.push(edgejs);
+        }
     }
 
     for(i = 0; i < lonelynodes.length; i++) {
-        if(lonelynodes[i].id() in idlist)
-            tmp.push(lonelynodes[i]);
-    }
-}
-
-lonelynodes = tmp;
-
-mergeProcessNodes(rephrase, intermedprioritynodes, id2signature); //Merge the process nodes and the whole reaction they are involved in.
-mergeEdges(rephrase, id2signature); //Merge the edges.
-
-for(i = 0; i < rephrase.length; i++) {
-    // Get what's inside a complex and add it to the final json.
-    desc = rephrase[i].descendants();
-    desc.forEach(child => {
-        jsonObj.nodes.push(child.json());
-    });
-
-    if(rephrase[i].isNode()) {
-        nodejs = rephrase[i].json();
+        nodejs = lonelynodes[i].json();
         if(nodejs.data.parent)
             nodejs.data.parent = old2newids[nodejs.data.parent];
 
         jsonObj.nodes.push(nodejs);
-    } else {
-        edgejs = rephrase[i].json();
-        edgejs.data.source = rephrase[i - 1].id();
-        edgejs.data.target = rephrase[i + 1].id();
-
-        jsonObj.edges.push(edgejs);
     }
-}
-
-for(i = 0; i < lonelynodes.length; i++) {
-    nodejs = lonelynodes[i].json();
-    if(nodejs.data.parent)
-        nodejs.data.parent = old2newids[nodejs.data.parent];
-
-    jsonObj.nodes.push(nodejs);
-}
+};

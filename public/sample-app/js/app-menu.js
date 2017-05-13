@@ -132,12 +132,12 @@ var cytoscape2rephrase = function(cytoscape) {
 };
 
 var descString = function(nodearray) {
-    var id;
+    var id = "";
     nodearray.forEach(node => {
-        id = nodearray.data('sbgnlabel') + nodearray.data('sbgnclass');
+        id += node.data('sbgnlabel') + node.data('sbgnclass');
 
-        if(nodearray.data('sbgnstatesandinfos') != undefined && nodearray.data('sbgnstatesandinfos').length > 0) {
-            nodearray.data('sbgnstatesandinfos').forEach(box => {
+        if(node.data('sbgnstatesandinfos') != undefined && node.data('sbgnstatesandinfos').length > 0) {
+            node.data('sbgnstatesandinfos').forEach(box => {
                 id += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
             });
         }
@@ -169,6 +169,7 @@ var getElementSignatures = function(rephrase) {
     var i;
     var signature;
     var id2signature = {};
+    var id2nbsignaturealteration = {};
     for(i = 0; i < rephrase.length; i++) {
         if(rephrase[i].isNode()) {
             signature = rephrase[i].data('sbgnlabel') + rephrase[i].data('sbgnclass');
@@ -182,12 +183,15 @@ var getElementSignatures = function(rephrase) {
                 signature += descString(rephrase[i].descendants());
 
             id2signature[rephrase[i].id()] = signature;
+            id2nbsignaturealteration[rephrase[i].id()] = 0;
         }
     }
 
     for(i = 0; i < rephrase.length; i++) {
-        if(id2signature[rephrase[i].data('parent')])
-           id2signature[rephrase[i].id()] += id2signature[rephrase[i].data('parent')];
+        if(id2signature[rephrase[i].data('parent')] && !id2nbsignaturealteration[rephrase[i].id()]) {
+            id2signature[rephrase[i].id()] += id2signature[rephrase[i].data('parent')];
+            id2nbsignaturealteration[rephrase[i].id()] = 1;
+        }
     }
 
     return id2signature;
@@ -212,9 +216,9 @@ var mergeNodes = function(rephrase, intermedprioritynodes, id2signature) {
     var i;
     var nonredundantnodes = {};
     for(i = 0; i < rephrase.length; i++) {
-        if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined && id2signature[rephrase[i].id()] in nonredundantnodes) {
+        if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined && id2signature[rephrase[i].id()] in nonredundantnodes)
             rephrase[i] = nonredundantnodes[id2signature[rephrase[i].id()]];
-        } else if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined)
+        else if(rephrase[i].isNode() && intermedprioritynodes[rephrase[i].data('sbgnclass')] == undefined)
             nonredundantnodes[id2signature[rephrase[i].id()]] = rephrase[i];
     }
 };
@@ -303,6 +307,14 @@ var mergeEdges = function(rephrase, id2signature) {
             }
         }
     }
+};
+
+var json2cytoscape = function(jsObj) {
+    return cytoscape({
+        elements: jsObj,
+        headless: true,
+        styleEnabled: true,
+    });
 };
 
 function getXMLObject(itemId, loadXMLDoc) {
@@ -2005,7 +2017,7 @@ module.exports = function(){
                     var lonelynodes = getLonelyNodes(rephrase);
                     var id2signature = getElementSignatures(rephrase);
                     var intermedprioritynodes = {'and': 1, 'association': 1, 'dissociation': 1, 'omitted process': 1, 'or': 1, 'process': 1, 'not': 1, 'source and sink': 1, 'uncertain process': 1};
-
+                    
                     rearrangeRephrase(rephrase, intermedprioritynodes);
 
                     if(lonelynodes.length) {
@@ -2034,10 +2046,10 @@ module.exports = function(){
                     mergeEdges(rephrase, id2signature);
 
                     for(i = 0; i < rephrase.length; i++) {
-                        desc = rephrase[i].descendants();
-                        desc.forEach(child => {
-                            jsonObj.nodes.push(child.json());
-                        });
+                        //desc = rephrase[i].descendants();
+                        //desc.forEach(child => {
+                        //    jsonObj.nodes.push(child.json());
+                       //});
 
                         if(rephrase[i].isNode()) {
                             nodejs = rephrase[i].json();
