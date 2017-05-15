@@ -4,8 +4,8 @@ the different elements of a graph sequentially, according to their level of prio
 the molecules/complexes/etc... must be merged first, the process nodes must be merged second and the edges must be merged at last.
 Only such a procedure guarantees a proper merge. It relies on the assumption that the SBGN graph can be split
 in triplets of node-edge-node where one of the nodes is a biological item (protein, DNA, compartment, multimers, ...) and
-the other node is a process node (process, association, source and sink, ...). So weird results can happen
-while merging graphs with association nodes linked to process nodes for example.
+the other node is a process node (process, association, source and sink, ...) or a logic node (and, or, not). So weird results can happen
+while merging graphs with logic nodes linked to process nodes for example.
 **/
 
 //Author: David Servillo.
