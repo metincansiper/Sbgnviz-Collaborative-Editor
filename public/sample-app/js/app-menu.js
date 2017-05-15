@@ -133,6 +133,7 @@ var cytoscape2rephrase = function(cytoscape) {
 
 var descString = function(nodearray) {
     var id = "";
+    var ids = [];
     nodearray.forEach(node => {
         id += node.data('sbgnlabel') + node.data('sbgnclass');
 
@@ -141,9 +142,12 @@ var descString = function(nodearray) {
                 id += box.clazz + JSON.stringify(box.state) + JSON.stringify(box.label);
             });
         }
+
+	ids.push(id);
+	id = "";
     });
 
-    return id;
+    return ids.sort().join("");
 };
 
 var getLonelyNodes = function(rephrase) {
@@ -233,7 +237,6 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) 
     var signaturesbyid = {};
     var tripletsbyprocid = {};
     var triplet = new Array(3);
-    var triplet2 = new Array(3);
     for(i = 0; i < rephrase.length; i++) {
         triplet.shift();
         triplet.push(rephrase[i]);
@@ -276,7 +279,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) 
                 rephrase[i + j] = triplet[j];
 
             i = i + 3;
-            toremove = rephrase.length - i
+            toremove = rephrase.length - i;
         });
     });
 
@@ -286,6 +289,7 @@ var mergeProcessNodes = function(rephrase, intermedprioritynodes, id2signature) 
 var mergeEdges = function(rephrase, id2signature) {
     var i, j;
     var signature;
+    var toremove = [];
     var nonredundantedges = {};
     var triplet = new Array(3);
     for(i = 0; i < rephrase.length; i++) {
@@ -298,8 +302,7 @@ var mergeEdges = function(rephrase, id2signature) {
                 signature += id2signature[triplet[j].id()];
 
             if(nonredundantedges[signature] && triplet[0] == nonredundantedges[signature][0] && triplet[2] == nonredundantedges[signature][2]) {
-                for(j = 0; j < 3; j++)
-                    rephrase[i - (2 - j)] = nonredundantedges[signature][j];
+                toremove.push(i - 2);
             } else {
                 nonredundantedges[signature] = new Array(3);
                 for(j = 0; j < 3; j++)
@@ -307,6 +310,10 @@ var mergeEdges = function(rephrase, id2signature) {
             }
         }
     }
+
+    toremove.forEach(startposition => {
+        rephrase.splice(startposition, 3);
+    });
 };
 
 var json2cytoscape = function(jsObj) {
@@ -2004,7 +2011,7 @@ module.exports = function(){
             $("#undo-last-action-global").click(function (e) {
                 if(editorActions.modelManager.isUndoPossible()){
                     editorActions.modelManager.undoCommand();
-
+                    
                     var i;
                     var edgejs;
                     var nodejs;
@@ -2023,34 +2030,29 @@ module.exports = function(){
                     if(lonelynodes.length) {
                         rephrase2 = new Array(rephrase.length);
                         for(i = 0; i < rephrase.length; i++)
-                            rephrase2[i] = rephrase[i];
+                       	    rephrase2[i] = rephrase[i];
                     }
 
                     mergeNodes(rephrase, intermedprioritynodes, id2signature);
 
-                    if(lonelynodes.length) {
+ 	            if(lonelynodes.length) {
                         for(i = 0; i < rephrase.length; i++) {
-                            idlist[rephrase[i].id()] = 1;
-                            old2newids[rephrase2[i].id()] = rephrase[i].id();
-                        }
+ 	                    idlist[rephrase[i].id()] = 1;
+                       	    old2newids[rephrase2[i].id()] = rephrase[i].id();
+                   	}
 
-                        for(i = 0; i < lonelynodes.length; i++) {
-                            if(lonelynodes[i].id() in idlist)
+ 	                for(i = 0; i < lonelynodes.length; i++) {
+                       	    if(lonelynodes[i].id() in idlist)
                                 tmp.push(lonelynodes[i]);
-                        }
+                   	}
                     }
 
-                    lonelynodes = tmp;
+		    lonelynodes = tmp;
 
+              	    mergeEdges(rephrase, id2signature);
                     mergeProcessNodes(rephrase, intermedprioritynodes, id2signature);
-                    mergeEdges(rephrase, id2signature);
 
                     for(i = 0; i < rephrase.length; i++) {
-                        //desc = rephrase[i].descendants();
-                        //desc.forEach(child => {
-                        //    jsonObj.nodes.push(child.json());
-                       //});
-
                         if(rephrase[i].isNode()) {
                             nodejs = rephrase[i].json();
                             if(nodejs.data.parent)
