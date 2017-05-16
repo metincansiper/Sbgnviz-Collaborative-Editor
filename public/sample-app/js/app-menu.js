@@ -162,7 +162,11 @@ var getLonelyNodes = function(rephrase) {
         triplet.shift();
         triplet.push(rephrase[i]);
 
-        if(triplet[0] != undefined && triplet[0].isNode() && triplet[1] != undefined && triplet[1].isNode() && triplet[2].isNode())
+        if(triplet[0] != undefined
+            && triplet[0].isNode()
+            && triplet[1] != undefined
+            && triplet[1].isNode()
+            && triplet[2].isNode())
             lonelynodes.push(triplet[1]);
     }
 
