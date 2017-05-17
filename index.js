@@ -29,7 +29,9 @@ var useQunit = true;
 var factoidHandler;
 
 var socket;
-var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
+ var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
+
+//var jsonMerger = require('./public/collaborative-app/merger.js');
 
 var modelManager;
 var oneColor = require('onecolor');
@@ -1559,10 +1561,11 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
 
 
 
+    //
+    // var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
+    // var jsonObj = mergeResult.wholeJson;
+    // var newJsonIds = mergeResult.jsonToMerge;
 
-    var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
-    var jsonObj = mergeResult.wholeJson;
-    var newJsonIds = mergeResult.jsonToMerge;
 
 
 

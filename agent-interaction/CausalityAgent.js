@@ -26,6 +26,9 @@ function CausalityAgent(name, id) {
     this.geneContext;
 
 
+    this.tripsUttNum = 1;
+
+
 }
 /***
  *
@@ -85,12 +88,48 @@ CausalityAgent.prototype.init = function(){
     // }, 1000);
 
 
+    self.sendRequest('agentConnectToTripsRequest');
+
     self.sendMessage("Let’s build a pathway model for ovarian cancer using the phosphoproteomics dataset from PNNL.", "*");
 
+
     self.listenToMessages();
+    self.requestNetwork();
 
-  //  });
+    //self.relayMessage("Let\'s build a model.");
 
+}
+
+
+
+CausalityAgent.prototype.relayMessage = function(text){
+    var msg = "";
+    var self = this;
+
+    msg += '(tell :content (started-speaking :mode text :uttnum 1 :channel Desktop :direction input))\n';
+    msg += '(tell :content (stopped-speaking :mode text :uttnum 1 :channel Desktop :direction input))\n';
+    msg += '(tell :content (word "' + text + '" :uttnum ' +  self.tripsUttNum + ' :index 1 '  + ':channel Desktop :direction input))\n';
+
+    msg += '(tell :content (utterance :mode text :uttnum ' + self.tripsUttNum + ' :text "' + text + '" :channel Desktop :direction input))\n';
+
+    self.tripsUttNum++;
+
+    self.sendRequest('relayMessageToTripsRequest', {text:msg});
+}
+
+//Subscribe to causality requests
+CausalityAgent.prototype.requestNetwork = function(gene1, gene2) {
+    var msg = '(request :content (find-causality :content ( '
+        + ':source "' + gene1 + '"'
+        + ':source-site (:residue ' + gene1.pSite.residue + ' :position ' + gene1.pSite.position + ' ) '
+        + ':target "' + gene2 + '"'
+        + ':target-site (:residue ' + gene2.pSite.residue + ' :position ' + gene2.pSite.position + ' ))))';
+
+    this.sendRequest('relayMessageToTripsRequest', {text: msg});
+
+//
+//     msg = '(response :content (success :content (
+//     :path "<a description of the path>")))''
 }
 
 /***
@@ -232,8 +271,22 @@ CausalityAgent.prototype.readMutSig = function (mutSigFilePath) {
  */
 CausalityAgent.prototype.listenToMessages = function(callback){
     var self = this;
+
+
+    this.socket.on('tripsMessage', function(data){
+
+    });
+
     this.socket.on('message', function(data){
+
+
+
+
         if(data.userId != self.agentId) {
+
+            self.relayMessage(data.comment);
+
+
             //convert every word to upper case and remove punctuation
 
             var sentence = (data.comment.toUpperCase()).replace(/[.,\/#!?$%\^&\*;:{}=\-_`~()]/g, "");
@@ -241,6 +294,8 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
             if(sentence.indexOf("YES")>=0) {
                 var agentMsg  = "OK, I am updating my model and the graph..."
+
+
                 self.sendMessage(agentMsg, "*", function () {
                     self.updateAgentModel(data.comment, function(){
 
@@ -273,7 +328,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
                 self.findRelevantGeneFromSentence(words, function (gene) {
 
-                    console.log(self.geneContext  + " " + gene);
+                    // console.log(self.geneContext  + " " + gene);
                     if(self.geneContext !== gene) { //a new gene with different values
 
                         self.currCorr = -1000;
@@ -811,7 +866,7 @@ CausalityAgent.prototype.findRelevantGeneFromSentence = function(words, callback
 
     words.forEach(function(word){
         self.pnnlDb.getEntry("id1", word, function(res){
-            console.log(res);
+            // console.log(res);
             if(res.length > 0){
                 if(callback) callback(word); //word is a gene
             }
