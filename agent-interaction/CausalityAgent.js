@@ -94,9 +94,7 @@ CausalityAgent.prototype.init = function(){
 
 
     self.listenToMessages();
-    self.requestNetwork();
 
-    //self.relayMessage("Let\'s build a model.");
 
 }
 
@@ -106,31 +104,12 @@ CausalityAgent.prototype.relayMessage = function(text){
     var msg = "";
     var self = this;
 
-    msg += '(tell :content (started-speaking :mode text :uttnum 1 :channel Desktop :direction input))\n';
-    msg += '(tell :content (stopped-speaking :mode text :uttnum 1 :channel Desktop :direction input))\n';
-    msg += '(tell :content (word "' + text + '" :uttnum ' +  self.tripsUttNum + ' :index 1 '  + ':channel Desktop :direction input))\n';
-
-    msg += '(tell :content (utterance :mode text :uttnum ' + self.tripsUttNum + ' :text "' + text + '" :channel Desktop :direction input))\n';
+    self.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: self.tripsUttNum});
 
     self.tripsUttNum++;
-
-    self.sendRequest('relayMessageToTripsRequest', {text:msg});
 }
 
-//Subscribe to causality requests
-CausalityAgent.prototype.requestNetwork = function(gene1, gene2) {
-    var msg = '(request :content (find-causality :content ( '
-        + ':source "' + gene1 + '"'
-        + ':source-site (:residue ' + gene1.pSite.residue + ' :position ' + gene1.pSite.position + ' ) '
-        + ':target "' + gene2 + '"'
-        + ':target-site (:residue ' + gene2.pSite.residue + ' :position ' + gene2.pSite.position + ' ))))';
 
-    this.sendRequest('relayMessageToTripsRequest', {text: msg});
-
-//
-//     msg = '(response :content (success :content (
-//     :path "<a description of the path>")))''
-}
 
 /***
  * Read the binary directed relationships between genes and store them in this.allSifRelations
@@ -273,7 +252,12 @@ CausalityAgent.prototype.listenToMessages = function(callback){
     var self = this;
 
 
-    this.socket.on('tripsMessage', function(data){
+
+
+    this.socket.on('findCausality', function(data, callback){
+
+        var rel = self.findCausalRelationship(data.source, data.target);
+        if(callback) callback(rel);
 
     });
 
@@ -594,9 +578,6 @@ CausalityAgent.prototype.tellCausality = function(gene, callback) {
 
     self.showCausality(gene, self.indCausal, callback);
 
-
-
-
 }
 
 /***
@@ -903,6 +884,30 @@ CausalityAgent.prototype.causalRelationshipInd = function(gene,  corr){
 }
 
 
+CausalityAgent.prototype.findCausalRelationship = function(source, target){
+    var self = this;
+
+    var ind = 0;
+    var causalInd = -1;
+
+    source.id = source.id.toUpperCase();
+    source.pSite= source.pSite.toUpperCase();
+    target.id= target.id.toUpperCase();
+    target.pSite= target.pSite.toUpperCase();
+
+    if(self.causality[source.id]) {
+        self.causality[source.id].forEach(function(gene2){
+            if (gene2.id2 === target.id && gene2.pSite2 === target.pSite) {
+                causalInd = ind;
+            }
+            ind++;
+        });
+    }
+
+    return self.causality[source.id][causalInd].rel;
+
+
+}
 /***
  *
  * @param gene1
