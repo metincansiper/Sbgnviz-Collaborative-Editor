@@ -931,3 +931,6 @@ public/src/utilities/
 >>>>>>> master
 /.idea/
 /agent-interaction/CausalPath/
+!/agent-interaction/CausalPath/
+/agent-interaction/CausalPath/PNNL-ovarian-correlations.txt
+!/agent-interaction/CausalPath/causative-data-centric.sif
