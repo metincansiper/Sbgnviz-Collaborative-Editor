@@ -296,6 +296,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
         if(callback) callback(rel);
     });
 
+
     this.socket.on('displayModel', function(sbgn, callback){
 
         this.sendRequest('agentNewFileRequest');
