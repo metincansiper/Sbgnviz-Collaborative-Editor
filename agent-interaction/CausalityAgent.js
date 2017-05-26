@@ -299,6 +299,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
 
 
+
     this.socket.on('displayModel', function(sbgn, callback){
 
         this.sendRequest('agentNewFileRequest');
@@ -316,6 +317,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
         self.tellCorrelation(self.geneContext, function(){
             if(callback) callback(self.currCorrelation);
         });
+
 
 
     })
