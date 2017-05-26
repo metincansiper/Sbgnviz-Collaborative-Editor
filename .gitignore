@@ -935,3 +935,5 @@ public/src/utilities/
 /agent-interaction/CausalPath/causative-data-centric.sif
 agent-interaction/BOB/
 /public/app/bundle.js
+/agent-interaction/CausalPath/PC.sif
+!/agent-interaction/CausalPath/causative-data-centric.sif
