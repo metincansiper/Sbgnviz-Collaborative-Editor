@@ -288,6 +288,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
     });
 
+
     this.socket.on('findCausality', function(data, callback){
         var rel = self.findCausalRelationship(data.source, data.target);
 
