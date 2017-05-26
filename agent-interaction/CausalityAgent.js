@@ -155,6 +155,20 @@ var convertToOppositeRel = function(rel){
 
 }
 
+var convertToIndraFormat = function(rel){
+    var indraRel ="";
+
+    if(rel === "phosphorylates")
+        indraRel = "Phosphorylation";
+    else if(rel === "dephosphorylates")
+        indraRel = "Dephosphorylation";
+    else if(rel === "upregulates-expression")
+        indraRel = "IncreaseAmount";
+    else if(rel === "downregulates-expression")
+        indraRel = "DecreaseAmount";
+    return indraRel;
+
+}
 
 /**
  * Read causal relationships and their PC links and store them in this.causality
@@ -268,7 +282,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
         var relText = rel.replace(/[-]/g, " ");
 
 
-        if(callback) callback(source + " "+ relText + " " + target + "." );
+        if(callback) callback(source + " "+ relText + " " + target + ". Here's it's graph. " );
 
 
 
@@ -276,6 +290,8 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
     this.socket.on('findCausality', function(data, callback){
         var rel = self.findCausalRelationship(data.source, data.target);
+
+        rel = convertToIndraFormat(rel);
 
         if(callback) callback(rel);
     });
