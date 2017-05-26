@@ -21,7 +21,9 @@ function CausalityAgent(name, id) {
 
 
     this.indCausal = -1;
-    this.currCorr = -1000;
+
+
+    this.currCorrelation = {correlation:-1000}; //current correlation
 
     this.geneContext;
 
@@ -254,13 +256,50 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
 
 
-    this.socket.on('findCausality', function(data, callback){
+    this.socket.on('getCausalityNL', function(data, callback){
 
-        var rel = self.findCausalRelationship(data.source, data.target);
-        if(callback) callback(rel);
+        data = data.replace(/["]/g, "");
+        var dataArr = data.split("\t");
+
+        var source = dataArr[0];
+        var target = dataArr[1];
+        var rel = dataArr[2];
+
+        var relText = rel.replace(/[-]/g, " ");
+
+
+        if(callback) callback(source + " "+ relText + " " + target + "." );
+
+
 
     });
 
+    this.socket.on('findCausality', function(data, callback){
+        var rel = self.findCausalRelationship(data.source, data.target);
+
+        if(callback) callback(rel);
+    });
+
+    this.socket.on('displayModel', function(sbgn, callback){
+
+        this.sendRequest('agentNewFileRequest');
+
+        this.sendRequest('agentMergeGraphRequest', {type: 'sbgn', graph: sbgn}, function (data) {
+            if (callback) callback();
+        });
+    });
+
+    this.socket.on('findCorrelation', function(data, callback){
+
+        self.geneContext = data.sourceEntity;
+
+
+        self.tellCorrelation(self.geneContext, function(){
+            if(callback) callback(self.currCorrelation);
+        });
+
+
+    })
     this.socket.on('message', function(data){
 
 
@@ -315,7 +354,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
                     // console.log(self.geneContext  + " " + gene);
                     if(self.geneContext !== gene) { //a new gene with different values
 
-                        self.currCorr = -1000;
+                        self.currCorrelation.correlation = -1000;
                         self.tellMutSig(gene, callback);
 
 
@@ -409,9 +448,9 @@ var agentMsg= "";
     else
         agentMsg = gene + " is not significantly mutated in ovarian cancer.";
 
-    self.sendMessage(agentMsg, "*", function () {
-        if (callback) callback();
-    });
+    // self.sendMessage(agentMsg, "*", function () {
+    //     if (callback) callback();
+    // });
 
 }
 
@@ -437,7 +476,7 @@ CausalityAgent.prototype.tellMultiple = function (gene, n, callback) {
 
                 var corrVal = Math.abs(geneCorrArr[j].correlation);
 
-                if ((corrVal > maxCorr) && (corrVal < Math.abs(self.currCorr) || self.currCorr < -1 )) {
+                if ((corrVal > maxCorr) && (corrVal < Math.abs(self.currCorrelation.correlation) || self.currCorrelation.correlation < -1 )) {
                     maxCorr = corrVal;
                     indCorr = j;
 
@@ -446,7 +485,7 @@ CausalityAgent.prototype.tellMultiple = function (gene, n, callback) {
             }
 
             if(indCorr > -1) {
-                self.currCorr = geneCorrArr[indCorr].correlation;
+                self.currCorrelation.correlation = geneCorrArr[indCorr].correlation;
                 indCorrArr.push(indCorr);
             }
         }
@@ -520,7 +559,7 @@ CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
 
                 corrVal = Math.abs(geneCorrArr[j].correlation);
 
-                if((corrVal > maxNonCausalCorr) && (corrVal < Math.abs(self.currCorr) ||self.currCorr < - 1 )){
+                if((corrVal > maxNonCausalCorr) && (corrVal < Math.abs(self.currCorrelation.correlation) ||self.currCorrelation.correlation < - 1 )){
                     maxNonCausalCorr = corrVal;
                     indCorr = j;
                     geneNonCausal = geneCorrArr[j].id2;
@@ -533,7 +572,7 @@ CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
 
         if (geneNonCausal) {
 
-            self.currCorr = geneCorrArr[indCorr].correlation;
+            self.currCorrelation.correlation = geneCorrArr[indCorr].correlation;
 
             var agentMsg = "I am looking at the next highest correlation about " + gene + ". ";
 
@@ -568,13 +607,13 @@ CausalityAgent.prototype.tellCausality = function(gene, callback) {
 
     var relText = self.causality[gene][self.indCausal].rel.replace(/[-]/g, " ");
 
-    var agentMsg = gene + " " + relText + " " + self.causality[gene][self.indCausal].id2 + ". Here's it's graph. ";
-
-
-        self.sendMessage(agentMsg, "*", function () {
-
-            if (callback) callback();
-    });
+    // var agentMsg = gene + " " + relText + " " + self.causality[gene][self.indCausal].id2 + ". Here's it's graph. ";
+    //
+    //
+    //     self.sendMessage(agentMsg, "*", function () {
+    //
+    //         if (callback) callback();
+    // });
 
     self.showCausality(gene, self.indCausal, callback);
 
@@ -673,7 +712,7 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
                         corr.pSite1 === self.causality[gene][i].pSite1 &&
                         corr.pSite2 === self.causality[gene][i].pSite2 ) {
 
-                        if (corrVal > maxCorr && (self.currCorr < -1 || corrVal < Math.abs(self.currCorr))) {
+                        if (corrVal > maxCorr && (self.currCorrelation.correlation < -1 || corrVal < Math.abs(self.currCorrelation.correlation))) {
                             self.indCausal = i;
                             indCorr = j;
                             maxCorr = corr.correlation; //already absolute value
@@ -685,15 +724,16 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
 
         if (self.indCausal > -1) {
 
-            self.currCorr = geneCorrArr[indCorr].correlation; //highest correlation
+            self.currCorrelation.correlation = geneCorrArr[indCorr].correlation; //highest correlation
             agentMsg = "The largest explainable correlation " + toCorrelationDetailString(geneCorrArr, indCorr);
 
 
+            self.currCorrelation = geneCorrArr[indCorr];
 
         }
         else { //no causal explanation around gene
 
-            if(self.currCorr < 0)
+            if(self.currCorrelation.correlation < 0)
                 agentMsg = "I can't find any causal relationships about " + gene + ". ";
 
             //Find and assign maximum correlation
@@ -703,7 +743,7 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
             maxCorr = -1000;
             for (var j = 0; j < geneCorrArr.length; j++) {
                 var corrVal = Math.abs(geneCorrArr[j].correlation );
-                if(corrVal > maxCorr && (self.currCorr < -1  ||  corrVal < Math.abs(self.currCorr))){
+                if(corrVal > maxCorr && (self.currCorrelation.correlation < -1  ||  corrVal < Math.abs(self.currCorrelation.correlation))){
                     indCorr = j;
                     maxCorr = Math.abs(geneCorrArr[j].correlation);
                 }
@@ -712,10 +752,11 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
 
 
             if (indCorr > -1) {
-                self.currCorr = geneCorrArr[indCorr].correlation;
+                self.currCorrelation.correlation = geneCorrArr[indCorr].correlation;
+                self.currCorrelation = geneCorrArr[indCorr];
 
 
-                if(self.currCorr < 0)
+                if(self.currCorrelation.correlation < 0)
 
                     agentMsg += "But the highest unexplainable correlation ";
 
@@ -725,16 +766,16 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
                 agentMsg +=  toCorrelationDetailString(geneCorrArr, indCorr);
 
                 //Search common upstreams of gene and its correlated
-                var commonUpstreams = self.findCommonUpstreams(gene, geneCorr);
+                var commonUpstreams = self.findCommonUpstreams(gene, self.currCorrelation.id2);
                 agentMsg += makeUpstreamStr(commonUpstreams);
 
             }
 
         }
-        self.sendMessage(agentMsg, "*", function () {
-
-            if (callback) callback();
-        });
+        // self.sendMessage(agentMsg, "*", function () {
+        //
+        //     if (callback) callback();
+        // });
 
     });
 
@@ -775,6 +816,7 @@ CausalityAgent.prototype.showCausality = function(gene, ind, callback){
 
 
     var geneRelationshipArr = self.causality[gene];
+
 
     if(geneRelationshipArr[ind].uriStr.length >0) {
 
@@ -898,14 +940,20 @@ CausalityAgent.prototype.findCausalRelationship = function(source, target){
 
     if(self.causality[source.id]) {
         self.causality[source.id].forEach(function(gene2){
-            if (gene2.id2 === target.id && gene2.pSite2 === target.pSite) {
+            if ((source.pSite == "" || gene2.pSite1 ===source.pSite)  && gene2.id2 === target.id && (target.pSite=="" || gene2.pSite2 === target.pSite)) {
                 causalInd = ind;
             }
             ind++;
         });
     }
 
-    return self.causality[source.id][causalInd].rel;
+    self.indCausal = causalInd;
+
+    if(causalInd > -1) {
+        return self.causality[source.id][causalInd].rel;
+    }
+    else
+        return "No causal relationship."
 
 
 }

@@ -183,6 +183,8 @@ app.get('/:docId', function (page, model, arg, next) {
                     users.set(userId, {name: userName, colorCode: colorCode});
 
 
+                    model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
+
                     return page.render();
                 });
             });
