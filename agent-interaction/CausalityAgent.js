@@ -290,15 +290,23 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
 
     this.socket.on('findCausality', function(data, callback){
-        var rel = self.findCausalRelationship(data.source, data.target);
+        var cr = self.findCausalRelationship(data.source, data.target);
 
-        rel = convertToIndraFormat(rel);
+        cr.rel = convertToIndraFormat(cr.rel);
 
-        if(callback) callback(rel);
+        if(callback) callback(cr);
     });
 
 
+    this.socket.on('findCausalityTargets', function(data, callback){
+        var targets = self.findCausalityTargets(data);
 
+        for(var i = 0; i < targets.length; i++){
+            targets[i].rel = convertToIndraFormat(targets[i].rel);
+        }
+
+        if(callback) callback(targets);
+    });
 
     this.socket.on('displayModel', function(sbgn, callback){
 
@@ -657,6 +665,19 @@ function editPSite(pSite, letter){
 
 }
 
+/***
+ * Convert the pSite string in PC format into residue and position
+ * @param pSite
+ */
+function convertPSiteToResAndPos(pSite){
+    var res, pos;
+
+    res = pSite.substring(0,1); //get first character
+    pos = pSite.substring(1, pSite.length-1); //get characters in between
+
+    return {res:res, pos:pos};
+
+}
 function toCorrelationDetailString(geneCorrArr, indCorr, maxCorr){
 
     var pMsg1 = "";
@@ -961,8 +982,8 @@ CausalityAgent.prototype.findCausalRelationship = function(source, target){
     target.pSite= target.pSite.toUpperCase();
 
     if(self.causality[source.id]) {
-        self.causality[source.id].forEach(function(gene2){
-            if ((source.pSite == "" || gene2.pSite1 ===source.pSite)  && gene2.id2 === target.id && (target.pSite=="" || gene2.pSite2 === target.pSite)) {
+        self.causality[source.id].forEach(function(causalRel){
+            if ((source.pSite === "" || causalRel.pSite1 ===source.pSite)  && causalRel.id2 === target.id && (target.pSite==="" || causalRel.pSite2 === target.pSite)) {
                 causalInd = ind;
             }
             ind++;
@@ -971,14 +992,48 @@ CausalityAgent.prototype.findCausalRelationship = function(source, target){
 
     self.indCausal = causalInd;
 
+
+
     if(causalInd > -1) {
-        return self.causality[source.id][causalInd].rel;
+        var resPosSource = convertPSiteToResAndPos(self.causality[source.id][causalInd].pSite1);
+        var resPosTarget = convertPSiteToResAndPos(self.causality[source.id][causalInd].pSite2);
+        return {rel: self.causality[source.id][causalInd].rel, resPosSource: resPosSource, resPosTarget:resPosTarget};
     }
     else
         return "No causal relationship."
 
 
 }
+
+/***
+ * Return the target list
+ * @param source
+ * @returns {*}
+ */
+CausalityAgent.prototype.findCausalityTargets = function(source){
+    var self = this;
+    var targets = [];
+
+
+    source.id = source.id.toUpperCase();
+    source.pSite= source.pSite.toUpperCase();
+
+
+    if(self.causality[source.id]) {
+        self.causality[source.id].forEach(function(causalRel){
+            if ((source.pSite === "" || causalRel.pSite1 ===source.pSite)) {
+                var resPos = convertPSiteToResAndPos(causalRel.pSite2);
+                targets.push({id:causalRel.id2, res:resPos.res, pos:resPos.pos, rel:causalRel.rel});
+            }
+        });
+    }
+
+
+    return targets;
+
+}
+
+
 /***
  *
  * @param gene1

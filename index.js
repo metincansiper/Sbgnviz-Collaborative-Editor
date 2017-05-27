@@ -183,7 +183,8 @@ app.get('/:docId', function (page, model, arg, next) {
                     users.set(userId, {name: userName, colorCode: colorCode});
 
 
-                    model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
+               //     model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
+                    model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
 
                     return page.render();
                 });
