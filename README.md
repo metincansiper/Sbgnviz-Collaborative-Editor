@@ -47,8 +47,8 @@ brew install nodejs
 
 ### Clone from github and install node modules
 ```
-git clone https://github.com/fdurupinar/Sbgnviz-Collaborative-Editor/tree/collaborativeChise
-cd Sbgnviz-Collaborative-Editor Chise Version
+https://github.com/fdurupinar/Sbgnviz-Collaborative-Editor.git
+cd Sbgnviz-Collaborative-Editor
 npm install
 ```
 
