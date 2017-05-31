@@ -292,7 +292,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
     this.socket.on('findCausality', function(data, callback){
         var cr = self.findCausalRelationship(data.source, data.target);
 
-        cr.rel = convertToIndraFormat(cr.rel);
+     //  cr.rel = convertToIndraFormat(cr.rel);
 
         if(callback) callback(cr);
     });
@@ -301,9 +301,9 @@ CausalityAgent.prototype.listenToMessages = function(callback){
     this.socket.on('findCausalityTargets', function(data, callback){
         var targets = self.findCausalityTargets(data);
 
-        for(var i = 0; i < targets.length; i++){
-            targets[i].rel = convertToIndraFormat(targets[i].rel);
-        }
+        // for(var i = 0; i < targets.length; i++){
+        //     targets[i].rel = convertToIndraFormat(targets[i].rel);
+        // }
 
         if(callback) callback(targets);
     });
@@ -669,7 +669,7 @@ function editPSite(pSite, letter){
  * Convert the pSite string in PC format into residue and position
  * @param pSite
  */
-function convertPSiteToResAndPos(pSite){
+function convertPSiteToResidueAndPosition(pSite){
     var res, pos;
 
     res = pSite.substring(0,1); //get first character
@@ -995,12 +995,12 @@ CausalityAgent.prototype.findCausalRelationship = function(source, target){
 
 
     if(causalInd > -1) {
-        var resPosSource = convertPSiteToResAndPos(self.causality[source.id][causalInd].pSite1);
-        var resPosTarget = convertPSiteToResAndPos(self.causality[source.id][causalInd].pSite2);
+        var resPosSource = convertPSiteToResidueAndPosition(self.causality[source.id][causalInd].pSite1);
+        var resPosTarget = convertPSiteToResidueAndPosition(self.causality[source.id][causalInd].pSite2);
         return {rel: self.causality[source.id][causalInd].rel, resPosSource: resPosSource, resPosTarget:resPosTarget};
     }
     else
-        return "No causal relationship."
+        return null;
 
 
 }
@@ -1017,13 +1017,18 @@ CausalityAgent.prototype.findCausalityTargets = function(source){
 
     source.id = source.id.toUpperCase();
     source.pSite= source.pSite.toUpperCase();
+    source.rel = source.rel.toUpperCase();
 
 
     if(self.causality[source.id]) {
         self.causality[source.id].forEach(function(causalRel){
-            if ((source.pSite === "" || causalRel.pSite1 ===source.pSite)) {
-                var resPos = convertPSiteToResAndPos(causalRel.pSite2);
-                targets.push({id:causalRel.id2, res:resPos.res, pos:resPos.pos, rel:causalRel.rel});
+            if ((source.pSite === "" || causalRel.pSite1 ===source.pSite) && causalRel.rel.toUpperCase() === source.rel.toUpperCase()) {
+                var resPos1 = "", resPos2 = "";
+                if(causalRel.pSite1!="")
+                    resPos1 = convertPSiteToResidueAndPosition(causalRel.pSite1);
+                if(causalRel.pSite2!="")
+                    resPos2 = convertPSiteToResidueAndPosition(causalRel.pSite2);
+                targets.push({id:causalRel.id2, res1:resPos1.res, pos1:resPos1.pos, res2:resPos2.res, pos2:resPos2.pos, rel:causalRel.rel});
             }
         });
     }
