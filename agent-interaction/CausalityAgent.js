@@ -155,20 +155,7 @@ var convertToOppositeRel = function(rel){
 
 }
 
-var convertToIndraFormat = function(rel){
-    var indraRel ="";
 
-    if(rel === "phosphorylates")
-        indraRel = "Phosphorylation";
-    else if(rel === "dephosphorylates")
-        indraRel = "Dephosphorylation";
-    else if(rel === "upregulates-expression")
-        indraRel = "IncreaseAmount";
-    else if(rel === "downregulates-expression")
-        indraRel = "DecreaseAmount";
-    return indraRel;
-
-}
 
 /**
  * Read causal relationships and their PC links and store them in this.causality
@@ -670,10 +657,13 @@ function editPSite(pSite, letter){
  * @param pSite
  */
 function convertPSiteToResidueAndPosition(pSite){
-    var res, pos;
+    var res ='';
+    var pos = '';
 
-    res = pSite.substring(0,1); //get first character
-    pos = pSite.substring(1, pSite.length-1); //get characters in between
+    if(pSite) {
+        res = pSite.substring(0, 1); //get first character
+        pos = pSite.substring(1, pSite.length - 1); //get characters in between
+    }
 
     return {res:res, pos:pos};
 
@@ -995,9 +985,15 @@ CausalityAgent.prototype.findCausalRelationship = function(source, target){
 
 
     if(causalInd > -1) {
-        var resPosSource = convertPSiteToResidueAndPosition(self.causality[source.id][causalInd].pSite1);
-        var resPosTarget = convertPSiteToResidueAndPosition(self.causality[source.id][causalInd].pSite2);
-        return {rel: self.causality[source.id][causalInd].rel, resPosSource: resPosSource, resPosTarget:resPosTarget};
+        var causalRel = self.causality[source.id][causalInd];
+        var resPos1 = "", resPos2 = "";
+        if(causalRel.pSite1!="")
+            resPos1 = convertPSiteToResidueAndPosition(causalRel.pSite1);
+        if(causalRel.pSite2!="")
+            resPos2 = convertPSiteToResidueAndPosition(causalRel.pSite2);
+
+        return ({id1: source.id, id2:causalRel.id2, res1:resPos1.res, pos1:resPos1.pos, res2:resPos2.res, pos2:resPos2.pos, rel:causalRel.rel});
+     //   return {rel: self.causality[source.id][causalInd].rel, resPosSource: resPosSource, resPosTarget:resPosTarget};
     }
     else
         return null;
@@ -1020,6 +1016,7 @@ CausalityAgent.prototype.findCausalityTargets = function(source){
     source.rel = source.rel.toUpperCase();
 
 
+
     if(self.causality[source.id]) {
         self.causality[source.id].forEach(function(causalRel){
             if ((source.pSite === "" || causalRel.pSite1 ===source.pSite) && causalRel.rel.toUpperCase() === source.rel.toUpperCase()) {
@@ -1028,7 +1025,7 @@ CausalityAgent.prototype.findCausalityTargets = function(source){
                     resPos1 = convertPSiteToResidueAndPosition(causalRel.pSite1);
                 if(causalRel.pSite2!="")
                     resPos2 = convertPSiteToResidueAndPosition(causalRel.pSite2);
-                targets.push({id:causalRel.id2, res1:resPos1.res, pos1:resPos1.pos, res2:resPos2.res, pos2:resPos2.pos, rel:causalRel.rel});
+                targets.push({id1: source.id, id2:causalRel.id2, res1:resPos1.res, pos1:resPos1.pos, res2:resPos2.res, pos2:resPos2.pos, rel:causalRel.rel});
             }
         });
     }

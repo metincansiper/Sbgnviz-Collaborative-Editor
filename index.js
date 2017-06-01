@@ -184,7 +184,10 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
                //     model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
-                    model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
+               //     model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
+               //     model.set('_page.newComment', "How does  ITGAV affect ILK?"); //TODO: delete later
+                   model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
+
 
                     return page.render();
                 });

@@ -723,15 +723,15 @@ module.exports = function(serverIp, modelManager){
     }, 100);
 
 
-    //Make sure the model is loaded first
-    setTimeout(function() {
-        testChangeName();
-    }, 100);
-
-
-    setTimeout(function() {
-        testMessages();
-    }, 100);
+    // //Make sure the model is loaded first
+    // setTimeout(function() {
+    //     testChangeName();
+    // }, 100);
+    //
+    //
+    // setTimeout(function() {
+    //     testMessages();
+    // }, 100);
 
     // setTimeout(function() {
     //     testMerge();
