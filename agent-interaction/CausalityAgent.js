@@ -1015,11 +1015,10 @@ CausalityAgent.prototype.findCausalityTargets = function(source){
     source.pSite= source.pSite.toUpperCase();
     source.rel = source.rel.toUpperCase();
 
-
-
     if(self.causality[source.id]) {
         self.causality[source.id].forEach(function(causalRel){
-            if ((source.pSite === "" || causalRel.pSite1 ===source.pSite) && causalRel.rel.toUpperCase() === source.rel.toUpperCase()) {
+            causalRel.rel = causalRel.rel.toUpperCase();
+            if ((source.pSite === "" || causalRel.pSite1 ===source.pSite) && (causalRel.rel === source.rel || source.rel === "MODULATES" )) {
                 var resPos1 = "", resPos2 = "";
                 if(causalRel.pSite1!="")
                     resPos1 = convertPSiteToResidueAndPosition(causalRel.pSite1);
@@ -1029,9 +1028,7 @@ CausalityAgent.prototype.findCausalityTargets = function(source){
             }
         });
     }
-
-
-    return targets;
+   return targets;
 
 }
 
