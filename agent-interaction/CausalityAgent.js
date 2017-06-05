@@ -304,9 +304,9 @@ CausalityAgent.prototype.listenToMessages = function(callback){
         });
     });
 
-    this.socket.on('findCorrelation', function(data, callback){
+    this.socket.on('findCorrelation', function(source, callback){
 
-        self.geneContext = data.sourceEntity;
+        self.geneContext = source;
 
 
         self.tellCorrelation(self.geneContext, function(){
@@ -805,6 +805,10 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
             }
 
         }
+
+
+        if (callback) callback(self.currCorrelation);
+
         // self.sendMessage(agentMsg, "*", function () {
         //
         //     if (callback) callback();
