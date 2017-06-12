@@ -88,6 +88,15 @@ module.exports = function (model, docId) {
 
         },
 
+        deleteAllUsers: function() {
+            var userIds = model.get('_page.doc.userIds');
+
+            for(var i = 0; i < userIds.length; i++){
+
+                model.pop('_page.doc.userIds');
+            }
+        },
+
         deleteUser: function(userId){
             // console.log("user deleted");
          //   model.del('_page.doc.users.'+ userId);

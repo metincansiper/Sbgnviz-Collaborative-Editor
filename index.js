@@ -183,10 +183,12 @@ app.get('/:docId', function (page, model, arg, next) {
                     users.set(userId, {name: userName, colorCode: colorCode});
 
 
-           //         model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
+
+               //         model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
+                    model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
                //     model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
                //     model.set('_page.newComment', "How does  ITGAV affect ILK?"); //TODO: delete later
-                   model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
+           //        model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
             //        model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
 
 
@@ -1572,10 +1574,6 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
     var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
     var jsonObj = mergeResult.wholeJson;
     var newJsonIds = mergeResult.jsonToMerge;
-
-
-
-
 
 
     //get another sbgncontainer and display the new SBGN model.
