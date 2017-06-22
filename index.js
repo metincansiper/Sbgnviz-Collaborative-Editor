@@ -184,8 +184,10 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 
-               //         model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-                    model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
+
+                     //   model.set('_page.newComment', "how does SETDB1 affect ADAM17?"); //TODO: delete later
+                   //     model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
+          //          model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
                //     model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
                //     model.set('_page.newComment', "How does  ITGAV affect ILK?"); //TODO: delete later
            //        model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
@@ -203,6 +205,14 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 });
+
+app.proto.updateMessage = function(){
+
+    var e = document.getElementById("test-messages");
+    var msg = e.options[e.selectedIndex].text;
+
+    this.model.set('_page.newComment', msg);
+}
 
 
 
@@ -362,6 +372,29 @@ app.proto.listenToAgentSocket = function(model){
 
         }
     });
+
+    socket.on('addImage', function(data, callback){
+        try {
+
+
+
+           // data.img = data.img.replace(/(\%22)/g, '"');
+
+
+            var status = modelManager.addImage(data);
+
+
+
+            if(callback) callback(status);
+
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
 
 
     model.on('change', '_page.doc.undoIndex', function(id, cmdInd){
@@ -1282,6 +1315,19 @@ app.proto.runUnitTests = function(){
 
 }
 
+app.proto.connectCausalityAgent = function(){
+
+    var CausalityAgent = require("./agent-interaction/CausalityAgent");
+    agent = new CausalityAgent("Agent1", "Agent1");
+    agent.connectToServer("http://localhost:3000/", function (socket) {
+        agent.loadModel(function() {
+            agent.init();
+            agent.loadChatHistory(function(){
+            });
+        });
+    });
+}
+
 app.proto.enterMessage= function(event){
 
     if (event.keyCode == 13 && !event.shiftKey) {
@@ -1617,6 +1663,7 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
 }
 
 app.proto.mergeSbgn = function(sbgnText, callback){
+
 
 
 

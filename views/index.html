@@ -1562,6 +1562,8 @@
 
                     <button id = "clear-history" class = "btn  btn-mini" on-click ="clearHistory()">Clear chat </button>
 
+
+
                     <!--</div>-->
                     <div id="inputs">
                         User name: <input id="inputs-name" value="{{_page.doc.users[_session.userId].name}}">
@@ -1574,6 +1576,26 @@
                             <button  class = "btn btn-info" id = "send-message">Send</button>
 
                         </form>
+
+
+
+
+                        <select id = "test-messages" on-change="updateMessage()">
+                            <option value = "1">How does SETDB1 affect ADAM17?</option>
+                            <option value = "2">How does KRAS activate MAPK3?</option>
+                            <option value = "3">How does MAPK1 affect JUND?</option>
+                            <option value = "4">What genes does MAPK1 phosphorylate?</option>
+                            <option value = "5">How does  ITGAV affect ILK?</option>
+                            <option value = "6">What genes activate ILK?</option>
+                            <option value = "7">How does KRAS activate MAPK3?</option>
+                            <option value = "8">Let's build a model.</option>
+                            <option value = "9">AKT1 phosphorylates MAPK1.</option>
+                        </select>
+
+
+
+
+
                     </div>
                 </div>
 
@@ -1620,7 +1642,7 @@
 
         <audio id="notificationAudio" src="http://www.talkingwav.com/various/beep_02.wav" preload="auto"></audio>
 
-
+        <!--<div id ="agentConnectionArea"> <button class="btn btn-info btn-mini" on-click = "connectCausalityAgent()"> Connect Agent</button></div>-->
         <!--<div id ="unitTestArea"> <button class="btn btn-info btn-mini" on-click = "runUnitTests()"> Test</button></div>-->
 
         <chat-user:>
