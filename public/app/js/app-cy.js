@@ -216,6 +216,16 @@ module.exports = function () {
       boundingRectangleLineColor: "darkgray",
       boundingRectangleLineWidth: 1.5,
       zIndex: 999,
+      setWidth: function(node, width) {
+        var bbox = node.data('bbox');
+        bbox.w = width;
+        node.data('bbox', bbox);
+      },
+      setHeight: function(node, height) {
+        var bbox = node.data('bbox');
+        bbox.h = height;
+        node.data('bbox', bbox);
+      },
       minWidth: function (node) {
         var data = node.data("resizeMinWidth");
         return data ? data : 10;
@@ -316,7 +326,7 @@ module.exports = function () {
       }
     });
 
-    var panProps = ({
+    var panProps = {
       fitPadding: 10,
       fitSelector: ':visible',
       animateOnFit: function () {
@@ -325,12 +335,18 @@ module.exports = function () {
       animateOnZoom: function () {
         return appUtilities.currentGeneralProperties.animateOnDrawingChanges;
       }
-    });
+    };
 
-    appUtilities.sbgnNetworkContainer.cytoscapePanzoom(panProps);
+    cy.panzoom(panProps);
   }
 
   function bindCyEvents() {
+    cy.on('layoutstart', function(event) {
+      if (event.layout.options.name !== 'preset') {
+        appUtilities.currentGeneralProperties.enablePorts = false;
+      }
+    });
+    
     cy.on("afterDo", function (event, actionName, args, res) {
       refreshUndoRedoButtonsStatus();
     });
@@ -604,6 +620,7 @@ module.exports = function () {
     });
     
     cy.on('unselect', function() {
+      $("#node-label-textbox").blur();
       handleInspectorThrottled();
     });
     

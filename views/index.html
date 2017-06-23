@@ -7,6 +7,8 @@
     <!--<meta charset="utf-8">-->
     <!--<meta http-equiv="X-UA-Compatible" content="IE=Edge">-->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
 
 
     <link href="node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
@@ -1550,7 +1552,9 @@
 
                     </div>
 
-                    <ul id="messages" as="list"  >
+
+                    <ul id="messages" as="list">
+                        <!--on-change = "onScroll()">-->
                         {{each _page.list as #message}}
                         <view is="chat-message"></view>
                         {{/each}}
@@ -1558,15 +1562,40 @@
 
                     <button id = "clear-history" class = "btn  btn-mini" on-click ="clearHistory()">Clear chat </button>
 
+
+
                     <!--</div>-->
                     <div id="inputs">
                         User name: <input id="inputs-name" value="{{_page.doc.users[_session.userId].name}}">
                         <button id = "change-user-color" class = "btn btn-mini" on-click ="changeColorCode()">New user color</button>
-                        <form id="inputs-form" on-submit="add()">
-                            <textarea id="inputs-comment" rows = "3", wrap = "soft" style = {{_page.newComment.style}}>{{_page.newComment.text}}</textarea>
+                        <form id="inputs-form" on-submit="add($event)">
+                        <!--<form id="inputs-form">-->
+                            <textarea id="inputs-comment" rows="3", wrap ="soft" on-keypress="enterMessage($event)">{{_page.newComment}}</textarea>
+                            <!--<input id="inputs-comment" rows = "3", wrap = "soft" style = {{_page.newComment.style}} type = "text">{{_page.newComment.text}}</input>-->
+
                             <button  class = "btn btn-info" id = "send-message">Send</button>
 
                         </form>
+
+
+
+
+                        <select id = "test-messages" on-change="updateMessage()">
+                            <option value = "1">How does SETDB1 affect ADAM17?</option>
+                            <option value = "2">How does KRAS activate MAPK3?</option>
+                            <option value = "3">How does MAPK1 affect JUND?</option>
+                            <option value = "4">What genes does MAPK1 phosphorylate?</option>
+                            <option value = "5">How does  ITGAV affect ILK?</option>
+                            <option value = "6">What genes activate ILK?</option>
+                            <option value = "7">How does KRAS activate MAPK3?</option>
+                            <option value = "8">Let's build a model.</option>
+                            <option value = "9">AKT1 phosphorylates MAPK1.</option>
+                        </select>
+
+
+
+
+
                     </div>
                 </div>
 
@@ -1613,8 +1642,8 @@
 
         <audio id="notificationAudio" src="http://www.talkingwav.com/various/beep_02.wav" preload="auto"></audio>
 
-
-        <div id ="unitTestArea"> <button class="btn btn-info btn-mini" on-click = "runUnitTests()"> Test</button></div>
+        <!--<div id ="agentConnectionArea"> <button class="btn btn-info btn-mini" on-click = "connectCausalityAgent()"> Connect Agent</button></div>-->
+        <!--<div id ="unitTestArea"> <button class="btn btn-info btn-mini" on-click = "runUnitTests()"> Test</button></div>-->
 
         <chat-user:>
             <div class="user" style = background:{{_page.doc.users[#pUserId].colorCode}}>
@@ -1628,7 +1657,7 @@
             <table class = "message" align="center" valign="center">
                 <tbody>
                 <tr>
-                    <td style = "color:{{_page.doc.users[#message.userId].colorCode}};  padding : 5px">
+                    <td style = "font-size:large; color:{{_page.doc.users[#message.userId].colorCode}};  padding : 5px">
                         {{#message.userName}}
                     </td>
                     <td class="time" style = "padding : 5px">
@@ -1637,11 +1666,9 @@
 
                 </tr>
                 <tr><td  style = "padding : 10px">
-                    {{if #message.comment.link}}
-                    <p style = {{#message.comment.style}}><a href={{#message.comment.link}}>{{#message.comment.text}}</a></p>
-                    {{else}}
-                    <p style = {{#message.comment.style}}>{{#message.comment.text}}</p>
-                    {{/if}}
+
+                    <p style = "font-size:large">{{ unescaped #message.comment}}</p>
+
                     </td>
                 </tr>
                 </tbody>

@@ -85,37 +85,46 @@ module.exports = function(serverIp, modelManager){
             var done2 = assert.async();
             var done3 = assert.async();
 
-
-            agent.sendRequest("agentMessage", {comment:{text:"hello", style:"color:blue;"}, targets:"*"}, function(data){
-
-                setTimeout(function () { //should wait here as well
-
-
-                    assert.equal(data, "success", "Agent message sent.");
-                    done1();
-                }, 100);
-            });
-
-
-            agent.sendRequest("agentMessage", {comment:{text:"hello 2"}, targets:"*"}, function(data){
+            //
+            // agent.sendRequest("agentMessage", {comment:[{text:"hello", style:"color:blue;"},{text:"bob", style:"font-weight:bold;"}], targets:"*"}, function(data) {
+            //
+            //     setTimeout(function () { //should wait here as well
+            //
+            //
+            //         assert.equal(data, "success", "Agent message sent.");
+            //         done1();
+            //     }, 100);
+            // });
+            agent.sendRequest("agentMessage", {comment:"hello my name is <b> Bob </b>", targets:"*"}, function(data){
 
                 setTimeout(function () { //should wait here as well
-
-
                     assert.equal(data, "success", "Agent message sent.");
-                    done2();
-                }, 100);
-            });
-
-            agent.sendRequest("agentMessage", {comment:{text:"hello 3", link:"http://google.com"}, targets:"*"}, function(data){
-
-                setTimeout(function () { //should wait here as well
+                        done1();
+                    }, 100);
+                });
 
 
-                    assert.equal(data, "success", "Agent message sent.");
-                    done3();
-                }, 100);
-            });
+
+
+            // agent.sendRequest("agentMessage", {comment:{text:"hello 2"}, targets:"*"}, function(data){
+            //
+            //     setTimeout(function () { //should wait here as well
+            //
+            //
+            //         assert.equal(data, "success", "Agent message sent.");
+            //         done2();
+            //     }, 100);
+            // });
+            //
+            // agent.sendRequest("agentMessage", {comment:{text:"hello 3", link:"http://google.com"}, targets:"*"}, function(data){
+            //
+            //     setTimeout(function () { //should wait here as well
+            //
+            //
+            //         assert.equal(data, "success", "Agent message sent.");
+            //         done3();
+            //     }, 100);
+            // });
 
         });
     }
@@ -700,12 +709,9 @@ module.exports = function(serverIp, modelManager){
 
     }
 
-
     setTimeout(function() {
         testNewAgent();
     }, 100);
-
-
 
     setTimeout(function() {
         testAgentProperties();
@@ -715,7 +721,6 @@ module.exports = function(serverIp, modelManager){
     setTimeout(function() {
         testLoadModel();
     }, 100);
-
 
     //Make sure the model is loaded first
     setTimeout(function() {
@@ -738,68 +743,57 @@ module.exports = function(serverIp, modelManager){
     // setTimeout(function() {
     //     testGetRequests();
     // },100);
-    //
-    //
+
     // setTimeout(function() {
     //     testMoveNodeRequest();
     // },100);
-    //
+
     // setTimeout(function() {
     //     testNodeSetAttributeRequests();
     // },100);
-    //
-    //
-    //
+
     // setTimeout(function() {
     //     testEdgeSetAttributeRequests();
     // },100);
-    //
+
     // setTimeout(function() {
     //     testPropertyRequests();
     // },100);
-    //
-    //
+
     // setTimeout(function() {
     //     testAlignRequest();
     // }, 1000);
-    //
+
     // setTimeout(function() {
     //     testUndoRedoRequest();
     // }, 1000);
-    //
-    //
+
     // setTimeout(function() {
     //     testHighlight();
     // }, 100);
-    //
+
     // setTimeout(function() {
     //     testAddCompound();
     // }, 100);
-    //
+
     // setTimeout(function() {
     //     testAddDeleteRequests();
     // },100);
-    //
+
     // setTimeout(function() {
     //     testHideShow();
     // }, 100);
-    //
-    //
-    //
-    //
+
     // //Do this after others
     // setTimeout(function() {
     //     testExpandCollapse();
     // }, 500);
-    //
-    //
-    //
+
     // //do this at the end
     // setTimeout(function() {
     //     testLayout();
     // }, 1000);
 
-    //
     // //do this at the end
     // setTimeout(function() {
     //     testDisconnect();

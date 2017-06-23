@@ -39,7 +39,7 @@ module.exports = function(modelManager, userId){
     });
 
     cy.on("afterDo afterRedo", function (event, actionName, args, res) {
-
+ 
         console.log(actionName);
         console.log(args);
         console.log(res);
