@@ -1,50 +1,15 @@
 var jquery = $ = require('jquery');
 var BackboneViews = require('./backbone-views');
-appUtilities = require('./app-utilities'); //FUNDA
+appUtilities = require('./app-utilities'); //FUNDA made this global
 var modeHandler = require('./app-mode-handler');
 var keyboardShortcuts = require('./keyboard-shortcuts');
-inspectorUtilities = require('./inspector-utilities'); //FUNDA
+inspectorUtilities = require('./inspector-utilities'); //FUnda made this global
 var _ = require('underscore');
 var collaborativeBackboneViews = require("../../collaborative-app/collaborative-backbone-views.js"); //FUNDA
 
-// //FUNDA -- my dynamic resize
-// var dynamicResize = function () {
-//     var win = $(window);
-//
-//     var windowWidth = win.width();
-//     var windowHeight = win.height();
-//
-//     var canvasWidth = 1200;
-//     var canvasHeight = 680;
-//
-//     if (windowWidth > canvasWidth)
-//     {
-//         $("#canvas-tab-area").width(windowWidth * 0.99 * 0.7);
-//         $("#static-image-container").width(windowWidth * 0.99 * 0.7);
-//         $("#inspector-tab-area").width(windowWidth * 0.99 * 0.3);
-//
-//         $("#sbgn-inspector").width(windowWidth * 0.99 * 0.3);
-//         // var w = $("#sbgn-inspector-and-canvas").width(); //funda
-//         var w = $("#canvas-tab-area").width();
-//         $(".nav-menu").width(w);
-//         $(".navbar").width(w);
-// //    $("#sbgn-info-content").width(windowWidth * 0.85);
-//         $("#sbgn-toolbar").width(w);
-//     }
-//
-//     if (windowHeight > canvasHeight)
-//     {
-//         $("#canvas-tab-area").height(windowHeight * 0.85);
-//         $("#static-image-container").height(windowHeight * 0.85);
-//         // $("#sbgn-inspector").height(windowHeight * 0.85);
-//         $("#inspector-tab-area").height(windowHeight * 0.85);
-//     }
-// };
-
-
 // Handle sbgnviz menu functions which are to be triggered on events
 module.exports = function () {
-//FUNDA   var dynamicResize = appUtilities.dynamicResize.bind(appUtilities);
+    //FUNDA  var dynamicResize = appUtilities.dynamicResize.bind(appUtilities);
 
     var layoutPropertiesView, colorSchemeMenuView, generalPropertiesView, pathsBetweenQueryView, pathsByURIQueryView,  promptSaveView, promptConfirmationView,
         reactionTemplateView, gridPropertiesView, fontPropertiesView, fileSaveView;
@@ -63,7 +28,7 @@ module.exports = function () {
 
     function loadSample(filename) {
         var textXml = (new XMLSerializer()).serializeToString(chise.loadXMLDoc("app/samples/"+filename));
-        //FUNDA validateSBGNML(textXml);
+        //FUNDA   validateSBGNML(textXml);
         return chise.loadSample(filename, 'app/samples/');
     }
 
@@ -71,6 +36,7 @@ module.exports = function () {
     {
         console.log('init the sbgnviz template/page');
 
+        //FUNDA
         // $(window).on('resize', _.debounce(dynamicResize, 100));
         // dynamicResize();
 
@@ -78,9 +44,10 @@ module.exports = function () {
         colorSchemeMenuView = appUtilities.colorSchemeMenuView = new BackboneViews.ColorSchemeMenuView({el: '#color-scheme-menu'});
         generalPropertiesView = appUtilities.generalPropertiesView = new BackboneViews.GeneralPropertiesView({el: '#general-properties-table'});
         collaborativePathsBetweenQueryView = new collaborativeBackboneViews.PathsBetweenQueryView({el: '#query-pathsbetween-table'});//FUNDA--use collaborative version
-        collaborativePathsByURIQueryView = new collaborativeBackboneViews.PathsByURIQueryView({el: '#query-pathsbyURI-table'});//FUNDA--use collaborative version
-        //FUNDA   pathsBetweenQueryView = appUtilities.pathsBetweenQueryView = new BackboneViews.PathsBetweenQueryView({el: '#query-pathsbetween-table'});
-        //FUNDA  pathsByURIQueryView = appUtilities.pathsByURIQueryView = new BackboneViews.PathsByURIQueryView({el: '#query-pathsbyURI-table'});
+        collaborativePathsByURIQueryView = new collaborativeBackboneViews.PathsByURIQueryView({el: '#query-pathsbyURI-table'});//FUNDA--use collaborative versi
+        //FUNDA
+        // pathsBetweenQueryView = appUtilities.pathsBetweenQueryView = new BackboneViews.PathsBetweenQueryView({el: '#query-pathsbetween-table'});
+        // pathsByURIQueryView = appUtilities.pathsByURIQueryView = new BackboneViews.PathsByURIQueryView({el: '#query-pathsbyURI-table'});
         //promptSaveView = appUtilities.promptSaveView = new BackboneViews.PromptSaveView({el: '#prompt-save-table'}); // see PromptSaveView in backbone-views.js
         fileSaveView = appUtilities.fileSaveView = new BackboneViews.FileSaveView({el: '#file-save-table'});
         promptConfirmationView = appUtilities.promptConfirmationView = new BackboneViews.PromptConfirmationView({el: '#prompt-confirmation-table'});
@@ -140,21 +107,39 @@ module.exports = function () {
             }
         });
 
+        $("#node-label-textbox").keyup(function (e) {
+            if (e.which === 13 && !e.shiftKey) {
+                e.preventDefault();
+            }
+        });
+
         $("#node-label-textbox").keydown(function (e) {
-            if (e.which === 13) {
+            if (e.which === 13 && !e.shiftKey) {
                 $("#node-label-textbox").blur();
             }
         });
 
         $("#node-label-textbox").blur(function () {
             $("#node-label-textbox").hide();
-            $("#node-label-textbox").data('node', undefined);
+            $("#node-label-textbox").removeData("node");
         });
 
         $("#node-label-textbox").on('change', function () {
             var node = $(this).data('node');
-            chise.changeNodeLabel(node, $(this).val());
+            var lines = $(this).val();
+
+            if ($(this).val().includes("\\n")){
+                lines = $(this).val().split("\\n");
+                lines = $.map(lines, function(x) {
+                    x = x.trim();
+                    if (x) return (x);
+                });
+                lines = lines.join("\n")
+            }
+
+            chise.changeNodeLabel(node, lines);
             inspectorUtilities.handleSBGNInspector();
+
         });
 
         $("#new-file, #new-file-icon").click(function () {
@@ -407,19 +392,18 @@ module.exports = function () {
                 delete preferences.animate;
             }
             layoutPropertiesView.applyLayout(preferences);
-
             chise.endSpinner("layout-spinner"); //funda
         });
 
-        /* FUNDA
-         $("#undo-last-action, #undo-icon").click(function (e) {
-         cy.undoRedo().undo();
-         });
+        //FUNDA
+        // $("#undo-last-action, #undo-icon").click(function (e) {
+        //   cy.undoRedo().undo();
+        // });
+        //
+        // $("#redo-last-action, #redo-icon").click(function (e) {
+        //   cy.undoRedo().redo();
+        // });
 
-         $("#redo-last-action, #redo-icon").click(function (e) {
-         cy.undoRedo().redo();
-         });
-         */
         $("#save-as-png").click(function (evt) {
             chise.saveAsPng(); // the default filename is 'network.png'
         });

@@ -217,7 +217,7 @@ ContextAgent.prototype.evaluateMessage = function(callback){
 
             }
             else if(self.chatHistory.length  ==  self.neighborhoodQuestionInd + 2) {
-                var answer = data.comment.text;
+                var answer = data.comment;
 
 
 
@@ -415,7 +415,7 @@ ContextAgent.prototype.informAboutCancer = function(cancer){
     }
 
 
-    self.sendMessage({text:agentComment}, targets);
+    self.sendMessage(agentComment, targets);
 
     self.cancerQuestionInd = self.chatHistory.length - 1; //last question ind in history
 
@@ -430,7 +430,7 @@ ContextAgent.prototype.informAboutNeighborhood = function(geneName, neighborName
 
 
 
-    self.sendMessage({text:agentComment},"*"); //send all
+    self.sendMessage(agentComment,"*"); //send all
 
     self.neighborhoodQuestionInd = self.chatHistory.length - 1; //last question ind in history
 
@@ -480,7 +480,7 @@ ContextAgent.prototype.findMostImportantNeighborInContext = function(tellGeneNam
 
         self.socket.emit('PCQuery', {url: pc2URL, type: "sif"});
         if(tellGeneName)
-            self.sendMessage(({text:"The most important gene  in your network for this cancer type is " + geneName +". I'm looking up its neighborhood alterations..."}), "*");
+            self.sendMessage(("The most important gene  in your network for this cancer type is " + geneName +". I'm looking up its neighborhood alterations..."), "*");
     }
 
 

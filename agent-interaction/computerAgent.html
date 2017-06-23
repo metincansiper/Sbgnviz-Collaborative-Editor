@@ -247,7 +247,7 @@
     window.onload = function () {
 
 
-        // createAgent();
+         createAgent();
 
 
         $('#agentName').change(function () {
@@ -505,7 +505,7 @@
     }
     function sendMessage(){
 
-        agent.sendRequest('agentMessage', {comment:{text: $('#chatMessage')[0].value}, targets:"*"}, function(){
+        agent.sendRequest('agentMessage', {comment: $('#chatMessage')[0].value, targets:"*"}, function(){
             $('#chatMessage')[0].value = "";
         } );
     };
@@ -1026,7 +1026,7 @@
 
     function writeMessage(msg){
 
-        var htmlMessage = "<b>" + msg.userName + " (" + formatTime(msg) + "): "+ "</b>"  + " <p style  =" + msg.comment.style +">" + msg.comment.text + "</p>" ;
+        var htmlMessage = "<b>" + msg.userName + " (" + formatTime(msg) + "): "+ "</b>"  + " <p>" + msg.comment + "</p>" ;
         $('#chat').append("<li>" + htmlMessage+ "</li>");
         $('#chat').trigger('contentchanged');
     }
