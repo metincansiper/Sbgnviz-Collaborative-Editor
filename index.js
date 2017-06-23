@@ -29,10 +29,6 @@ var useQunit = true;
 var factoidHandler;
 
 var socket;
-<<<<<<< HEAD
-=======
-
->>>>>>> dbab8ba7e6ec4c1df3b186ce70948f32b381d3be
 var rephraseToolBox = require('./public/collaborative-app/reach-functions/rephrase-handler.js');
 
 var modelManager;
@@ -49,15 +45,6 @@ app.on('model', function (model) {
 
         return item.date > startTime;
     });
-
-    model.fn('biggerThanCurrentTime', function (item) {
-
-        var clickTime = model.get('_page.clickTime');
-
-
-        return item.date > clickTime;
-    });
-
 
 
 });
@@ -185,17 +172,6 @@ app.get('/:docId', function (page, model, arg, next) {
                     users.set(userId, {name: userName, colorCode: colorCode});
 
 
-
-
-                     //   model.set('_page.newComment', "how does SETDB1 affect ADAM17?"); //TODO: delete later
-                   //     model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-          //          model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
-               //     model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
-               //     model.set('_page.newComment', "How does  ITGAV affect ILK?"); //TODO: delete later
-           //        model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
-            //        model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-
-
                     return page.render();
                 });
             });
@@ -207,14 +183,6 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 });
-
-app.proto.updateMessage = function(){
-
-    var e = document.getElementById("test-messages");
-    var msg = e.options[e.selectedIndex].text;
-
-    this.model.set('_page.newComment', msg);
-}
 
 
 
@@ -374,29 +342,6 @@ app.proto.listenToAgentSocket = function(model){
 
         }
     });
-
-    socket.on('addImage', function(data, callback){
-        try {
-
-
-
-           // data.img = data.img.replace(/(\%22)/g, '"');
-
-
-            var status = modelManager.addImage(data);
-
-
-
-            if(callback) callback(status);
-
-        }
-        catch(e){
-            console.log(e);
-            if(callback) callback("fail");
-
-        }
-    });
-
 
 
     model.on('change', '_page.doc.undoIndex', function(id, cmdInd){
@@ -639,16 +584,6 @@ app.proto.create = function (model) {
 
     socket = io();
 
-    $('#messages').contentchanged = function () {
-
-        $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
-    }
-
-
-    //change scroll position
-    $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
 
     var id = model.get('_session.userId');
     var name = model.get('_page.doc.users.' + id +'.name');
@@ -750,11 +685,6 @@ app.proto.create = function (model) {
             if (!_this.atBottom) {
                 return;
             }
-
-            document.getElementById("messages").scrollTop= document.getElementById("messages").scrollHeight;
-
-            // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
             return _this.container.scrollTop = _this.list.offsetHeight;
         };
     })(this));
@@ -1161,7 +1091,6 @@ app.proto.listenToEdgeOperations = function(model){
 
 }
 
-
 app.proto.init = function (model) {
     var timeSort;
 
@@ -1172,17 +1101,6 @@ app.proto.init = function (model) {
 
 
     //Listen to other model operations
-
-
-    // model.on('all', '_page.doc.messages.**', function(id, op, val, prev, passed){
-    //
-    //     // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-    //     $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-    //
-    //
-    // });
-
-
 
     model.on('all', '_page.doc.factoid.*', function(id, op, val, prev, passed){
 
@@ -1264,7 +1182,6 @@ app.proto.init = function (model) {
         if(docReady){
             triggerContentChange('messages');
 
-
         }
 
         if (com[com.length - 1].userId != myId) {
@@ -1286,9 +1203,7 @@ app.proto.init = function (model) {
 };
 
 
-app.proto.onScroll = function (element) {
-    console.log(element);
-    console.log(this);
+app.proto.onScroll = function () {
     var bottom, containerHeight, scrollBottom;
     bottom = this.list.offsetHeight;
     containerHeight = this.container.offsetHeight;
@@ -1297,7 +1212,6 @@ app.proto.onScroll = function (element) {
     return this.atBottom = bottom < containerHeight || scrollBottom > bottom - 10;
 
 };
-
 
 
 app.proto.changeColorCode = function(){
@@ -1319,42 +1233,12 @@ app.proto.runUnitTests = function() {
 
 
 };
-<<<<<<< HEAD
-=======
 
-app.proto.connectCausalityAgent = function(){
-
-    var CausalityAgent = require("./agent-interaction/CausalityAgent");
-    agent = new CausalityAgent("Agent1", "Agent1");
-    agent.connectToServer("http://localhost:3000/", function (socket) {
-        agent.loadModel(function() {
-            agent.init();
-            agent.loadChatHistory(function(){
-            });
-        });
-    });
-}
->>>>>>> dbab8ba7e6ec4c1df3b186ce70948f32b381d3be
-
-app.proto.enterMessage= function(event){
-
-    if (event.keyCode == 13 && !event.shiftKey) {
-       this.add(event);
-
-       //  $('#inputs-comment')[0].value = "abc";
-       // // $('#inputs-comment')[0].focus();
-       //  $('#inputs-comment')[0].setSelectionRange(0,0);
-
-        // prevent default behavior
-        event.preventDefault();
-
-    }
-}
-app.proto.add = function (event, model, filePath) {
+app.proto.add = function (model, filePath) {
 
     if(model == null)
-        model = this.model;
 
+        model = this.model;
     this.atBottom = true;
 
 
@@ -1381,7 +1265,6 @@ app.proto.add = function (event, model, filePath) {
 
        socket.emit('getDate', function(date){ //get the date from the server
 
-           comment.style = "font-size:large";
             model.add('_page.doc.messages', {
                 room: model.get('_page.room'),
                 targets: targets,
@@ -1392,11 +1275,6 @@ app.proto.add = function (event, model, filePath) {
             });
 
 
-           event.preventDefault();
-
-            //change scroll position
-           $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
 
 
        });
@@ -1404,12 +1282,6 @@ app.proto.add = function (event, model, filePath) {
 
 };
 
-app.proto.clearHistory = function () {
-    this.model.set('_page.clickTime', new Date);
-
-    return this.model.filter('_page.doc.messages', 'biggerThanCurrentTime').ref('_page.list');
-    
-}
 
 app.proto.dynamicResize = function (images) {
     var win = $(window);
@@ -1423,18 +1295,18 @@ app.proto.dynamicResize = function (images) {
 
     if (windowWidth > canvasWidth)
     {
-        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.55);
-        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.55);
+        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.7);
+        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.7);
 
 
         if(images) {
             images.forEach(function (img) {
-                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.55);
+                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.7);
             });
         }
-        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.45);
+        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.3);
 
-        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.45);
+        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.3);
         // var w = $("#sbgn-inspector-and-canvas").width(); //funda
         var w = $("#canvas-tab-area").width();
         $(".nav-menu").width(w);
@@ -1486,9 +1358,9 @@ app.proto.uploadFile = function(evt){
         reader.readAsDataURL(file);
 
         //Add file name as a text message
-        this.model.set('_page.newComment',  ("Sent image: "  + filePath) );
+        this.model.set('_page.newComment', {text: "Sent image: "  + filePath} );
 
-        this.app.proto.add(evt,this.model, filePath);
+        this.app.proto.add(this.model, filePath);
 
 
     }
@@ -1858,7 +1730,6 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
         tmp.push(lonelyNodeList[i]);
     }
   }
-<<<<<<< HEAD
 
   //Update the lonely node collection.
   lonelyNodeList = tmp; 
@@ -1913,86 +1784,14 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
       cy.getElementById(node.data.id).select();
     });
 
-=======
-
-  //Update the lonely node collection.
-  lonelyNodeList = tmp; 
-
-  //Merge the edges then merge the process nodes and the whole reaction they are involved in.
-  rephraseToolBox.mergeEdges(rephrase, id2signature); 
-  rephraseToolBox.mergeProcessNodes(rephrase, id2signature); 
-
-  //Create the merged json object.
-  for(i = 0; i < rephrase.length; i++) {
-    if(rephrase[i].isNode()) {
-      nodejs = rephrase[i].json();
-      if(nodejs.data.parent)
-        nodejs.data.parent = old2newIdList[nodejs.data.parent];
-
-      jsonObj.nodes.push(nodejs);
-    } else {
-      edgejs = rephrase[i].json();
-      edgejs.data.source = rephrase[i - 1].id();
-      edgejs.data.target = rephrase[i + 1].id();
-
-    jsonObj.nodes.push(nodejs);
-  }
-
-  //get another sbgncontainer and display the new SBGN model.
-  modelManager.newModel( "me", true);
-  //this takes a while so wait before initiating the model
-  chise.updateGraph(jsonObj);
-  //DEBUG
-  // cy.nodes().forEach(function (node){
-  //     if(node._private.data == null){
-  //         console.log("Data not assigned");
-  //         console.log(node);
-  //     }
-  // });
-
-  setTimeout(function() {
-    modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
-
-    //select the new graph
-    jsonGraph.nodes.forEach(function(node){
-      cy.getElementById(node.data.id).select();
-    });
-
->>>>>>> dbab8ba7e6ec4c1df3b186ce70948f32b381d3be
     //Call Layout
     $("#perform-layout").trigger('click');
 
     //Call merge notification after the layout
     setTimeout(function(){
-<<<<<<< HEAD
       modelManager.mergeJsons("me", true);
       if(callback) callback("success");
     }, 1000);
 
   }, 2000); //wait for chise to complete updating graph
-=======
-        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
-
-        //select the new graph
-        newJsonIds.nodes.forEach(function(node){
-                cy.getElementById(node.data.id).select();
-
-
-
-        });
-
-        //Call Layout
-
-
-        $("#perform-layout").trigger('click');
-
-        //Call merge notification after the layout
-        setTimeout(function(){
-            modelManager.mergeJsons("me", true);
-            if(callback) callback("success");
-        }, 1000);
-
-    },2000); //wait for chise to complete updating graph
-
->>>>>>> dbab8ba7e6ec4c1df3b186ce70948f32b381d3be
 };
