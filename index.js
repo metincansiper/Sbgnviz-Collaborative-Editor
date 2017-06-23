@@ -29,13 +29,8 @@ var useQunit = true;
 var factoidHandler;
 
 var socket;
-<<<<<<< HEAD
-var rephraseToolBox = require('./public/collaborative-app/reach-functions/rephrase-handler.js');
-=======
- var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
 
-//var jsonMerger = require('./public/collaborative-app/merger.js');
->>>>>>> origin
+var rephraseToolBox = require('./public/collaborative-app/reach-functions/rephrase-handler.js');
 
 var modelManager;
 var oneColor = require('onecolor');
@@ -1858,7 +1853,6 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
     }
   }
 
-<<<<<<< HEAD
   //Update the lonely node collection.
   lonelyNodeList = tmp; 
 
@@ -1878,34 +1872,6 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
       edgejs = rephrase[i].json();
       edgejs.data.source = rephrase[i - 1].id();
       edgejs.data.target = rephrase[i + 1].id();
-=======
-    var self = this;
-    var currJson = sbgnviz.createJson();
-
-
-    modelManager.setRollbackPoint(); //before merging
-
-
-
-
-    var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
-    var jsonObj = mergeResult.wholeJson;
-    var newJsonIds = mergeResult.jsonToMerge;
-
-
-    //get another sbgncontainer and display the new SBGN model.
-    modelManager.newModel( "me", true);
->>>>>>> origin
-
-      jsonObj.edges.push(edgejs);
-    }
-  }
-
-  //Add the lonely nodes that were discarded at the process node merge stage.
-  for(i = 0; i < lonelyNodeList.length; i++) {
-    nodejs = lonelyNodeList[i].json();
-    if(nodejs.data.parent)
-      nodejs.data.parent = old2newIdList[nodejs.data.parent];
 
     jsonObj.nodes.push(nodejs);
   }
@@ -1935,11 +1901,6 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
 
     //Call merge notification after the layout
     setTimeout(function(){
-<<<<<<< HEAD
-      modelManager.mergeJsons("me", true);
-      if(callback) callback("success");
-    }, 1000);
-=======
         modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
 
         //select the new graph
@@ -1963,18 +1924,4 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
 
     },2000); //wait for chise to complete updating graph
 
-}
-
-app.proto.mergeSbgn = function(sbgnText, callback){
-
-
-
-
-    var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
-    this.mergeJsonWithCurrent(newJson, callback);
-
-
->>>>>>> origin
-
-  }, 2000); //wait for chise to complete updating graph
 };

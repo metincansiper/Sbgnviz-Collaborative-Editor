@@ -20,11 +20,6 @@ function CausalityAgent(name, id) {
     this.causality = {};
     this.allSifRelations = {};
     this.geneSig = {};
-<<<<<<< HEAD
-
-    this.geneNames = {}; //all the relevant gene names for OV
-=======
->>>>>>> origin
 
     this.geneNameArr = []; //all the relevant gene names for OV
 
@@ -48,11 +43,7 @@ CausalityAgent.prototype.init = function(){
 
     var self = this;
     var sifFilePath = "./CausalPath/PC.sif";
-<<<<<<< HEAD
-    var causalityFilePath = "./CausalPath/causative.sif";
-=======
     var causalityFilePath = "./CausalPath/causative-data-centric.sif";
->>>>>>> origin
     var mutSigFilePath = "./TCGA/OV/scores-mutsig.txt";
 
     // self.sendMessage({text:"Please wait while I am loading the phosphoproteomics dataset from PNNL."}, "*");
@@ -81,12 +72,7 @@ CausalityAgent.prototype.init = function(){
     this.readAllSifRelations(sifFilePath);
     this.readCausality(causalityFilePath);
 
-<<<<<<< HEAD
- //   window.indexedDB.deleteDatabase(dbName, 3);
-=======
     this.readMutSig(mutSigFilePath);
->>>>>>> origin
-
 
    //    window.indexedDB.deleteDatabase(dbName, 3);
    //
@@ -237,14 +223,6 @@ CausalityAgent.prototype.readCausality = function(causalityFilePath, callback){
             if(self.causality[geneName2])
                 self.causality[geneName2].push({pSite1: pSite2, pSite2: pSite1, rel: convertToOppositeRel(vals[1]), id2: geneName1, uriStr: uriStr});
             else
-<<<<<<< HEAD
-                self.causality[id2] = [{rel: vals[1], id2: id1, uriStr: uriStr}];
-
-
-            //all the gene names we are working on
-            self.geneNames[id1]= true;
-            self.geneNames[id2]= true;
-=======
                 self.causality[geneName2] = [{pSite1: pSite2, pSite2: pSite1, rel: convertToOppositeRel(vals[1]), id2: geneName1, uriStr: uriStr}];
 
 
@@ -255,7 +233,6 @@ CausalityAgent.prototype.readCausality = function(causalityFilePath, callback){
 
             if(self.geneNameArr.indexOf(geneName2)< 0)
                 self.geneNameArr.push(geneName2);
->>>>>>> origin
         });
 
         if(callback) callback();
@@ -302,19 +279,7 @@ CausalityAgent.prototype.listenToMessages = function(callback){
         var target = dataArr[1];
         var rel = dataArr[2];
 
-<<<<<<< HEAD
-                self.findRelevantGeneFromSentence(words, function (gene) {
-                    geneContext = gene;
-                    console.log(gene);
-                    self.tellMutSig(gene, callback);
-
-                    self.tellCorrelation(gene, callback);
-
-
-                });
-=======
         var relText = rel.replace(/[-]/g, " ");
->>>>>>> origin
 
 
         if(callback) callback(source + " "+ relText + " " + target + ". Here's it's graph. " );
@@ -507,11 +472,7 @@ CausalityAgent.prototype.updateAgentModel = function(text, callback){
 
 CausalityAgent.prototype.tellMutSig = function(gene, callback) {
     var self = this;
-<<<<<<< HEAD
-
-=======
-var agentMsg= "";
->>>>>>> origin
+    var agentMsg= "";
     var pVal = self.geneSig[gene];
     if(pVal < 0.01)
         agentMsg = gene + " is highly significantly mutated in ovarian cancer with a p value of "+ pVal + ". ";
@@ -520,13 +481,6 @@ var agentMsg= "";
     else
         agentMsg = gene + " is not significantly mutated in ovarian cancer.";
 
-<<<<<<< HEAD
-    self.sendMessage({text: agentMsg}, "*", function () {
-        if (callback) callback();
-    });
-
-
-=======
     // self.sendMessage(agentMsg, "*", function () {
     //     if (callback) callback();
     // });
@@ -1120,36 +1074,6 @@ CausalityAgent.prototype.findCausalityTargets = function(source){
  * @param gene2
  * @returns {boolean}
  */
-<<<<<<< HEAD
-CausalityAgent.prototype.findDemoGenes = function(){
-    var self = this;
-    var commonGenes = [];
-
-
-    //self.pnnlDb.getColumn('id1',  function(res){
-
-    for(var gene in self.geneNames){
-        hasC
-        var gene2 = self.causality[gene].id2;
-            if(!self.causality[gene]) {
-                self.pnnlDb.getEntry("id1", gene, function(geneEntry){
-                    var upstreams = self.findCommonUpstreams(gene, self.pnnl[gene][0].id2);
-                    if (upstreams && upstreams.length > 0) {
-                        commonGenes.push(gene + "\t" + self.pnnl[gene][0].id2 + "\n");
-                    }
-                });
-
-
-            }
-
-
-
-        saveFile(commonGenes, "./CausalPath/noncausal.txt", "txt");
-    }
-
-
-}
-=======
 CausalityAgent.prototype.hasCorrelationalRelationship = function(gene1, gene2, callback){
 
     var self = this;
@@ -1192,4 +1116,3 @@ CausalityAgent.prototype.hasCorrelationalRelationship = function(gene1, gene2, c
 //     },240000);
 //
 // }
->>>>>>> origin
