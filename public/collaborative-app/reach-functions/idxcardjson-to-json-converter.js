@@ -16,13 +16,13 @@ var idxCardToJson = {
         var entityBbox = {
             "compartment": {x:0, y:0, w:60, h:60},
             "complex": {x:0, y:0, w:60, h:60},
-            "macromolecule": {x:0, y:0, w:70, h:65},
+            "macromolecule": {x:0, y:0, w:120, h:60},
             "process": {x:0, y:0, w:20, h:20},
-            "source and sink": {x:0, y:0, w:30, h:30}
+            "sourceandsink": {x:0, y:0, w:60, h:60}
         };
 
-        var statesandinfosbbox = {x:20, y:-6, w:40, h:12};
-        var addmodifstatesandinfosbbox = {x:20, y:59, w:40, h:12};
+        var statesandinfosbbox = {x:0, y:-50, w:40, h:12};
+        var addmodifstatesandinfosbbox = {x:0, y:50, w:40, h:12};
 
         var stateInfos = {
             "acetylation": "Ac",
@@ -104,7 +104,7 @@ var idxCardToJson = {
                     class: "source and sink",
                     label: "null",
                     statesandinfos: [],
-                    bbox: entityBbox.macromolecule,
+                    bbox: entityBbox.sourceandsink,
                     parent: "",
                     ports: []
                 }

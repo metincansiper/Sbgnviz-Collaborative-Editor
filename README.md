@@ -47,8 +47,8 @@ brew install nodejs
 
 ### Clone from github and install node modules
 ```
-git clone https://github.com/fdurupinar/Sbgnviz-Collaborative-Editor/tree/collaborativeChise
-cd Sbgnviz-Collaborative-Editor Chise Version
+https://github.com/fdurupinar/Sbgnviz-Collaborative-Editor.git
+cd Sbgnviz-Collaborative-Editor
 npm install
 ```
 
@@ -158,7 +158,7 @@ string after http:<ip>:3000/ in the server address.
 |		"agentActiveRoomsRequest"					| {room:< room >, userId:< agentId >}-																																			|
 |   "agentUndoRequest"          |  {room:< room >, userId:< agentId >} |
 |   "agentRedoRequest"          |   {room:< room >, userId:< agentId >}|
-|   "agentMessage"          |{room: <room>, userId: <agentId>, comment: {text: <text to be sent>, style: <text style/optional>, link:<url address/optional>}, targets: < user ids or * to include all users in the room >}   |
+|   "agentMessage"          |{room: <room>, userId: <agentId>, comment:  <message string -- can be raw html>, targets: < user ids or * to include all users in the room >}   |
 
 
 

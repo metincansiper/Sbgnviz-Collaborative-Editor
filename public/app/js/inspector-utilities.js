@@ -101,6 +101,8 @@ inspectorUtilities.handleSBGNInspector = function () {
     var sbgnlabel = chise.elementUtilities.getCommonProperty(selectedEles, "label", "data");
     if (sbgnlabel == null) {
       sbgnlabel = "";
+    } else if (sbgnlabel.includes("\n")) {
+      sbgnlabel = sbgnlabel.replace(new RegExp("\n", "g"), " \\n ");
     }
 
     var classInfo = chise.elementUtilities.getCommonProperty(selectedEles, function(ele) {
@@ -288,6 +290,53 @@ inspectorUtilities.handleSBGNInspector = function () {
         html += "<tr><td style='width: " + width + "px; text-align:right; padding-right: 5px;'>" + "<font class='sbgn-label-font'>Cloned</font>" + "</td>"
                 + "<td style='padding-left: 5px; width: '" + width + "'><input type='checkbox' id='inspector-is-clone-marker'></td></tr>";
       }
+      
+      /*
+       * If all selected elements can have ports add a selectbox to enable setting their ports ordering.
+       */
+      if ( chise.elementUtilities.trueForAllElements(selectedEles, chise.elementUtilities.canHavePorts.bind(chise.elementUtilities)) ) {
+        html += "<tr><td style='width: " + width + "px; text-align:right; padding-right: 5px;'>" + "<font class='sbgn-label-font'>Ports Ordering</font>" + "</td>"
+                + "<td style='padding-left: 5px; width: '" + width + "'>"; 
+        
+        html += "<select id='inspector-ports-ordering-select' class='input-medium layout-text' name='inspector-ports-ordering-select'>";
+        
+        var optionsStr = "";
+        
+        // Get the common ordering of the nodes
+        var commonOrdering = chise.elementUtilities.getCommonProperty(selectedEles, function(ele) {
+          return chise.elementUtilities.getPortsOrdering(ele);
+        });
+        
+        var commonOrderingVal = commonOrdering || "empty"; // If there is no common ordering we should use "empty" for common ordering value
+        
+        var orderings = ["", "none", "left to right", "right to left", "bottom to top", "top to bottom"];
+        var values = ["empty", "none", "L-to-R", "R-to-L", "B-to-T", "T-to-B"];
+    
+        // For all possible values create an option str and append it to options str
+        for ( var i = 0; i < orderings.length; i++ ) {
+          var ordering = orderings[i];
+          var optionVal = values[i];
+          var optionId = "inspector-ports-ordering-" + optionVal; // Option id is generated from option value
+          var optionStr = "<option id='" + optionId + "'" 
+                  + " value='" + optionVal + "'";
+
+          if ( optionVal === commonOrderingVal ) {
+            optionStr += " selected";
+          }
+
+          optionStr += "> ";
+          optionStr += ordering;
+          optionStr += " </option>";
+
+          optionsStr += optionStr;
+        }
+
+        html += optionsStr; // The string to represent this option in selectbox
+
+        html += "</select>";
+        
+        html += "</td></tr>";
+      }
     }
     else {
       type = "edge";
@@ -422,6 +471,11 @@ inspectorUtilities.handleSBGNInspector = function () {
         }
       });
 
+      $("#inspector-ports-ordering-select").on('change', function() {
+        var ordering = this.value;
+        chise.setPortsOrdering( selectedEles, ordering );
+      });
+
       $("#inspector-node-width, #inspector-node-height").change( function () {
         var w = parseFloat($("#inspector-node-width").val());
         var h = parseFloat($("#inspector-node-height").val());
@@ -490,7 +544,30 @@ inspectorUtilities.handleSBGNInspector = function () {
       });
 
       $("#inspector-label").on('change', function () {
-        chise.changeNodeLabel(selectedEles, $(this).val());
+        var lines = $(this).val().trim();
+        var current_label_data = selectedEles.data('label').replace(new RegExp("\n", "g"), " \\n ").trim();
+
+        if (current_label_data !== lines){
+          lines = lines.split("\\n");
+          lines = $.map(lines, function(x) {
+            x = x.trim();
+            if (x) return (x);
+          });
+          lines = lines.join("\n");
+
+          chise.changeNodeLabel(selectedEles, lines);
+        }
+      });
+
+      $("#inspector-label").on('keydown', function (e) {
+        var current_insp_lable = $(this).val();
+        if (e.keyCode == 13 && e.shiftKey) {
+          var cursor_position = $(this)[0].selectionStart;
+          var tmp = $(this).val().substring(0, cursor_position) + " \\n " + $(this).val().substring(cursor_position);
+          $(this).val(tmp);
+        } else if (e.keyCode == 13 && !e.shiftKey) {
+          $(this).trigger("change");
+        }
       });
 
       $("#inspector-background-opacity").on('change', function () {
