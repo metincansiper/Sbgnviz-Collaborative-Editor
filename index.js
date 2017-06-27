@@ -109,6 +109,7 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
             // create a reference to the document
+            var pysb = model.at((docPath + '.pysb'));
             var cy = model.at((docPath + '.cy'));
             var history = model.at((docPath + '.history'));
             var undoIndex = model.at((docPath + '.undoIndex'));
@@ -119,6 +120,8 @@ app.get('/:docId', function (page, model, arg, next) {
             var userIds = model.at((docPath + '.userIds')); //used for keeping a list of subscribed users
             var messages = model.at((docPath + '.messages'));
 
+            pysb.subscribe(function () {
+            });
             cy.subscribe(function () {
             });
             history.subscribe(function () {
