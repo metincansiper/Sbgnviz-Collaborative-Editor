@@ -29,7 +29,7 @@ var useQunit = true;
 var factoidHandler;
 
 var socket;
-var rephraseToolBox = require('./public/collaborative-app/reach-functions/rephrase-handler.js');
+var jsonMerger = require("./public/collaborative-app/reach-functions/json-merger.js");
 
 var modelManager;
 var oneColor = require('onecolor');
@@ -1237,6 +1237,33 @@ app.proto.runUnitTests = function() {
 
 };
 
+app.proto.connectCausalityAgent = function(){
+
+    var CausalityAgent = require("./agent-interaction/CausalityAgent");
+    agent = new CausalityAgent("Agent1", "Agent1");
+    agent.connectToServer("http://localhost:3000/", function (socket) {
+        agent.loadModel(function() {
+            agent.init();
+            agent.loadChatHistory(function(){
+            });
+        });
+    });
+}
+
+app.proto.enterMessage= function(event){
+
+    if (event.keyCode == 13 && !event.shiftKey) {
+       this.add(event);
+
+       //  $('#inputs-comment')[0].value = "abc";
+       // // $('#inputs-comment')[0].focus();
+       //  $('#inputs-comment')[0].setSelectionRange(0,0);
+
+        // prevent default behavior
+        event.preventDefault();
+    }
+}
+
 app.proto.add = function (model, filePath) {
 
     if(model == null)
@@ -1414,217 +1441,14 @@ app.proto.mergeSbgn = function(sbgnText, callback){
 
     var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
     this.mergeJsonWithCurrent(newJson, callback);
-
-
-
-};
-
-//Rewrithe the ids in the json object.
-app.proto.rewriteIds = function(js, newId, old2newIds) {
-  var i;
-  var parent;
-  var source;
-  var target;
-  var newSource;
-  var newTarget;
-  var maxsize = newId.length;
-
-  for(i = 0; i < js.nodes.length; i++) {
-    old2newIds[js.nodes[i].data.id] = newId;
-    js.nodes[i].data.id = newId;
-
-    //The new id is as many 0s as necessary and a
-    //variable number.
-    //Example: id1 = '000001', id2 = '000002', etc
-    newId = parseInt(newId) + 1;
-    newId = "0".repeat(Math.abs(maxsize - newId.toString().length)) + newId.toString();
-  }
-
-  //Rewrite the ids in the 'parent' attributes.
-  for(i = 0; i < js.nodes.length; i++) {
-    parent = js.nodes[i].data.parent;
-    if(parent !== undefined)
-      js.nodes[i].data.parent = old2newIds[parent];
-  }
-
-  //Rewrite the ids of the sources and the targets of
-  //the edges.
-  for(i = 0; i < js.edges.length; i++) {
-    source = old2newIds[js.edges[i].data.source];
-    target = old2newIds[js.edges[i].data.target];
-    js.edges[i].data.source = source;
-    js.edges[i].data.target = target;
-    js.edges[i].data.id = source + "-" + target;
-  }
-};
-
-//What REACH sentences, describing reactions, a node is associated to ?
-app.proto.nodeId2sentence = function(js, sentenceNodeMap, rep1, rep2, id2pos) {
-  var i;
-  var sentence;
-
-  for(i = 0; i < rep1.length; i++) {
-    if(rep1[i].isNode()) {
-      if(!(rep1[i].id() in sentenceNodeMap))
-        sentenceNodeMap[rep1[i].id()] = [];
-
-      sentence = js[id2pos[rep2[i].id()]].sentence;
-      sentenceNodeMap[rep1[i].id()].push(sentence);
-    }
-  }
-};
-
-//What REACH index card a node is associated to ?
-app.proto.nodeId2idxCard = function(js, idxCardNodeMap, rep1, rep2, id2pos) {
-  var i;
-  var idxCard;
-
-  for(i = 0; i < rep1.length; i++) {
-    if(rep1[i].isNode()) {
-      if(!(rep1[i].id() in idxCardNodeMap))
-        idxCardNodeMap[rep1[i].id()] = [];
-
-      idxCard = js[id2pos[rep2[i].id()]].idxCard;
-      idxCardNodeMap[rep1[i].id()].push(idxCard);
-    }
-  }
 };
 
 //Merge an array of json objects to output a single json object.
 app.proto.mergeJsons = function(jsonGraph) {
-  var i, j;
-  var newId;
-  var edgejs;
-  var nodejs;
-  var source;
-  var target;
-  var parent;
-  var idxCard;
-  var sentence;
-  var tmp = [];
-  var rephrase2;
-  var nodeLength;
-  var id2pos = {};
-  var idList = {};
-  var idmaxsize = 0;
-  var old2newIds = {};
   var idxCardNodeMap = {};
-  var old2newIdList = {};
   var sentenceNodeMap = {};
 
-  if(!jsonGraph.length)
-    return;
-
-  var jsonObj = {"nodes": [], "edges": []};
-  var cy = rephraseToolBox.json2cytoscape(jsonObj);
- 
-  //Get ready to rewrite the ids in the json object.
-  //The new id is as many 0s as necessary and a
-  //variable number.
-  //Example: id1 = '000001', id2 = '000002', etc
-  //Here, I compute the number of 0s needed.
-  for(i = 0; i < jsonGraph[0].json.nodes.length; i++) {
-    if(jsonGraph[0].json.nodes[i].data.id.length > idmaxsize)
-      idmaxsize = jsonGraph[0].json.nodes[i].data.id.length;
-  }
-
-  newId = "0".repeat(idmaxsize + 1);
-
-  //Rewrite the ids in the json object.
-  for(i = 1; i < jsonGraph.length; i++) {
-    this.rewriteIds(jsonGraph[i].json, newId, old2newIds);
-    newId = "0".repeat(newId.length + 1);
-  }
-
-  //Convert the jsonGraph into one single cytoscape object.
-  for(i = 0; i < jsonGraph.length; i++) {
-    cy.add(jsonGraph[i].json);
-    for(j = 0; j < jsonGraph[i].json.nodes.length; j++)
-      id2pos[jsonGraph[i].json.nodes[j].data.id] = i;
-  }
-
-  //Rephrase the cytoscape object, in order to get the array of nodes and edges.
-  var rephrase = rephraseToolBox.cytoscape2rephrase(cy);
-
-  //Save the lonely nodes. It is mostly made to handle the nodes contained in complexes.
-  //Since they are not connected to any edge, they will be discarded when merging process nodes.
-  var lonelyNodeList = rephraseToolBox.getLonelyNodes(rephrase);
-  var id2signature = rephraseToolBox.getElementSignatures(rephrase);
-
-  //Rearrange the orders of the nodes around the edges in the rephrase for the subsequent operations.
-  rephraseToolBox.rearrangeRephrase(rephrase);
-
-  //What REACH sentences, describing reactions, a node is associated to,
-  //and what REACH index card a node is associated to ?
-  this.nodeId2sentence(jsonGraph, sentenceNodeMap, rephrase, rephrase, id2pos);
-  this.nodeId2idxCard(jsonGraph, idxCardNodeMap, rephrase, rephrase, id2pos);
-
-  rephrase2 = new Array(rephrase.length);
-  for(i = 0; i < rephrase.length; i++)
-    rephrase2[i] = rephrase[i];
-
-  rephraseToolBox.mergeNodes(rephrase, id2signature); //Merge the nodes.
-
-  //The rephrase has changed so update the two dictionaries.
-  this.nodeId2sentence(jsonGraph, sentenceNodeMap, rephrase, rephrase2, id2pos);
-  this.nodeId2idxCard(jsonGraph, idxCardNodeMap, rephrase, rephrase2, id2pos);
-
-  Object.keys(sentenceNodeMap).forEach(key => {
-    if(sentenceNodeMap[key].length == 1) {
-      delete sentenceNodeMap[key];
-      delete idxCardNodeMap[key];
-    } else {
-      sentenceNodeMap[key] = _.uniq(sentenceNodeMap[key]);
-      idxCardNodeMap[key] = _.uniq(idxCardNodeMap[key]);
-    }
-  });
-
-  //After merging the nodes, some nodes may have disappeared to be replaced by others.
-  //Update the collection of lonely nodes previously saved.
-  if(lonelyNodeList.length) {
-    for(i = 0; i < rephrase.length; i++) {
-      idList[rephrase[i].id()] = 1;
-      old2newIdList[rephrase2[i].id()] = rephrase[i].id();
-    }
-
-    for(i = 0; i < lonelyNodeList.length; i++) {
-      if(lonelyNodeList[i].id() in idList)
-        tmp.push(lonelyNodeList[i]);
-    }
-  }
-
-  //Update the lonely node collection.
-  lonelyNodeList = tmp; 
-
-  //Merge the edges then merge the process nodes and the whole reaction they are involved in.
-  rephraseToolBox.mergeEdges(rephrase, id2signature); 
-  rephraseToolBox.mergeProcessNodes(rephrase, id2signature); 
-
-  //Create the merged json object.
-  for(i = 0; i < rephrase.length; i++) {
-    if(rephrase[i].isNode()) {
-      nodejs = rephrase[i].json();
-      if(nodejs.data.parent)
-        nodejs.data.parent = old2newIdList[nodejs.data.parent];
-
-      jsonObj.nodes.push(nodejs);
-    } else {
-      edgejs = rephrase[i].json();
-      edgejs.data.source = rephrase[i - 1].id();
-      edgejs.data.target = rephrase[i + 1].id();
-
-      jsonObj.edges.push(edgejs);
-    }
-  }
-
-  //Add the lonely nodes that were discarded at the process node merge stage.
-  for(i = 0; i < lonelyNodeList.length; i++) {
-    nodejs = lonelyNodeList[i].json();
-    if(nodejs.data.parent)
-      nodejs.data.parent = old2newIdList[nodejs.data.parent];
-
-    jsonObj.nodes.push(nodejs);
-  }
+  var jsonObj = jsonMerger.mergeJsons(jsonGraph, sentenceNodeMap, idxCardNodeMap);
 
   modelManager.newModel( "me", true);
 
@@ -1647,125 +1471,10 @@ app.proto.mergeJsons = function(jsonGraph) {
 
 //Merge an array of json objects with the json of the current sbgn network
 //on display to output a single json object.
-app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
-  var i;
-  var edgejs;
-  var newId;
-  var nodejs;
-  var parent;
-  var source;
-  var target;
-  var tmp = [];
-  var rephrase2;
-  var idList = {};
-  var idmaxsize = 0;
-  var old2newIds = {};
-  var old2newIdList = {};
+app.proto.mergeJsonWithCurrent = function(jsonGraph, callback) {
   var currJson = sbgnviz.createJson();
-
-  if(!("nodes" in jsonGraph) || !jsonGraph.nodes.length)
-    return;
-
   modelManager.setRollbackPoint(); //before merging
-
-  var jsonObj = {"nodes": [], "edges": []};
-  var cy = rephraseToolBox.json2cytoscape(jsonObj);
- 
-  //Get ready to rewrite the ids in the json object.
-  //The new id is as many 0s as necessary and a
-  //variable number.
-  //Example: id1 = '000001', id2 = '000002', etc
-  //Here, I compute the number of 0s needed.
-  for(i = 0; i < jsonGraph.nodes.length; i++) {
-    if(jsonGraph.nodes[i].data.id.length > idmaxsize)
-      idmaxsize = jsonGraph.nodes[i].data.id.length;
-  }
-
-  newId = "0".repeat(idmaxsize + 1);
-
-  //Rewrite the ids in the json object.
-  //for(i = 1; i < jsonGraph.length; i++) {
-  //  this.rewriteIds(jsonGraph[i], newId, old2newIds);
-  //  newId = "0".repeat(newId.length + 1);
-  //}
-
-  //Rewrite the ids in the current json object.
-  this.rewriteIds(currJson, newId, old2newIds);
-
-  //Fuse the two json objects.
-  jsonGraph.nodes = jsonGraph.nodes.concat(currJson.nodes);
-  jsonGraph.edges = jsonGraph.edges.concat(currJson.edges);
- 
-  //Convert the json list into one single cytoscape object.
-  //for(i = 0; i < jsonGraph.length; i++)
-  cy.add(jsonGraph);
- 
-  //Rephrase the cytoscape object, in order to get the array of nodes and edges.
-  var rephrase = rephraseToolBox.cytoscape2rephrase(cy); 
-
-  //Save the lonely nodes. It is mostly made to handle the nodes contained in complexes.
-  //Since they are not connected to any edge, they will be discarded when merging process nodes.
-  var lonelyNodeList = rephraseToolBox.getLonelyNodes(rephrase);
-  var id2signature = rephraseToolBox.getElementSignatures(rephrase);
-
-  //Rearrange the orders of the nodes around the edges in the rephrase for the subsequent operations.
-  rephraseToolBox.rearrangeRephrase(rephrase); 
-
-  if(lonelyNodeList.length) {
-    rephrase2 = new Array(rephrase.length);
-    for(i = 0; i < rephrase.length; i++)
-      rephrase2[i] = rephrase[i];
-  }
-
-  //Merge the nodes.
-  rephraseToolBox.mergeNodes(rephrase, id2signature); 
-
-  //After merging the nodes, some nodes may have disappeared to be replaced by others.
-  //Update the collection of lonely nodes previously saved.
-  if(lonelyNodeList.length) {
-    for(i = 0; i < rephrase.length; i++) {
-      idList[rephrase[i].id()] = 1;
-      old2newIdList[rephrase2[i].id()] = rephrase[i].id();
-    }
-
-    for(i = 0; i < lonelyNodeList.length; i++) {
-      if(lonelyNodeList[i].id() in idList)
-        tmp.push(lonelyNodeList[i]);
-    }
-  }
-
-  //Update the lonely node collection.
-  lonelyNodeList = tmp; 
-
-  //Merge the edges then merge the process nodes and the whole reaction they are involved in.
-  rephraseToolBox.mergeEdges(rephrase, id2signature); 
-  rephraseToolBox.mergeProcessNodes(rephrase, id2signature); 
-
-  //Create the merged json object.
-  for(i = 0; i < rephrase.length; i++) {
-    if(rephrase[i].isNode()) {
-      nodejs = rephrase[i].json();
-      if(nodejs.data.parent)
-        nodejs.data.parent = old2newIdList[nodejs.data.parent];
-
-      jsonObj.nodes.push(nodejs);
-    } else {
-      edgejs = rephrase[i].json();
-      edgejs.data.source = rephrase[i - 1].id();
-      edgejs.data.target = rephrase[i + 1].id();
-
-      jsonObj.edges.push(edgejs);
-    }
-  }
-
-  //Add the lonely nodes that were discarded at the process node merge stage.
-  for(i = 0; i < lonelyNodeList.length; i++) {
-    nodejs = lonelyNodeList[i].json();
-    if(nodejs.data.parent)
-      nodejs.data.parent = old2newIdList[nodejs.data.parent];
-
-    jsonObj.nodes.push(nodejs);
-  }
+  var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
 
   //get another sbgncontainer and display the new SBGN model.
   modelManager.newModel( "me", true);
