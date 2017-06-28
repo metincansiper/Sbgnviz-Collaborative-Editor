@@ -19,6 +19,8 @@
     <link href="node_modules/cytoscape-context-menus/cytoscape-context-menus.css" rel="stylesheet" type="text/css" />
     <!-- app's style -->
     <link href="app/css/chise.css" rel="stylesheet">
+    <link href="lib/css/jquery.highlighttextarea.css" rel="stylesheet">
+
 
 
 <Body:>
@@ -34,6 +36,8 @@
 
     <script src="lib/js/jquery.panzoom.js"></script>
     <script src="lib/js/jquery.mousewheel.js"></script>
+
+    <script src="lib/js/jquery.highlighttextarea.js"></script>
 
 
 
@@ -488,6 +492,9 @@
     </div>
 
     <div id="box">
+    </div>
+
+    <div id="idxCard-container" style="display: none">
     </div>
     <!--<input id="node-label-textbox" type="text"></input>-->
 
@@ -1370,6 +1377,23 @@
         <% i++;} %>
     </script>
 
+    <script type="text/template" id="idxCard-template">
+        <div class='node-details-text'>
+            <table class="table-idxCard table-striped">
+
+                <% var i = 0; %>
+                <% _.each(idxCards, function(card, index) { %>
+
+                <tr><td>Card: <%= index %></td></tr>
+                <tr><td>Evidence: <%= card.evidence %></td></tr>
+                <tr><td>Participant a: <%= card.extracted_information.participant_a.entity_text %></td></tr>
+                <tr><td>Participant b: <%= card.extracted_information.participant_b.entity_text %></td></tr>
+                <tr><td>Interaction type: <%= card.extracted_information.interaction_type %></td></tr>
+
+                <% }); %>
+            </table>
+        </div>
+    </script>
 
 
     <inspector-view:>
