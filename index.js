@@ -30,12 +30,12 @@ var factoidHandler;
 
 var socket;
  var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
-//var rephraseToolBox = require('./public/collaborative-app/reach-functions/rephrase-handler.js');
 
-//var jsonMerger = require('./public/collaborative-app/merger.js');
 
 var modelManager;
 var oneColor = require('onecolor');
+
+
 app.on('model', function (model) {
 
     model.fn('biggerTime', function (item) {
@@ -818,6 +818,7 @@ app.proto.listenToNodeOperations = function(model){
 
         if(docReady &&  passed.user == null) {
             factoidHandler.setFactoidModel(val);
+
         }
 
 
@@ -887,6 +888,7 @@ app.proto.listenToNodeOperations = function(model){
     model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val,prev, passed){
 
         //call it here so that everyone can highlight their own textbox
+
         factoidHandler.highlightSentenceInText(id, val);
 
         if(docReady && passed.user == null) {

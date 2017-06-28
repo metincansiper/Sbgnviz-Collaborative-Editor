@@ -937,3 +937,6 @@ agent-interaction/BOB/
 /public/app/bundle.js
 /agent-interaction/CausalPath/PC.sif
 !/agent-interaction/CausalPath/causative-data-centric.sif
+!/public/lib/css/
+!/public/lib/js/
+!/public/lib/js/jquery.highlighttextarea.js

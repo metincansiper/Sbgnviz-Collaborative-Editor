@@ -118,6 +118,9 @@ module.exports =  function(app, modelManager) {
 
         highlightSentenceInText: function(nodeId, highlightColor){
 
+            if(!this.modelLoaded)
+                return;
+
             var el  = $('#factoidBox');
 
 
@@ -315,6 +318,7 @@ module.exports =  function(app, modelManager) {
 
             $('#factoid-text-submit-button').click(function () {
                 self.loadFactoidModel($('#factoidBox').val());
+                self.modelLoaded = true;
 
             });
 
