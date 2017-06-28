@@ -50,6 +50,16 @@ var createPNNLDatabase = function(dbName) {
                             pVal: row.pVal
                         });
 
+
+                        pnnlObjectStore.add({
+                            id1: row.id2,
+                            pSite1: row.pSite2,
+                            id2: row.id1,
+                            pSite2: row.pSite1,
+                            correlation: row.correlation,
+                            pVal: row.pVal
+                        });
+
                     });
 
 
@@ -91,6 +101,38 @@ var createPNNLDatabase = function(dbName) {
 
             };
         },
+
+
+        getColumn(key, callback){
+
+            var transaction = db.transaction(["pnnlStore"]);
+            var objectStore = transaction.objectStore("pnnlStore");
+
+            // console.log(objectStore);
+            var index = objectStore.index(key);
+
+
+            var res = [];
+
+            index.openCursor().onsuccess = function (event) {
+
+
+
+                var cursor = event.target.result;
+
+                if (cursor) {
+                    res.push(cursor.value[key]);
+                    cursor.continue();
+                }
+                else {
+                    if(callback)
+                        callback(res);
+                    return res;
+                }
+
+            };
+
+        }
 
 
     }
