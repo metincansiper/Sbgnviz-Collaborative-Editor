@@ -30,6 +30,7 @@ var factoidHandler;
 
 var socket;
  var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
+//var rephraseToolBox = require('./public/collaborative-app/reach-functions/rephrase-handler.js');
 
 //var jsonMerger = require('./public/collaborative-app/merger.js');
 
@@ -840,6 +841,7 @@ app.proto.listenToNodeOperations = function(model){
             if(!node || !node.id){ //node is deleted
                 cy.getElementById(id).remove();
             }
+
         }
 
 
@@ -884,6 +886,9 @@ app.proto.listenToNodeOperations = function(model){
     });
     model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val,prev, passed){
 
+        //call it here so that everyone can highlight their own textbox
+        factoidHandler.highlightSentenceInText(id, val);
+
         if(docReady && passed.user == null) {
             if(val == null){
                 cy.getElementById(id).css({
@@ -899,6 +904,9 @@ app.proto.listenToNodeOperations = function(model){
                     "overlay-padding": 10,
                     "overlay-opacity": 0.25
                 });
+
+
+
 
             console.log("changed highlightcolor");
         }
@@ -1403,7 +1411,7 @@ app.proto.clearHistory = function () {
     this.model.set('_page.clickTime', new Date);
 
     return this.model.filter('_page.doc.messages', 'biggerThanCurrentTime').ref('_page.list');
-    
+
 }
 
 app.proto.dynamicResize = function (images) {
@@ -1531,62 +1539,18 @@ app.proto.formatObj = function(obj){
 };
 
 
-app.proto.mergeJsons = function(jsonGraphs){
+app.proto.mergeSbgn = function(sbgnText, callback){
 
-    if(jsonGraphs.length == 0 )
-        return;
+    var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
+    this.mergeJsonWithCurrent(newJson, callback);
+};
 
-    modelManager.setRollbackPoint(); //before merging everything
-
-    //clear the canvas first
-    cy.remove(cy.elements());
-    modelManager.newModel("me"); //do not delete cytoscape, only the model
-
-
-    //var labelMap = {}; //keeps label names in association with jsons -- an object of arrays
-    var jsonObj = jsonGraphs[0].json;
-
-
-    var sentenceNodeMap = {};
+//Merge an array of json objects to output a single json object.
+app.proto.mergeJsons = function(jsonGraph) {
     var idxCardNodeMap = {};
+    var sentenceNodeMap = {};
 
-
-
-    jsonGraphs[0].json.nodes.forEach(function(node){ //do for the first graph before any changes
-
-        sentenceNodeMap[node.data.id] = [jsonGraphs[0].sentence];
-        idxCardNodeMap[node.data.id] = [jsonGraphs[0].idxCard];
-    });
-
-
-
-
-    for(var i = 0; i  < jsonGraphs.length - 1; i++){
-
-        var mergeResult = jsonMerger.merge(jsonObj, jsonGraphs[i+1].json); //jsonobj's ids remain the same
-
-
-        mergeResult.whichJsn.jsn2.forEach(function(nd){
-
-            if(sentenceNodeMap[nd] !== undefined) {
-                sentenceNodeMap[nd].push(jsonGraphs[i + 1].sentence);
-                idxCardNodeMap[nd].push(jsonGraphs[i + 1].idxCard);
-            }
-            else {
-                sentenceNodeMap[nd] = [jsonGraphs[i + 1].sentence];
-                idxCardNodeMap[nd] = [jsonGraphs[i + 1].idxCard];
-            }
-
-
-        });
-
-
-        jsonObj = mergeResult.wholeJson;
-
-    }
-
-
-    //Map
+    var jsonObj = jsonMerger.mergeJsons(jsonGraph, sentenceNodeMap, idxCardNodeMap);
 
     modelManager.newModel( "me", true);
 
@@ -1604,33 +1568,20 @@ app.proto.mergeJsons = function(jsonGraphs){
         modelManager.mergeJsons("me", true);
     }, 1000);
 
-
     return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
-}
+};
 
-app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
-
-
-    var self = this;
+//Merge an array of json objects with the json of the current sbgn network
+//on display to output a single json object.
+app.proto.mergeJsonWithCurrent = function(jsonGraph, callback) {
     var currJson = sbgnviz.createJson();
-
-
     modelManager.setRollbackPoint(); //before merging
-
-
-
-
-    var mergeResult = jsonMerger.merge(jsonGraph, currJson); //Merge the two SBGN models.
-    var jsonObj = mergeResult.wholeJson;
-    var newJsonIds = mergeResult.jsonToMerge;
-
+    var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
 
     //get another sbgncontainer and display the new SBGN model.
     modelManager.newModel( "me", true);
-
-    //this takes a while so wait before initing the model
+    //this takes a while so wait before initiating the model
     chise.updateGraph(jsonObj);
-
     //DEBUG
     // cy.nodes().forEach(function (node){
     //     if(node._private.data == null){
@@ -1639,20 +1590,15 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
     //     }
     // });
 
-    setTimeout(function(){
+    setTimeout(function() {
         modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
 
         //select the new graph
-        newJsonIds.nodes.forEach(function(node){
-                cy.getElementById(node.data.id).select();
-
-
-
+        jsonGraph.nodes.forEach(function(node){
+            cy.getElementById(node.data.id).select();
         });
 
         //Call Layout
-
-
         $("#perform-layout").trigger('click');
 
         //Call merge notification after the layout
@@ -1661,18 +1607,5 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback){
             if(callback) callback("success");
         }, 1000);
 
-    },2000); //wait for chise to complete updating graph
-
-}
-
-app.proto.mergeSbgn = function(sbgnText, callback){
-
-
-
-
-    var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
-    this.mergeJsonWithCurrent(newJson, callback);
-
-
-
-}
+    }, 2000); //wait for chise to complete updating graph
+};
