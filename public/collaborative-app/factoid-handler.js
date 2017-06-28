@@ -89,8 +89,6 @@ module.exports =  function(app, modelManager) {
 
                      notyView.setText( "Merging graphs...");
 
-
-
                         //TODO: merge will be implemented
                         //nodeMap = modelManager.mergeJsons(jsonGraphs); //mapping between sentences and node labels
                     nodeMap = app.mergeJsons(jsonGraphs); //mapping between sentences and node labels

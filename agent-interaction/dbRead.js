@@ -15,6 +15,8 @@ var createPNNLDatabase = function(dbName) {
 
             request.onupgradeneeded = function (event) {
 
+
+return;
                 db = event.target.result;
 
                 // Create an objectStore to hold information about genes.

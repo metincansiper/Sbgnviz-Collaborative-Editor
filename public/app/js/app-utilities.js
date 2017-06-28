@@ -19,7 +19,7 @@ appUtilities.defaultLayoutProperties = {
   nestingFactor: 0.1,
   gravity: 0.25,
   numIter: 2500,
-  tile: true,
+  tile: false, //funda
   animationEasing: 'cubic-bezier(0.19, 1, 0.22, 1)',
   animate: 'end',
   animationDuration: 0,//FUNDA1000,
@@ -66,7 +66,7 @@ appUtilities.currentGridProperties = jquery.extend(true, {}, appUtilities.defaul
 appUtilities.defaultGeneralProperties = {
   compoundPadding: 10,
   extraCompartmentPadding: 14,
-  dynamicLabelSize: 'regular',
+  dynamicLabelSize: 'large', //FUNDA it was regular
   fitLabelsToNodes: true, //FUNDA
   rearrangeAfterExpandCollapse: true,
   animateOnDrawingChanges: false, //FUNDA
