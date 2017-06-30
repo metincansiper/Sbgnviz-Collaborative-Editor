@@ -423,6 +423,7 @@ module.exports = function (model, docId) {
 
 
 
+            
             model.pass({user: user}).set('_page.doc.cy.nodes.' + node.id()+ '.highlightColor', userPath.get('colorCode'));
 
 

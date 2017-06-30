@@ -1558,9 +1558,13 @@ app.proto.mergeJsons = function(jsonGraph) {
 
     chise.updateGraph(jsonObj);
 
+
+
     setTimeout(function(){
         modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
     },1000); //wait for chise to complete updating graph
+
+
 
 
     $("#perform-layout").trigger('click');
