@@ -159,7 +159,7 @@ module.exports = function () {
                 });
             };
 
-            promptConfirmationView.render(createNewFile);
+            //promptConfirmationView.render(createNewFile);
 
             //FUNDA
             $(document).trigger('newFile');

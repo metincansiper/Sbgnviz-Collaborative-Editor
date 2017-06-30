@@ -29,13 +29,10 @@ var useQunit = true;
 var factoidHandler;
 
 var socket;
- var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
-
+var jsonMerger = require("./public/collaborative-app/reach-functions/json-merger.js");
 
 var modelManager;
 var oneColor = require('onecolor');
-
-
 app.on('model', function (model) {
 
     model.fn('biggerTime', function (item) {
@@ -48,15 +45,6 @@ app.on('model', function (model) {
 
         return item.date > startTime;
     });
-
-    model.fn('biggerThanCurrentTime', function (item) {
-
-        var clickTime = model.get('_page.clickTime');
-
-
-        return item.date > clickTime;
-    });
-
 
 
 });
@@ -187,17 +175,6 @@ app.get('/:docId', function (page, model, arg, next) {
                     users.set(userId, {name: userName, colorCode: colorCode});
 
 
-
-
-                     //   model.set('_page.newComment', "how does SETDB1 affect ADAM17?"); //TODO: delete later
-                   //     model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-          //          model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
-               //     model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
-               //     model.set('_page.newComment', "How does  ITGAV affect ILK?"); //TODO: delete later
-           //        model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
-            //        model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-
-
                     return page.render();
                 });
             });
@@ -209,14 +186,6 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 });
-
-app.proto.updateMessage = function(){
-
-    var e = document.getElementById("test-messages");
-    var msg = e.options[e.selectedIndex].text;
-
-    this.model.set('_page.newComment', msg);
-}
 
 
 
@@ -376,29 +345,6 @@ app.proto.listenToAgentSocket = function(model){
 
         }
     });
-
-    socket.on('addImage', function(data, callback){
-        try {
-
-
-
-           // data.img = data.img.replace(/(\%22)/g, '"');
-
-
-            var status = modelManager.addImage(data);
-
-
-
-            if(callback) callback(status);
-
-        }
-        catch(e){
-            console.log(e);
-            if(callback) callback("fail");
-
-        }
-    });
-
 
 
     model.on('change', '_page.doc.undoIndex', function(id, cmdInd){
@@ -604,8 +550,10 @@ app.proto.listenToAgentSocket = function(model){
 
     });
 
-    socket.on("mergeJsonWithCurrent", function(data){
-        self.mergeJsonWithCurrent(data);
+    socket.on("mergeJsonWithCurrent", function(data, callback){
+        self.mergeJsonWithCurrent(data, function() {
+            if(callback) callback("success");
+        });
     });
 
 
@@ -638,16 +586,6 @@ app.proto.create = function (model) {
     var isQueryWindow = false;
 
     socket = io();
-
-    $('#messages').contentchanged = function () {
-
-        $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
-    }
-
-
-    //change scroll position
-    $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
 
 
     var id = model.get('_session.userId');
@@ -750,11 +688,6 @@ app.proto.create = function (model) {
             if (!_this.atBottom) {
                 return;
             }
-
-            document.getElementById("messages").scrollTop= document.getElementById("messages").scrollHeight;
-
-            // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
             return _this.container.scrollTop = _this.list.offsetHeight;
         };
     })(this));
@@ -818,7 +751,6 @@ app.proto.listenToNodeOperations = function(model){
 
         if(docReady &&  passed.user == null) {
             factoidHandler.setFactoidModel(val);
-
         }
 
 
@@ -842,7 +774,6 @@ app.proto.listenToNodeOperations = function(model){
             if(!node || !node.id){ //node is deleted
                 cy.getElementById(id).remove();
             }
-
         }
 
 
@@ -885,11 +816,7 @@ app.proto.listenToNodeOperations = function(model){
 
         }
     });
-    model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val, prev, passed){
-
-        //call it here so that everyone can highlight their own textbox
-
-        factoidHandler.highlightSentenceInText(id, val);
+    model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val,prev, passed){
 
         if(docReady && passed.user == null) {
             if(val == null){
@@ -906,9 +833,6 @@ app.proto.listenToNodeOperations = function(model){
                     "overlay-padding": 10,
                     "overlay-opacity": 0.25
                 });
-
-
-
 
             console.log("changed highlightcolor");
         }
@@ -1170,7 +1094,6 @@ app.proto.listenToEdgeOperations = function(model){
 
 }
 
-
 app.proto.init = function (model) {
     var timeSort;
 
@@ -1181,17 +1104,6 @@ app.proto.init = function (model) {
 
 
     //Listen to other model operations
-
-
-    // model.on('all', '_page.doc.messages.**', function(id, op, val, prev, passed){
-    //
-    //     // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-    //     $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-    //
-    //
-    // });
-
-
 
     model.on('all', '_page.doc.factoid.*', function(id, op, val, prev, passed){
 
@@ -1273,7 +1185,6 @@ app.proto.init = function (model) {
         if(docReady){
             triggerContentChange('messages');
 
-
         }
 
         if (com[com.length - 1].userId != myId) {
@@ -1295,9 +1206,7 @@ app.proto.init = function (model) {
 };
 
 
-app.proto.onScroll = function (element) {
-    console.log(element);
-    console.log(this);
+app.proto.onScroll = function () {
     var bottom, containerHeight, scrollBottom;
     bottom = this.list.offsetHeight;
     containerHeight = this.container.offsetHeight;
@@ -1308,25 +1217,25 @@ app.proto.onScroll = function (element) {
 };
 
 
-
 app.proto.changeColorCode = function(){
 
     var  user = this.model.at('_page.doc.users.' + this.model.get('_session.userId'));
     user.set('colorCode', getNewColor());
 
 };
-app.proto.runUnitTests = function(){
+
+app.proto.runUnitTests = function() {
 
     var room = this.model.get('_page.room');
     require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
     //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
-    // require("./public/test/testsModelManager.js")();
+    //require("./public/test/testsModelManager.js")();
     require("./public/test/testOptions.js")(); //to print out results
 
 
 
 
-}
+};
 
 app.proto.connectCausalityAgent = function(){
 
@@ -1352,14 +1261,14 @@ app.proto.enterMessage= function(event){
 
         // prevent default behavior
         event.preventDefault();
-
     }
 }
-app.proto.add = function (event, model, filePath) {
+
+app.proto.add = function (model, filePath) {
 
     if(model == null)
-        model = this.model;
 
+        model = this.model;
     this.atBottom = true;
 
 
@@ -1386,7 +1295,6 @@ app.proto.add = function (event, model, filePath) {
 
        socket.emit('getDate', function(date){ //get the date from the server
 
-           comment.style = "font-size:large";
             model.add('_page.doc.messages', {
                 room: model.get('_page.room'),
                 targets: targets,
@@ -1397,11 +1305,6 @@ app.proto.add = function (event, model, filePath) {
             });
 
 
-           event.preventDefault();
-
-            //change scroll position
-           $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
 
 
        });
@@ -1409,12 +1312,6 @@ app.proto.add = function (event, model, filePath) {
 
 };
 
-app.proto.clearHistory = function () {
-    this.model.set('_page.clickTime', new Date);
-
-    return this.model.filter('_page.doc.messages', 'biggerThanCurrentTime').ref('_page.list');
-
-}
 
 app.proto.dynamicResize = function (images) {
     var win = $(window);
@@ -1428,18 +1325,18 @@ app.proto.dynamicResize = function (images) {
 
     if (windowWidth > canvasWidth)
     {
-        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.55);
-        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.55);
+        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.7);
+        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.7);
 
 
         if(images) {
             images.forEach(function (img) {
-                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.55);
+                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.7);
             });
         }
-        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.45);
+        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.3);
 
-        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.45);
+        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.3);
         // var w = $("#sbgn-inspector-and-canvas").width(); //funda
         var w = $("#canvas-tab-area").width();
         $(".nav-menu").width(w);
@@ -1491,9 +1388,9 @@ app.proto.uploadFile = function(evt){
         reader.readAsDataURL(file);
 
         //Add file name as a text message
-        this.model.set('_page.newComment',  ("Sent image: "  + filePath) );
+        this.model.set('_page.newComment', {text: "Sent image: "  + filePath} );
 
-        this.app.proto.add(evt,this.model, filePath);
+        this.app.proto.add(this.model, filePath);
 
 
     }
@@ -1540,7 +1437,6 @@ app.proto.formatObj = function(obj){
     return JSON.stringify(obj, null, '\t');
 };
 
-
 app.proto.mergeSbgn = function(sbgnText, callback){
 
     var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
@@ -1549,66 +1445,65 @@ app.proto.mergeSbgn = function(sbgnText, callback){
 
 //Merge an array of json objects to output a single json object.
 app.proto.mergeJsons = function(jsonGraph) {
-    var idxCardNodeMap = {};
-    var sentenceNodeMap = {};
+  var idxCardNodeMap = {};
+  var sentenceNodeMap = {};
 
-    var jsonObj = jsonMerger.mergeJsons(jsonGraph, sentenceNodeMap, idxCardNodeMap);
+  var jsonObj = jsonMerger.mergeJsons(jsonGraph, sentenceNodeMap, idxCardNodeMap);
 
-    modelManager.newModel( "me", true);
+  modelManager.newModel( "me", true);
 
-    chise.updateGraph(jsonObj);
+  chise.updateGraph(jsonObj);
 
-    setTimeout(function(){
-        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
-    },1000); //wait for chise to complete updating graph
+  setTimeout(function(){
+    modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+  },1000); //wait for chise to complete updating graph
 
 
-    $("#perform-layout").trigger('click');
+  $("#perform-layout").trigger('click');
 
-    //Call merge notification after the layout
-    setTimeout(function(){
-        modelManager.mergeJsons("me", true);
-    }, 1000);
-    //alert(JSON.stringify(idxCardNodeMap));
-    return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
-    //return {sentences: {"ele01":["MDM2 phosphorylates TP53","MDM2 deactivates RAF"],"ele05":["MDM2 phosphorylates TP53"],"ele03":["MDM2 phosphorylates TP53"],"ele06":["MDM2 phosphorylates TP53"],"00000000":["Sos-1-E3b1 complex directs Rac"],"00000002":["Sos-1-E3b1 complex directs Rac"],"00000001":["Sos-1-E3b1 complex directs Rac"],"00000003":["Sos-1-E3b1 complex directs Rac"],"0000002":["MDM2 deactivates RAF"],"0000001":["MDM2 deactivates RAF"],"0000003":["MDM2 deactivates RAF"],"000000":["Sos-1-E3b1 complex"],"000002":["Sos-1-E3b1 complex"],"000001":["Sos-1-E3b1 complex"],"000003":["Sos-1-E3b1 complex"],"000004":["Sos-1-E3b1 complex"],"000005":["Sos-1-E3b1 complex"]}, idxCards: idxCardNodeMap};
+  //Call merge notification after the layout
+  setTimeout(function(){
+    modelManager.mergeJsons("me", true);
+  }, 1000);
+
+  return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
 };
 
 //Merge an array of json objects with the json of the current sbgn network
 //on display to output a single json object.
 app.proto.mergeJsonWithCurrent = function(jsonGraph, callback) {
-    var currJson = sbgnviz.createJson();
-    modelManager.setRollbackPoint(); //before merging
-    var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
+  var currJson = sbgnviz.createJson();
+  modelManager.setRollbackPoint(); //before merging
+  var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
 
-    //get another sbgncontainer and display the new SBGN model.
-    modelManager.newModel( "me", true);
-    //this takes a while so wait before initiating the model
-    chise.updateGraph(jsonObj);
-    //DEBUG
-    // cy.nodes().forEach(function (node){
-    //     if(node._private.data == null){
-    //         console.log("Data not assigned");
-    //         console.log(node);
-    //     }
-    // });
+  //get another sbgncontainer and display the new SBGN model.
+  modelManager.newModel( "me", true);
+  //this takes a while so wait before initiating the model
+  chise.updateGraph(jsonObj);
+  //DEBUG
+  // cy.nodes().forEach(function (node){
+  //     if(node._private.data == null){
+  //         console.log("Data not assigned");
+  //         console.log(node);
+  //     }
+  // });
 
-    setTimeout(function() {
-        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+  setTimeout(function() {
+    modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
 
-        //select the new graph
-        jsonGraph.nodes.forEach(function(node){
-            cy.getElementById(node.data.id).select();
-        });
+    //select the new graph
+    jsonGraph.nodes.forEach(function(node){
+      cy.getElementById(node.data.id).select();
+    });
 
-        //Call Layout
-        $("#perform-layout").trigger('click');
+    //Call Layout
+    $("#perform-layout").trigger('click');
 
-        //Call merge notification after the layout
-        setTimeout(function(){
-            modelManager.mergeJsons("me", true);
-            if(callback) callback("success");
-        }, 1000);
+    //Call merge notification after the layout
+    setTimeout(function(){
+      modelManager.mergeJsons("me", true);
+      if(callback) callback("success");
+    }, 1000);
 
-    }, 2000); //wait for chise to complete updating graph
+  }, 2000); //wait for chise to complete updating graph
 };

@@ -258,11 +258,12 @@ Agent.prototype.getEdgeRequest = function(id, callback){
  * </ul>
  *
  */
-Agent.prototype.sendRequest = function(reqName, param, callback){ //model operations
+Agent.prototype.sendRequest = function(reqName, param, callback) { //model operations
 
     if(param == null){
         param = {};
     }
+
     param.room = this.room;
     param.userId = this.agentId;
 
@@ -274,9 +275,7 @@ Agent.prototype.sendRequest = function(reqName, param, callback){ //model operat
         else
             console.log(data);
     });
-
 };
-
 
 /**
  * Socket listener
