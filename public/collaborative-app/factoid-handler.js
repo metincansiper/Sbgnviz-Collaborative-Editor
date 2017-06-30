@@ -125,15 +125,14 @@ module.exports =  function(app, modelManager) {
 
 
 
-            console.log(nodeId);
+            //console.log(nodeId);
 
 
             if(highlightColor == null){
                 el.highlightTextarea('destroy');
                 return;
             }
-
-
+ 
 
             var sentences = nodeMap.sentences[nodeId];
 

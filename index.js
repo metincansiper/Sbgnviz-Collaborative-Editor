@@ -885,7 +885,7 @@ app.proto.listenToNodeOperations = function(model){
 
         }
     });
-    model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val,prev, passed){
+    model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val, prev, passed){
 
         //call it here so that everyone can highlight their own textbox
 
@@ -1569,8 +1569,9 @@ app.proto.mergeJsons = function(jsonGraph) {
     setTimeout(function(){
         modelManager.mergeJsons("me", true);
     }, 1000);
-
+    //alert(JSON.stringify(idxCardNodeMap));
     return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
+    //return {sentences: {"ele01":["MDM2 phosphorylates TP53","MDM2 deactivates RAF"],"ele05":["MDM2 phosphorylates TP53"],"ele03":["MDM2 phosphorylates TP53"],"ele06":["MDM2 phosphorylates TP53"],"00000000":["Sos-1-E3b1 complex directs Rac"],"00000002":["Sos-1-E3b1 complex directs Rac"],"00000001":["Sos-1-E3b1 complex directs Rac"],"00000003":["Sos-1-E3b1 complex directs Rac"],"0000002":["MDM2 deactivates RAF"],"0000001":["MDM2 deactivates RAF"],"0000003":["MDM2 deactivates RAF"],"000000":["Sos-1-E3b1 complex"],"000002":["Sos-1-E3b1 complex"],"000001":["Sos-1-E3b1 complex"],"000003":["Sos-1-E3b1 complex"],"000004":["Sos-1-E3b1 complex"],"000005":["Sos-1-E3b1 complex"]}, idxCards: idxCardNodeMap};
 };
 
 //Merge an array of json objects with the json of the current sbgn network
