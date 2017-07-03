@@ -1,3 +1,17 @@
+/**
+ The module merge multiple json objects into a single one. The strategy that have been adopted here is to merge
+ the different elements of a graph sequentially, according to their level of priority: when merging,
+ the molecules/complexes/etc... must be merged first, the process nodes must be merged second and the edges must be merged at last.
+ Only such a procedure guarantees a proper merge. It relies on the assumption that the SBGN graph can be split
+ into triplets of node-edge-node where one of the nodes is a biological item (protein, DNA, compartment, multimers, ...) and
+ the other node is a process node (process, association, source and sink, ...) or a logic node (and, or, not). So weird results can happen
+ while merging graphs with logic nodes directly linked to process nodes for example.
+ **/
+
+//Author: David Servillo.
+
+//Last change made the: 06/30/2017.
+
 var _ = require('../../node_modules/underscore');
 var rephraseToolBox = require('./rephrase-handler.js');
 
@@ -14,8 +28,8 @@ module.exports = {
         var maxsize = newId.length;
 
         for(i = 0; i < js.nodes.length; i++) {
-            old2newIds[js.nodes[i].data.id] = newId;
-            js.nodes[i].data.id = newId;
+            old2newIds[js.nodes[i].data.id] = "ele" + newId;
+            js.nodes[i].data.id = "ele" + newId;
 
             //The new id is as many 0s as necessary and a
             //variable number.
@@ -111,7 +125,6 @@ module.exports = {
         }
 
         newId = "0".repeat(idmaxsize + 1);
-
         //Rewrite the ids in the json object.
         for(i = 1; i < jsonGraph.length; i++) {
             this.rewriteIds(jsonGraph[i].json, newId, old2newIds);
