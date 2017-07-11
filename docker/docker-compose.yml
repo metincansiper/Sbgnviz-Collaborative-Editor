@@ -9,6 +9,7 @@ services:
   mongo:
     image: mongo 
     volumes:
+    #change "~CWC/db" with any accessible local directory to keep mongo db
       - ~/CWC/db:/data/db
     ports:
       - "27017:27017"
