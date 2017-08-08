@@ -173,12 +173,12 @@ body {
 
     border: 1px solid #ddd;
     border-radius: 0.25em;
-    height: 680px;
-    width: 800px;
+    height: 900px;
+    width: 860px;
     /*height: 680px;*/
     /*width: 800px;*/
     /*overflow: hidden ;*/
-    /*overflow: hidden;*/
+    overflow: hidden;
 
     /*float: left;*/
 }
@@ -206,8 +206,7 @@ body {
     /*border: 1px solid #ddd;*/
     /*width:99%;*/
     /*height:99%;*/
-    height: 680px;
-    width: 800px;
+
     /*overflow: auto !important;*/
     /*overflow: visible;*/
     /*border-radius: 0.25em;*/
@@ -227,7 +226,7 @@ body {
 #sbgn-inspector {
     margin: 10px;
     border: 1px solid #ddd;
-    height: 680px;
+    height: 900px;
     width: 200px;
     overflow: auto !important;
     border-radius: 0.25em;
@@ -709,42 +708,42 @@ hr.inspector-divider {
 
 
 /*#sbgn-network-container {*/
-    /*position: absolute;*/
-    /*!*margin: auto;*!*/
-    /*border: 1px solid #dddddd;*/
-    /*border-radius: 0.25em;*/
-    /*!*height: 680px;*!*/
-    /*bottom: 10px;*/
-    /*!*width: 800px;*!*/
-    /*top: 95px;*/
-    /*left: 40px;*/
-    /*!*right: 350px;*!*/
-    /*!*overflow: auto !important;*!*/
-    /*overflow-x: hidden;*/
-    /*!*float: left;*!*/
+/*position: absolute;*/
+/*!*margin: auto;*!*/
+/*border: 1px solid #dddddd;*/
+/*border-radius: 0.25em;*/
+/*!*height: 680px;*!*/
+/*bottom: 10px;*/
+/*!*width: 800px;*!*/
+/*top: 95px;*/
+/*left: 40px;*/
+/*!*right: 350px;*!*/
+/*!*overflow: auto !important;*!*/
+/*overflow-x: hidden;*/
+/*!*float: left;*!*/
 /*}*/
 /*#sbgn-network-container {*/
-    /*margin: auto;*/
-    /*border: 1px solid #ddd;*/
-    /*height: 680px;*/
-    /*width: 800px;*/
-    /*!*overflow: auto !important;*!*/
-    /*overflow: hidden;*/
-    /*border-radius: 0.25em;*/
-    /*!*float: left;*!*/
+/*margin: auto;*/
+/*border: 1px solid #ddd;*/
+/*height: 680px;*/
+/*width: 800px;*/
+/*!*overflow: auto !important;*!*/
+/*overflow: hidden;*/
+/*border-radius: 0.25em;*/
+/*!*float: left;*!*/
 /*}*/
 /*#inspector-tab-area{*/
-    /*!*width and height are updated dynamically*!*/
-    /*position: absolute;*/
-    /*right: 0px;*/
-    /*overlow: hidden;*/
-    /**/
+/*!*width and height are updated dynamically*!*/
+/*position: absolute;*/
+/*right: 0px;*/
+/*overlow: hidden;*/
+/**/
 /*}*/
 #inspector-tab-area{
 
     margin: auto;
     border: 1px solid #ddd;
-    height: 680px;
+    height: 900px;
     width: 400px;
     overflow: hidden;
     border-radius: 0.25em;
@@ -805,14 +804,14 @@ hr.inspector-divider {
 
 
 /*#sbgn-inspector {*/
-    /*position: absolute;*/
-    /*border: 1px solid #dddddd;*/
-    /*overflow-x: hidden;*/
-    /*right: 0px;*/
-    /*width: 100%;*/
-    /*height: 95%;*/
-    /*padding: 5px;*/
-    /*border-radius: 0.25em;*/
+/*position: absolute;*/
+/*border: 1px solid #dddddd;*/
+/*overflow-x: hidden;*/
+/*right: 0px;*/
+/*width: 100%;*/
+/*height: 95%;*/
+/*padding: 5px;*/
+/*border-radius: 0.25em;*/
 
 
 /*}*/
