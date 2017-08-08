@@ -1459,6 +1459,7 @@ app.proto.dynamicResize = function (images) {
         });
         var wInspectorTab = $("#inspector-tab-area").width();
         $("#sbgn-inspector").width(wInspectorTab);
+        $("#canvas-tabs").width( wCanvasTab* 0.99);
 
 
 
