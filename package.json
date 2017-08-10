@@ -1,5 +1,5 @@
 {
-  "name": "derby-example-hello",
+  "name": "Sbgnviz-Collaborative-Editor",
   "version": "0.0.0",
   "description": "",
   "main": "server.js",
@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/zag2art/derby-example-hello.git"
+    "url": "git://github.com/fdurupinar/sbgnviz-collaborative-editor.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/zag2art/derby-example-hello/issues"
+    "url": "https://github.com/fdurupinar/sbgnviz-collaborative-editor/issues"
   },
-  "homepage": "https://github.com/zag2art/derby-example-hello",
+  "homepage": "https://github.comfdurupinar/sbgnviz-collaborative-editor",
   "dependencies": {
     "backbone": "1.3.3",
     "bootstrap": "3.3.7",
