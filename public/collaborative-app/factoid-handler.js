@@ -91,20 +91,16 @@ module.exports =  function(app, modelManager) {
 
 
 
-                        //TODO: merge will be implemented
-                        //nodeMap = modelManager.mergeJsons(jsonGraphs); //mapping between sentences and node labels
-                    nodeMap = app.mergeJsons(jsonGraphs); //mapping between sentences and node labels
-
-
-                     console.log(jsonGraphs);
-
+                    nodeMap = app.mergeJsons(jsonGraphs, function(){
 
                         //save it to the model
                         modelManager.updateFactoidModel({jsonGraphs: jsonGraphs, nodeMap: nodeMap, text: text}, "me");
 
+                    }); //mapping between sentences and node labels
 
 
-                     notyView.close();
+
+                    notyView.close();
 
 
 

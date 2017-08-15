@@ -940,3 +940,4 @@ agent-interaction/BOB/
 !/public/lib/css/
 !/public/lib/js/
 !/public/lib/js/jquery.highlighttextarea.js
+/public/app/main.js

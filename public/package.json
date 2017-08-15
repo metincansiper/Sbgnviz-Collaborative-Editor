@@ -43,7 +43,8 @@
     "ocanvas": "^2.8.5",
     "qtip2": "~3.0.2",
     "sbgnviz": "github:iVis-at-Bilkent/sbgnviz.js#unstable",
-    "underscore": "1.8.3"
+    "underscore": "1.8.3",
+    "pdf2text": "*"
   },
   "devDependencies": {
     "express": "4.14.0",
