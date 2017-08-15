@@ -4,7 +4,7 @@
  *	Author: Funda Durupinar Babur<f.durupinar@gmail.com>
  */
 var app = module.exports = require('derby').createApp('cwc', __filename);
-var _ = require('./public/node_modules/underscore');
+var _ = require('underscore');
 
 var bs;
 
