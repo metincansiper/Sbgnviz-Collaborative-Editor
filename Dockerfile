@@ -1,16 +1,16 @@
 FROM node:boron
 
 #Create app directory
-RUN mkdir -p /usr/src/Sbgnviz-Collaborative-Editor
-WORKDIR /usr/src/Sbgnviz-Collaborative-Editor
+RUN mkdir -p /usr/src/sbgnviz
+WORKDIR /usr/src/sbgnviz
 
 #install dependencies
-COPY package.json /usr/src/Sbgnviz-Collaborative-Editor
+COPY package.json /usr/src/sbgnviz
 RUN npm install
 
 
 #BUNDLE app source
-COPY . /usr/src/Sbgnviz-Collaborative-Editor
+COPY . /usr/src/sbgnviz
 
 EXPOSE 3000
 

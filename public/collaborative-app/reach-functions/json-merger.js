@@ -12,7 +12,7 @@
 
 //Last change made the: 06/30/2017.
 
-var _ = require('../../node_modules/underscore');
+var _ = require('underscore');
 var rephraseToolBox = require('./rephrase-handler.js');
 
 module.exports = {
