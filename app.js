@@ -719,7 +719,7 @@ app.proto.create = function (model) {
 
     }
 
-        require('./public/collaborative-app/editor-listener.js')(modelManager, id);
+        require('./public/collaborative-app/editor-listener.js')(modelManager,socket, id);
         //Listen to these after cy is loaded
         $("#undo-last-action, #undo-icon").click(function (e) {
             if(modelManager.isUndoPossible()){

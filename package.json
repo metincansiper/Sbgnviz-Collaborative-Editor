@@ -39,11 +39,7 @@
     "sharedb-mongo": "^1.0.0-beta.4",
     "socket.io": "^1.3.6",
     "underscore": "^1.8.3",
-    "cytoscape": "github:iVis-at-Bilkent/cytoscape.js#unstable",
-    "cytoscape-panzoom": "~2.5.2",
-    "cytoscape-context-menus": "github:iVis-at-Bilkent/cytoscape.js-context-menus#master",
-    "ocanvas": "^2.8.5",
-    "qtip2": "~3.0.2"
+    "cytoscape": "github:iVis-at-Bilkent/cytoscape.js#unstable"
   },
   "devDependencies": {
     "qunitjs": "^2.3.3"

@@ -3,7 +3,3 @@ npm-debug.log
 .idea
 agent-interaction/PNNL-ovarian-correlations.txt
 agent-interaction/PC.sif
-public/node_modules
-public/main.js
-public/app/js
-
