@@ -58,10 +58,6 @@ Running the server
 ```
 node server
 ```
-or if you made changes to newt or chise (under public/app) run the script: runbundle:
-
-```
-./runbundle.sh
   ```
 
 In order to open a client enter `http://localhost:3000` in the address bar of your browser.
