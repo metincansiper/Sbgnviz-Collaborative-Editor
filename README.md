@@ -52,13 +52,6 @@ cd Sbgnviz-Collaborative-Editor
 npm install
 ```
 
-### Install cytoscape extensions
-```
-cd public
-npm install
-npm run build-bundle-js
-cd ..
-
 ```
 Running the server
 ------------------

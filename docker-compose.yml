@@ -1,13 +1,13 @@
 version: "2"
 services:
   web:
-    image: fdurupinar/sbgnviz:latest 
+    image: fdurupinar/sbgnviz:latest
     ports:
       - "3000:3000"
     links:
       - mongo
   mongo:
-    image: mongo 
+    image: mongo
     volumes:
     #change "~/tmp/db" with any existing accessible local directory to keep mongo databases
       - ~/tmp/db:/data/db
