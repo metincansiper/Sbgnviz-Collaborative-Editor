@@ -1092,7 +1092,9 @@ module.exports = function (model, docId) {
 
                     }
                     node._private.data.statesandinfos = nodeData.statesandinfos;
+
                 }
+                console.log(nodeData);
                 this.changeModelNodeAttribute('data', node.id(), nodeData, user, noHistUpdate);
             }
 

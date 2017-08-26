@@ -52,6 +52,10 @@ body {
 .sbgn-nav-menu .dropdown .dropdown-menu{
     z-index:3000;
 }
+/*Adjust font-size of a tags inside .sbgn-nav-menu*/
+.sbgn-nav-menu a {
+    font-size: 12px;
+}
 
 .sbgn-nav-menu .navbar .nav li.dropdown.open > .dropdown-toggle,
 .sbgn-nav-menu .navbar .nav li.dropdown.active > .dropdown-toggle,
@@ -437,6 +441,11 @@ input[type="radio"], input[type="checkbox"] {
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
     background-color: #ffffff;
 }
+/* Hides spinner buttons in the right side of number inputs */
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 
 .sbgn-input-small {
     width: 50px !important;
@@ -498,6 +507,13 @@ menu:not([title]):before{
 
 .sbgn-legend {
     padding: 5px;
+}
+
+#grid-properties-table table * {
+    margin-bottom: 0px !important;
+    padding-bottom: 2px !important;
+    margin-top: 0px !important;
+    padding-top: 2px !important;
 }
 
 .dialog-table * {
@@ -704,6 +720,86 @@ hr.inspector-divider {
 
 .element-palette img {
     height: 26px;
+}
+img#template-reaction-add-button:hover {
+    cursor: pointer;
+}
+
+.pointer-button:hover {
+    cursor: pointer;
+}
+
+.color-scheme-choice:hover, .color-scheme-invert-button:hover {
+    background-color: #eaeaea;
+}
+
+.map-panel-table {
+    width: 100%;
+}
+
+.map-panel-table td {
+    width: 50%;
+}
+
+.map-panel-table td.header {
+    text-align: right;
+}
+
+.object-panel-table {
+    margin-bottom: 0px;
+}
+
+.paletteWrapper
+{
+    display: table;
+    margin: auto;
+    width: 300px;
+}
+
+.paletteCont
+{
+
+}
+
+.paletteCol {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 26px;
+    text-align: center;
+    margin: 5px;
+}
+
+.custom-menu-item {
+    background-color: white;
+    padding-left: 24px !important;
+}
+
+#sbgn-inspector-palette
+{
+    overflow: hidden;
+}
+
+/*
+  Palettes on right pane
+*/
+
+@media (max-width: 1530px) {
+    .paletteWrapper
+    {
+        width: 250px;
+    }
+}
+
+/*
+  Palettes on right pane
+*/
+
+@media (max-width: 1290px) {
+    .paletteWrapper
+    {
+        width: 200px;
+    }
 }
 
 

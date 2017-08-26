@@ -78,24 +78,25 @@ module.exports = function(modelManager, socket, userId){
         console.log(args);
         console.log(res);
 
+        //
+        // if (actionName === "changeData" || actionName === "changeFontProperties" ) {
+        //
+        //     var modelElList = [];
+        //     var paramList = [];
+        //     args.eles.forEach(function (ele) {
+        //         //var ele = param.ele;
+        //
+        //         modelElList.push({id: ele.id(), isNode: ele.isNode()});
+        //         paramList.push(ele.data());
+        //
+        //     });
+        //     modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
+        //
+        // }
 
-        if (actionName === "changeData" || actionName === "changeFontProperties" ) {
 
-            var modelElList = [];
-            var paramList = [];
-            args.eles.forEach(function (ele) {
-                //var ele = param.ele;
-
-                modelElList.push({id: ele.id(), isNode: ele.isNode()});
-                paramList.push(ele.data());
-
-            });
-            modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
-
-        }
-
-
-        else if (actionName === "changeNodeLabel" ||actionName === "resizeNodes"||
+        //else
+            if (actionName === "changeNodeLabel" ||actionName === "resizeNodes"||
             actionName === "addStateOrInfoBox" || actionName === "setMultimerStatus" || actionName === "setCloneMarkerStatus") {
 
             var modelElList = [];

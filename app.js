@@ -949,23 +949,24 @@ app.proto.listenToNodeOperations = function(model){
         console.log("only data");
 
 
+        console.log( cy.getElementById(id));
 
 
-        if(docReady && passed.user == null) {
-
-            //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
-            cy.getElementById(id)._private.data = data;
-
-            //to update parent
-            var newParent = data.parent;
-            if(newParent == undefined)
-                newParent = null;  //must be null explicitly
-
-            cy.getElementById(id).move({"parent":newParent});
-            cy.getElementById(id).updateStyle();
-
-
-        }
+        // if(docReady && passed.user == null) {
+        //
+        //     //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
+        //     cy.getElementById(id)._private.data = data;
+        //
+        //     //to update parent
+        //     var newParent = data.parent;
+        //     if(newParent == undefined)
+        //         newParent = null;  //must be null explicitly
+        //
+        //     cy.getElementById(id).move({"parent":newParent});
+        //     cy.getElementById(id).updateStyle();
+        //
+        //
+        // }
     });
 
 
