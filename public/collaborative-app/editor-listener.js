@@ -3,9 +3,28 @@
  */
 
 //Listen and respond to cytoscape events triggered by cytoscape-undo-redo.js
-
+const CircularJSON = require('circular-json');
+var _ = require('underscore');
 
 module.exports = function(modelManager, socket, userId){
+
+    var modelName = {
+        "border-color": "borderColor",
+        "border-width": "borderWidth",
+        "background-opacity": "backgroundOpacity",
+        "background-color": "backgroundColor",
+        "line-color": "lineColor",
+        "width": "width",
+        "cardinality": "cardinality"
+    };
+
+    var modelNameFont = {
+        "font-size": "fontSize",
+        "font-weight": "fontWeight",
+        "font-style": "fontStyle",
+        "font-family": "fontFamily",
+    };
+
 
     //A new sample or file is loaded --update model and inform others
    $(document).on("sbgnvizLoadSampleEnd sbgnvizLoadFileEnd",  function(event, file){
@@ -78,26 +97,110 @@ module.exports = function(modelManager, socket, userId){
         console.log(args);
         console.log(res);
 
-        //
-        // if (actionName === "changeData" || actionName === "changeFontProperties" ) {
-        //
-        //     var modelElList = [];
-        //     var paramList = [];
-        //     args.eles.forEach(function (ele) {
-        //         //var ele = param.ele;
-        //
-        //         modelElList.push({id: ele.id(), isNode: ele.isNode()});
-        //         paramList.push(ele.data());
-        //
-        //     });
-        //     modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
-        //
-        // }
+
+        //For background-color, background-opacity, border-color, border-width
+        if (actionName === "changeData") {
+
+            var modelElList = [];
+            var paramList = [];
+            args.eles.forEach(function (ele) {
+                //var ele = param.ele;
+
+                modelElList.push({id: ele.id(), isNode: ele.isNode()});
+                paramList.push(ele.data(res.name));
+
+            });
 
 
-        //else
-            if (actionName === "changeNodeLabel" ||actionName === "resizeNodes"||
-            actionName === "addStateOrInfoBox" || actionName === "setMultimerStatus" || actionName === "setCloneMarkerStatus") {
+            var attName = "data." + res.name;// modelName[res.name];
+            modelManager.changeModelElementGroupAttribute(attName, modelElList, paramList, "me");
+
+        }
+        //We don't get the explicity property name from chise, so change all
+        else if(actionName === "changeFontProperties"){
+            var modelElList = [];
+            var paramListSize = [];
+            var paramListStyle = [];
+            var paramListWeight = [];
+            var paramListFamily = [];
+            args.eles.forEach(function (ele) {
+                modelElList.push({id: ele.id(), isNode: ele.isNode()});
+                paramListSize.push(ele.data("font-size"));
+                paramListWeight.push(ele.data("font-weight"));
+                paramListStyle.push(ele.data("font-style"));
+                paramListFamily.push(ele.data("font-family"));
+            });
+
+            modelManager.changeModelElementGroupAttribute("data.font-size", modelElList, paramListSize, "me");
+            modelManager.changeModelElementGroupAttribute("data.font-weight", modelElList, paramListWeight, "me");
+            modelManager.changeModelElementGroupAttribute("data.font-style", modelElList, paramListStyle, "me");
+            modelManager.changeModelElementGroupAttribute("data.font-family", modelElList, paramListFamily, "me");
+
+        }
+        else  if (actionName === "changeNodeLabel" ) {
+
+            var modelElList = [];
+            var paramList = []
+            args.nodes.forEach(function (ele) {
+                modelElList.push({id: ele.id(), isNode: true});
+                paramList.push(ele.data("label"));
+
+            });
+            modelManager.changeModelElementGroupAttribute("data.label", modelElList, paramList, "me");
+
+        }
+        else  if (actionName === "setMultimerStatus" ) {
+
+            var modelElList = [];
+            var paramList = []
+            args.nodes.forEach(function (ele) {
+                modelElList.push({id: ele.id(), isNode: true});
+                paramList.push(ele.data("class"));
+
+            });
+            modelManager.changeModelElementGroupAttribute("data.class", modelElList, paramList, "me");
+
+        }
+
+        else  if (actionName === "setCloneMarkerStatus" ) {
+
+            var modelElList = [];
+            var paramList = []
+            args.nodes.forEach(function (ele) {
+                modelElList.push({id: ele.id(), isNode: true});
+                paramList.push(ele.data("cloneMarker"));
+
+            });
+            modelManager.changeModelElementGroupAttribute("data.cloneMarker", modelElList, paramList, "me");
+
+        }
+
+        else  if (actionName === "resizeNodes" ) {
+
+            var modelElList = [];
+            var paramList = []
+            args.nodes.forEach(function (ele) {
+                modelElList.push({id: ele.id(), isNode: true});
+                paramList.push(ele.data("bbox"));
+            });
+            modelManager.changeModelElementGroupAttribute("data.bbox", modelElList, paramList, "me");
+
+        }
+
+        else if(actionName === "resize") {
+
+            var modelElList = [];
+            var paramList = []
+            var ele = args.node;
+            modelElList.push({id: ele.id(), isNode: true});
+            paramList.push(ele.data("bbox"));
+
+            modelManager.changeModelElementGroupAttribute("data.bbox", modelElList, paramList, "me");
+
+        }
+
+
+        else  if (actionName === "addStateOrInfoBox" ||actionName === "changeStateOrInfoBox") {
 
             var modelElList = [];
             var paramList = []
@@ -105,20 +208,23 @@ module.exports = function(modelManager, socket, userId){
                 //var ele = param.ele;
 
                 modelElList.push({id: ele.id(), isNode: true});
-                paramList.push(ele.data());
+
+                var statesAndInfos = [];
+                for (var i = 0; i < ele.data("statesandinfos").length; i++) {
+                     var stateEl = _.clone(ele.data("statesandinfos")[i]);
+                     stateEl.parent = null;
+                     statesAndInfos.push(stateEl);
+                }
+
+                paramList.push(statesAndInfos);
 
             });
-            modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
+
+            console.log(paramList);
+            modelManager.changeModelElementGroupAttribute("data.statesandinfos", modelElList, paramList, "me");
 
         }
-        else if(actionName === "resize"){
 
-            var modelElList = [{id: res.node.id(), isNode: true}];
-            var paramList = [res.node.data()];
-
-
-            modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
-        }
 
         else if (actionName === "changeBendPoints") {
 
@@ -301,7 +407,7 @@ module.exports = function(modelManager, socket, userId){
 
             });
 
-            modelManager.changeModelElementGroupAttribute("data", modelElList, paramListData, "me");
+            modelManager.changeModelElementGroupAttribute("data.parent", modelElList, paramListData, "me");
             modelManager.changeModelElementGroupAttribute("position", modelNodeList, paramListPosition, "me");
 
 

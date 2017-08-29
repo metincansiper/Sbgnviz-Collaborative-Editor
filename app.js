@@ -34,7 +34,25 @@ var socket;
 
 var modelManager;
 var oneColor = require('onecolor');
+const CircularJSON = require('circular-json');
 
+var cyName = {
+    "borderColor" :"border-color",
+    "borderWidth" :"border-width",
+    "backgroundOpacity" :"background-opacity",
+    "backgroundColor" :"background-color",
+    "lineColor" :"line-color",
+    "width": "width" ,
+    "cardinality": "cardinality" ,
+    "fontSize" :"font-size",
+    "fontWeight" : "font-weight",
+    "fontStyle" :"font-style",
+    "fontFamily" :"font-family",
+    "label" :"label",
+    "statesAndInfos": "statesandinfos",
+    "class": "class",
+    "cloneMarker": "cloneMarker"
+};
 
 app.on('model', function (model) {
 
@@ -707,7 +725,7 @@ app.proto.create = function (model) {
 
     if(!isQueryWindow) { //initialization for a regular window
         var isModelEmpty = self.loadCyFromModel();
-        console.log("no query");
+
         //TODO????????????????
         setTimeout(function () {
             if (isModelEmpty)
@@ -762,9 +780,7 @@ app.proto.create = function (model) {
 
 app.proto.loadCyFromModel = function(){
 
-
     var jsonArr = modelManager.getJsonFromModel();
-
 
     if (jsonArr!= null) {
         //Updates data fields and sets style fields to default
@@ -921,53 +937,158 @@ app.proto.listenToNodeOperations = function(model){
     });
 
     //Called by agents to change bbox
-    model.on('all', '_page.doc.cy.nodes.*.data.*.*', function(id, att1,att2, op, val,prev, passed){
+    model.on('all', '_page.doc.cy.nodes.*.data.bbox.*', function(id, att, op, val,prev, passed){
         if(docReady && passed.user == null) {
 
-            var newAtt = cy.getElementById(id).data(att1);
-            newAtt[att2] = val;
-            cy.getElementById(id).data(att1, newAtt);
+            var newAtt = cy.getElementById(id).data("bbox");
+            newAtt[att] = val;
+            cy.getElementById(id).data("bbox", newAtt);
 
 
         }
     });
 
 
-    //Called by agents to change specific properties of data
-    model.on('all', '_page.doc.cy.nodes.*.data.*', function(id, att, op, val,prev, passed){
+    model.on('all', '_page.doc.cy.nodes.*.data.*', function(id, att, op, val,prev, passed) {
+
         if(docReady && passed.user == null) {
 
-            cy.getElementById(id).data(att, val);
-            if(att === "parent")
-                cy.getElementById(id).move({"parent":val});
+            if(att === "statesandinfos"){
+                //val is non circular
+
+                console.log(val);
+                 for(var i = 0; i <  val.length; i++){
+                     val[i].parent = cy.getElementById(id);
+
+                 }
+
+                 //make it circular
+                cy.getElementById(id).data("statesandinfos", val);
+
+            }
+            else{
+                //cy.getElementById(id).data(cyName[att], val);
+                cy.getElementById(id).data(att, val);
+                if(att === "parent")
+                    cy.getElementById(id).move({"parent":val});
+            }
+
+
         }
     });
 
+    // model.on('all', '_page.doc.cy.nodes.*.data', function(id, op, val,prev, passed) {
+    //
+    //     model.on('all', '_page.doc.cy.nodes.*.data', function(id,  op, data,prev, passed){
+    //
+    //
+    //         if(docReady && passed.user == null) {
+    //
+    //             //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
+    //             cy.getElementById(id)._private.data = CircularJSON.parse(data);
+    //
+    //             //to update parent
+    //             var newParent = data.parent;
+    //             if(newParent == undefined)
+    //                 newParent = null;  //must be null explicitly
+    //
+    //             cy.getElementById(id).move({"parent":newParent});
+    //             cy.getElementById(id).updateStyle();
+    //
+    //
+    //         }
+    //     });
+    //
+    //
+    // });
 
-    model.on('all', '_page.doc.cy.nodes.*.data', function(id,  op, data,prev, passed){
 
-        console.log("only data");
-
-
-        console.log( cy.getElementById(id));
-
-
-        // if(docReady && passed.user == null) {
-        //
-        //     //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
-        //     cy.getElementById(id)._private.data = data;
-        //
-        //     //to update parent
-        //     var newParent = data.parent;
-        //     if(newParent == undefined)
-        //         newParent = null;  //must be null explicitly
-        //
-        //     cy.getElementById(id).move({"parent":newParent});
-        //     cy.getElementById(id).updateStyle();
-        //
-        //
-        // }
-    });
+    // model.on('all', '_page.doc.cy.nodes.*.data.parent', function(id, op, val,prev, passed){
+    //     if(docReady && passed.user == null) {
+    //
+    //         cy.getElementById(id).data("parent", val);
+    //         cy.getElementById(id).move({"parent":val});
+    //     }
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.label', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("label", val);
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.borderWidth', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("border-width", val);
+    // });
+    // model.on('all', '_page.doc.cy.nodes.*.data.borderColor', function(id, op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("border-color", val);
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.backgroundOpacity', function(id, op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("background-opacity", val);
+    //
+    // });
+    // model.on('all', '_page.doc.cy.nodes.*.data.backgroundColor', function(id, op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("background-color", val);
+    //
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.fontSize', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("font-size", val);
+    //
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.fontWeight', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("font-weight", val);
+    //
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.fontStyle', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("font-style", val);
+    //
+    // });
+    //
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.fontFamily', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("font-family", val);
+    //
+    // });
+    // model.on('all', '_page.doc.cy.nodes.*.data.class', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("class", val);
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.cloneMarker', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("cloneMarker", val);
+    // });
+    //
+    // model.on('all', '_page.doc.cy.nodes.*.data.statesAndInfos', function(id,  op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null) {
+    //
+    //         var circularObj = CircularJSON.parse(val);
+    //         cy.getElementById(id).data("statesandinfos", circularObj);
+    //     }
+    // });
 
 
 
@@ -1098,21 +1219,37 @@ app.proto.listenToEdgeOperations = function(model){
         }
 
     });
-    //Called by agents to change specific properties of data
+
+
     model.on('all', '_page.doc.cy.edges.*.data.*', function(id, att, op, val,prev, passed){
-        if(docReady && passed.user == null) {
+
+        if(docReady && passed.user == null)
             cy.getElementById(id).data(att, val);
-        }
+
     });
 
-    model.on('all', '_page.doc.cy.edges.*.data', function(id, op, data,prev, passed){
 
-        if(docReady && passed.user == null) {
-            //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
-            cy.getElementById(id)._private.data = data;
+    // model.on('all', '_page.doc.cy.edges.*.data.lineColor', function(id, op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("line-color", val);
+    //
+    // });
+    //
+    // model.on('all', '_page.doc.cy.edges.*.data.width', function(id, op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("width", val);
+    //
+    // });
+    //
+    // model.on('all', '_page.doc.cy.edges.*.data.cardinality', function(id, op, val,prev, passed){
+    //
+    //     if(docReady && passed.user == null)
+    //         cy.getElementById(id).data("cardinality", val);
+    //
+    // });
 
-        }
-    });
 
 
     model.on('all', '_page.doc.cy.edges.*.bendPoints', function(id, op, bendPoints, prev, passed){ //this property must be something that is only changed during insertion
@@ -1423,91 +1560,6 @@ app.proto.clearHistory = function () {
 }
 
 
-app.proto.dynamicResize = function (images) {
-    var win = $(window);
-
-    var windowWidth = win.width();
-    var windowHeight = win.height();
-
-    var canvasWidth = 1200;
-    var canvasHeight = 680;
-
-
-    if (windowWidth > canvasWidth)
-    {
-
-
-        $("#canvas-tab-area").resizable(
-            {
-                alsoResize: '#inspector-tab-area',
-                minWidth: 860
-            }
-        );
-
-        var wCanvasTab = $("#canvas-tab-area").width();
-
-
-        $(".nav-menu").width(wCanvasTab);
-        $(".navbar").width(wCanvasTab);
-        $("#sbgn-toolbar").width(wCanvasTab);
-
-        $("#sbgn-network-container").width( wCanvasTab* 0.99);
-
-        if(images) {
-            images.forEach(function (img) {
-                $("#static-image-container-" + img.tabIndex).width(wCanvasTab * 0.99);
-            });
-        }
-
-
-        $("#inspector-tab-area").resizable({
-            minWidth:355
-        });
-        var wInspectorTab = $("#inspector-tab-area").width();
-        $("#sbgn-inspector").width(wInspectorTab);
-        $("#canvas-tabs").width( wCanvasTab* 0.99);
-
-
-
-
-
-    }
-    else{
-        if(images) {
-            images.forEach(function (img) {
-                $("#static-image-container-" + img.tabIndex).width(800);
-                $("#static-image-container-" + img.tabIndex).height(680);
-            });
-        }
-    }
-
-    if (windowHeight > canvasHeight)
-    {
-
-        $("#canvas-tab-area").resizable({
-            alsoResize:'#inspector-tab-area',
-            minHeight: 600
-
-        });
-        var hCanvasTab = $("#canvas-tab-area").height();
-        $("#sbgn-network-container").height(hCanvasTab * 0.99);
-        if(images) {
-            images.forEach(function (img) {
-
-                $("#static-image-container-" + img.tabIndex).height(hCanvasTab * 0.99);
-            });
-        }
-        $("#inspector-tab-area").resizable({
-            alsoResize:'#canvas-tab-area',
-            minHeight: 600
-        });
-        var hInspectorTab = $("#inspector-tab-area").height();
-
-        $("#sbgn-inspector").height(hInspectorTab);
-        $("#factoid-area").height(hInspectorTab * 0.9);
-        $("#factoidBox").height(hInspectorTab * 0.6);
-    }
-};
 
 app.proto.uploadFile = function(evt){
 
@@ -1654,4 +1706,90 @@ app.proto.mergeJsonWithCurrent = function(jsonGraph, callback) {
         }, 1000);
 
     }, 2000); //wait for chise to complete updating graph
+};
+
+app.proto.dynamicResize = function (images) {
+    var win = $(window);
+
+    var windowWidth = win.width();
+    var windowHeight = win.height();
+
+    var canvasWidth = 1200;
+    var canvasHeight = 680;
+
+
+    if (windowWidth > canvasWidth)
+    {
+
+
+        $("#canvas-tab-area").resizable(
+            {
+                alsoResize: '#inspector-tab-area',
+                minWidth: 860
+            }
+        );
+
+        var wCanvasTab = $("#canvas-tab-area").width();
+
+
+        $(".nav-menu").width(wCanvasTab);
+        $(".navbar").width(wCanvasTab);
+        $("#sbgn-toolbar").width(wCanvasTab);
+
+        $("#sbgn-network-container").width( wCanvasTab* 0.99);
+
+        if(images) {
+            images.forEach(function (img) {
+                $("#static-image-container-" + img.tabIndex).width(wCanvasTab * 0.99);
+            });
+        }
+
+
+        $("#inspector-tab-area").resizable({
+            minWidth:355
+        });
+        var wInspectorTab = $("#inspector-tab-area").width();
+        $("#sbgn-inspector").width(wInspectorTab);
+        $("#canvas-tabs").width( wCanvasTab* 0.99);
+
+
+
+
+
+    }
+    else{
+        if(images) {
+            images.forEach(function (img) {
+                $("#static-image-container-" + img.tabIndex).width(800);
+                $("#static-image-container-" + img.tabIndex).height(680);
+            });
+        }
+    }
+
+    if (windowHeight > canvasHeight)
+    {
+
+        $("#canvas-tab-area").resizable({
+            alsoResize:'#inspector-tab-area',
+            minHeight: 600
+
+        });
+        var hCanvasTab = $("#canvas-tab-area").height();
+        $("#sbgn-network-container").height(hCanvasTab * 0.99);
+        if(images) {
+            images.forEach(function (img) {
+
+                $("#static-image-container-" + img.tabIndex).height(hCanvasTab * 0.99);
+            });
+        }
+        $("#inspector-tab-area").resizable({
+            alsoResize:'#canvas-tab-area',
+            minHeight: 600
+        });
+        var hInspectorTab = $("#inspector-tab-area").height();
+
+        $("#sbgn-inspector").height(hInspectorTab);
+        $("#factoid-area").height(hInspectorTab * 0.9);
+        $("#factoidBox").height(hInspectorTab * 0.6);
+    }
 };

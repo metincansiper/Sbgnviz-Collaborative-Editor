@@ -6,6 +6,8 @@
 
 var _ = require('underscore');
 
+const CircularJSON = require('circular-json');
+
 module.exports = function (model, docId) {
 
 
@@ -675,6 +677,8 @@ module.exports = function (model, docId) {
 
             nodePath.pass({user: user}).set(attStr, attVal);
 
+            console.log(attVal);
+            console.log(attStr);
 
             if (attStr == "expandCollapseStatus") {
                 if (attVal == "expand")
@@ -1043,6 +1047,7 @@ module.exports = function (model, docId) {
          * @param noHistUpdate
          */
         initModelNode: function (node, user, noHistUpdate) {
+            var self = this;
 
 
             var nodePath = model.at('_page.doc.cy.nodes.' + node.id());
@@ -1053,7 +1058,6 @@ module.exports = function (model, docId) {
 
             nodePath.set('id', node.id());
 
-
             var interactionCount = nodePath.get('interactionCount');
 
             if (interactionCount == null) //this is not stored in cy
@@ -1062,40 +1066,71 @@ module.exports = function (model, docId) {
             var data = nodePath.get('data');
             //bbox is a random data parameter to make sure all data parts are already in the model
             //if the only data parameters are id and class, it means it has just been added without initialization
-            if (data != null && data.bbox!=null) //it means data has been added before
-                node.data(data);
+            if (data != null && data.bbox!=null) { //it means data has been added before
+                for(var att in data){
+                    node.data(att, data[att]);
+                    console.log(att);
+                    console.log(data[att]);
+                }
 
+            }
             else {
                 //correct the labels from PC queries
                 var nodeData = node.data();
                 if(nodeData == null)
                     nodeData = node._private.data;
 
+
+                var statesAndInfos =[]; //non-circular
                 if(nodeData.statesandinfos) {
 
                     for (var i = 0; i < nodeData.statesandinfos.length; i++) {
 
-                        if (nodeData.statesandinfos[i].clazz === "state variable") {
-                            if (nodeData.statesandinfos[i].state.value === "opthr") {
-                                nodeData.statesandinfos[i].state.value = "p";
-                                nodeData.statesandinfos[i].state.variable = "T" + nodeData.statesandinfos[i].state.variable;
-                            }
-                            else if (nodeData.statesandinfos[i].state.value === "opser") {
-                                nodeData.statesandinfos[i].state.value = "p";
-                                nodeData.statesandinfos[i].state.variable = "S" + nodeData.statesandinfos[i].state.variable;
-                            }
-                            else if (nodeData.statesandinfos[i].state.value === "optyr") {
-                                nodeData.statesandinfos[i].state.value = "p";
-                                nodeData.statesandinfos[i].state.variable = "Y" + nodeData.statesandinfos[i].state.variable;
-                            }
-                        }
 
+                        // if (nodeData.statesandinfos[i].clazz === "state variable") {
+                        //     if (nodeData.statesandinfos[i].state.value === "opthr") {
+                        //         nodeData.statesandinfos[i].state.value = "p";
+                        //         nodeData.statesandinfos[i].state.variable = "T" + nodeData.statesandinfos[i].state.variable;
+                        //     }
+                        //     else if (nodeData.statesandinfos[i].state.value === "opser") {
+                        //         nodeData.statesandinfos[i].state.value = "p";
+                        //         nodeData.statesandinfos[i].state.variable = "S" + nodeData.statesandinfos[i].state.variable;
+                        //     }
+                        //     else if (nodeData.statesandinfos[i].state.value === "optyr") {
+                        //         nodeData.statesandinfos[i].state.value = "p";
+                        //         nodeData.statesandinfos[i].state.variable = "Y" + nodeData.statesandinfos[i].state.variable;
+                        //     }
+                        // }
+
+                        var stateEl = _.clone(nodeData.statesandinfos[i]);
+                        stateEl.parent = null;
+
+                        console.log(stateEl);
+                        console.log(nodeData.statesandinfos[i]);
+                        statesAndInfos.push(stateEl);
                     }
-                    node._private.data.statesandinfos = nodeData.statesandinfos;
+                  //??  node._private.data.statesandinfos = nodeData.statesandinfos;
+
+                 //   console.log(nodeData.statesandinfos);
 
                 }
-                console.log(nodeData);
-                this.changeModelNodeAttribute('data', node.id(), nodeData, user, noHistUpdate);
+
+                self.changeModelNodeAttribute('data.statesandinfos', node.id(), statesAndInfos, user, noHistUpdate);
+
+
+                var nodeAtts = ["id", "background-color", "background-opacity","border-color","border-width","bbox",
+                    "font-size","font-weight","font-style","font-family","parent","class", "ports" ];
+
+                nodeAtts.forEach(function(att){
+                    self.changeModelNodeAttribute(('data.'+ att), node.id(), nodeData[att], user, noHistUpdate);
+                })
+
+
+
+//                console.log(CircularJSON.stringify(nodeData.statesandinfos));
+
+             //   self.changeModelNodeAttribute('data.statesandinfos', node.id(), CircularJSON.stringify(nodeData.statesandinfos), user, noHistUpdate);
+
             }
 
             //make this initially unselected
@@ -1146,6 +1181,7 @@ module.exports = function (model, docId) {
                 var edgeData = edge.data();
                 if(edgeData == null)
                     edgeData = edge._private.data;
+
                 this.changeModelEdgeAttribute('data', edge.id(), edgeData, user, noHistUpdate);
             }
 
