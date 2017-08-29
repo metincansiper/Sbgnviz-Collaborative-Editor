@@ -671,7 +671,7 @@ app.proto.create = function (model) {
     var id = model.get('_session.userId');
     var name = model.get('_page.doc.users.' + id +'.name');
 
-    modelManager = require('./public/collaborative-app/modelManager.js')(model, model.get('_page.room') );
+    modelManager = require('./public/collaborative-app/modelManager.js')(model, model.get('_page.room'), sbgnviz );
     modelManager.setName( model.get('_session.userId'),name);
 
     factoidHandler = require('./public/collaborative-app/factoid-handler')(this, modelManager) ;
@@ -956,14 +956,36 @@ app.proto.listenToNodeOperations = function(model){
             if(att === "statesandinfos"){
                 //val is non circular
 
-                console.log(val);
-                 for(var i = 0; i <  val.length; i++){
-                     val[i].parent = cy.getElementById(id);
+                var statesandinfos = val;
+                 for(var i = 0; i <  statesandinfos.length; i++) {
 
+
+                     // //make it circular and an object
+                     if (statesandinfos[i].class === 'state variable') {
+                         var stateVariable = new sbgnviz.classes.StateVariable();
+                         var stateJson = statesandinfos[i];
+                         for (var att in stateJson) {
+                             stateVariable[att] = stateJson[att];
+                         }
+                         statesandinfos[i] = stateVariable;
+                     }
+                     else {//unit of information
+                         var stateVariable = new sbgnviz.classes.UnitOfInformation();
+                         var stateJson = statesandinfos[i];
+                         for (var att in stateJson) {
+                             stateVariable[att] = stateJson[att];
+                         }
+                         statesandinfos[i] = stateVariable;
+                     }
+
+                    statesandinfos[i].parent = cy.getElementById(id);
+                    // val[i].parent = cy.getElementById(id);
                  }
 
-                 //make it circular
-                cy.getElementById(id).data("statesandinfos", val);
+
+                console.log(val);
+                if(val.length > 0)
+                cy.getElementById(id).data("statesandinfos",statesandinfos);
 
             }
             else{

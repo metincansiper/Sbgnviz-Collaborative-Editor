@@ -8,7 +8,7 @@ var _ = require('underscore');
 
 const CircularJSON = require('circular-json');
 
-module.exports = function (model, docId) {
+module.exports = function (model, docId, sbgnviz) {
 
 
 
@@ -677,9 +677,11 @@ module.exports = function (model, docId) {
 
             nodePath.pass({user: user}).set(attStr, attVal);
 
-            console.log(attVal);
-            console.log(attStr);
-
+            // var st = nodePath.get('data.statesandinfos');
+            //
+            // if(st)
+            // console.log(st);
+            //
             if (attStr == "expandCollapseStatus") {
                 if (attVal == "expand")
                     prevAttVal = "collapse";
@@ -1015,6 +1017,33 @@ module.exports = function (model, docId) {
                     var jsonNode = {
                         data: node.data
                     };
+
+                    for (var i = 0; i < jsonNode.data.statesandinfos.length; i++) {
+
+                        if(jsonNode.data.statesandinfos[i].class === 'state variable') {
+                            var stateVariable = new sbgnviz.classes.StateVariable();
+                            var stateJson = jsonNode.data.statesandinfos[i];
+                            for(var att in stateJson){
+                                stateVariable[att] = stateJson[att];
+                            }
+                            jsonNode.data.statesandinfos[i] = stateVariable;
+                        }
+                        else {//unit of information
+                            var stateVariable = new sbgnviz.classes.UnitOfInformation();
+                            var stateJson = jsonNode.data.statesandinfos[i];
+                            for(var att in stateJson){
+                                stateVariable[att] = stateJson[att];
+                            }
+
+                          //  stateVariable.shapeFn = sbgnviz.getlibs().cytoscape.sbgn.AfShapeFn;
+                          //  stateVariable.shapeArgsFn =sbgnviz.getlibs().cytoscape.sbgn.AfShapeArgsFn;
+
+                            jsonNode.data.statesandinfos[i] = stateVariable;
+                        }
+
+                    }
+
+
 
                     jsonNodes.push(jsonNode);
                 }
