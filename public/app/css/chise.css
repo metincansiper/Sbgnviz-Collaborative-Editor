@@ -44,17 +44,13 @@ body {
 .sbgn-nav-menu {
     border: 1px solid #ddd;
     border-radius: 0.25em;
-    margin: 10px;
+    margin: auto;
     height: 40px;
     width: 1000px;
 }
 
 .sbgn-nav-menu .dropdown .dropdown-menu{
     z-index:3000;
-}
-/*Adjust font-size of a tags inside .sbgn-nav-menu*/
-.sbgn-nav-menu a {
-    font-size: 12px;
 }
 
 .sbgn-nav-menu .navbar .nav li.dropdown.open > .dropdown-toggle,
@@ -71,6 +67,15 @@ body {
     color: #ffffff;
     text-decoration: none;
     background-color: #0B9BCD;
+    background-image: none;
+    background-repeat: repeat-x;
+    filter: none;
+}
+
+.sbgn-nav-menu .dropdown-submenu:hover .title {
+    color: #000000;
+    text-decoration: none;
+    background-color: #ffffff;
     background-image: none;
     background-repeat: repeat-x;
     filter: none;
@@ -168,69 +173,26 @@ body {
     border: 2px solid #F7CAA9;
 }
 
-
-
-
-
-#canvas-tab-area {
-    margin: auto;
-
-    border: 1px solid #ddd;
-    border-radius: 0.25em;
-    height: 900px;
-    width: 920px;
-    /*height: 680px;*/
-    /*width: 800px;*/
-    /*overflow: hidden ;*/
-    overflow: hidden;
-
-    /*float: left;*/
-}
-
-
-#canvas-tabs{
-    position: absolute;
-    overflow-x: hidden;
-    /*bottom: 0px;*/
-    /*width: 100%;*/
-    left:5px;
-    /*height: 100px;*/
-    margin: 10px;
-    padding: 2px;
-
-    right: 0px;
-    z-index: 1000000;
-
-    /*border-radius: 0.25em;*/
-}
-
-
 #sbgn-network-container {
     margin: auto;
-    /*border: 1px solid #ddd;*/
-    /*width:99%;*/
-    /*height:99%;*/
-
+    border: 1px solid #ddd;
+    height: 680px;
+    width: 800px;
     /*overflow: auto !important;*/
-    /*overflow: visible;*/
-    /*border-radius: 0.25em;*/
+    overflow: hidden;
+    border-radius: 0.25em;
     /*float: left;*/
 }
 
-
-.topright:hover {color: red;}
-
-
 #sbgn-inspector-and-canvas {
-    margin: 10px;
-    margin-top:30px;
+    margin: auto;
     overflow: auto !important;
 }
 
 #sbgn-inspector {
-    margin: 10px;
+    margin: auto;
     border: 1px solid #ddd;
-    height: 900px;
+    height: 680px;
     width: 200px;
     overflow: auto !important;
     border-radius: 0.25em;
@@ -240,7 +202,7 @@ body {
 }
 
 .target-cursor {
-    cursor: url(../../sampleapp-images/drag-target.cur), pointer!important;
+    cursor: url(../../app/img/target-cursor.svg), pointer!important;
 }
 
 .inside-menu {
@@ -267,18 +229,20 @@ body {
 }
 
 #sbgn-toolbar{
-    margin: 10px;
+    margin: auto;
     width: 1000px;
     height: 30px;
-    margin-bottom: 10px;
+    /*margin-bottom: 10px;*/
+    margin-top: 5px !important;
+    margin-bottom: 2px !important;
     /*overflow: auto !important;*/
 }
 
 .newt-logo{
-    padding-left: 15px;
-    padding-right: 5px;
+    padding-right: 15px;
+    padding-left: 5px;
     margin-top: 8px;
-    float:left;
+    float:right;
     color: #0B9BCD !important;
 }
 
@@ -287,8 +251,8 @@ body {
 }
 
 .input-file{
-    float:right;
-    text-align: right;
+    float:center;
+    text-align: center;
     color: #0B9BCD !important;
     font-size: 12px !important;
     padding-top: 10px !important;
@@ -302,6 +266,7 @@ body {
     overflow: visible !important;
     font-size: 12px !important;
     min-height: 0px;
+    background-color: #eaeaea !important;
 }
 
 .sbgn-nav-bar .navbar-nav > li > a {
@@ -405,11 +370,16 @@ body {
 }
 
 .menu-break-large {
-    min-width: 8px !important;
+    min-width: 4px !important;
 }
 
 input {
     font-size: 12px !important;
+}
+
+textarea {
+    font-size: 14px !important;
+    overflow: hidden;
 }
 
 button:not(.close) {
@@ -422,11 +392,11 @@ option {
 
 input, select{
     padding-left: 4px;
-    border: 1px solid rgb(204, 204, 204);
     height: 23px;
 }
 
 input, select, textarea {
+    border: 1px solid rgb(204, 204, 204);
     border-radius: 4px;
 }
 
@@ -441,6 +411,7 @@ input[type="radio"], input[type="checkbox"] {
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
     background-color: #ffffff;
 }
+
 /* Hides spinner buttons in the right side of number inputs */
 input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
     -webkit-appearance: none;
@@ -510,13 +481,6 @@ menu:not([title]):before{
 }
 
 #grid-properties-table table * {
-    margin-bottom: 0px !important;
-    padding-bottom: 2px !important;
-    margin-top: 0px !important;
-    padding-top: 2px !important;
-}
-
-.dialog-table * {
     margin-bottom: 0px !important;
     padding-bottom: 2px !important;
     margin-top: 0px !important;
@@ -601,22 +565,25 @@ menu:not([title]):before{
     transform: translateY(-50%);
 }
 
-.target-cursor {
-    cursor: url(../../app/img/drag-target.cur), pointer!important;
-}
-
 .panel-heading {
     cursor: pointer;
     height: 17px;
     margin: 0px;
     padding: 0px;
     text-align: center;
-    background-color: #eee;
+    background-color: #eaeaea;
 }
 
 .panel-title {
     font-size: 12px;
     color: #555;
+}
+
+.panel-body {
+    padding-top: 7px;
+    padding-bottom: 3px;
+    padding-left: 0px !important;
+    padding-right: 0px !important;
 }
 
 .panel {
@@ -664,12 +631,15 @@ hr.inspector-divider {
 }
 
 #node-label-textbox {
+    text-align: center;
     position: absolute;
     top: 150px;
     left: 150px;
     z-index: 100;
     display: none;
     width: 100px;
+    height: 30px;
+    white-space: pre;
 }
 
 .element-palette img {
@@ -682,8 +652,8 @@ hr.inspector-divider {
 }
 
 .element-palette div {
-    width: 36px;
-    height: 30px;
+    /*width: 36px;*/
+    /*height: 30px;*/
 }
 
 .selected-mode.inactive-palette-element {
@@ -697,6 +667,8 @@ hr.inspector-divider {
 
 .chise-tab a {
     color: #555;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
 }
 
 /*.chise-tab.active {
@@ -704,7 +676,11 @@ hr.inspector-divider {
 }*/
 
 .chise-tab.active a {
-    background: #eee !important;
+    background: #eaeaea !important;
+}
+
+.chise-tab:hover a {
+    background: #eaeaea !important;
 }
 
 .btn-default {
@@ -721,6 +697,7 @@ hr.inspector-divider {
 .element-palette img {
     height: 26px;
 }
+
 img#template-reaction-add-button:hover {
     cursor: pointer;
 }
@@ -800,413 +777,4 @@ img#template-reaction-add-button:hover {
     {
         width: 200px;
     }
-}
-
-
-/*#sbgn-network-container {*/
-/*position: absolute;*/
-/*!*margin: auto;*!*/
-/*border: 1px solid #dddddd;*/
-/*border-radius: 0.25em;*/
-/*!*height: 680px;*!*/
-/*bottom: 10px;*/
-/*!*width: 800px;*!*/
-/*top: 95px;*/
-/*left: 40px;*/
-/*!*right: 350px;*!*/
-/*!*overflow: auto !important;*!*/
-/*overflow-x: hidden;*/
-/*!*float: left;*!*/
-/*}*/
-/*#sbgn-network-container {*/
-/*margin: auto;*/
-/*border: 1px solid #ddd;*/
-/*height: 680px;*/
-/*width: 800px;*/
-/*!*overflow: auto !important;*!*/
-/*overflow: hidden;*/
-/*border-radius: 0.25em;*/
-/*!*float: left;*!*/
-/*}*/
-/*#inspector-tab-area{*/
-/*!*width and height are updated dynamically*!*/
-/*position: absolute;*/
-/*right: 0px;*/
-/*overlow: hidden;*/
-/**/
-/*}*/
-#inspector-tab-area{
-
-    margin: auto;
-    border: 1px solid #ddd;
-    height: 900px;
-    width: 400px;
-    overflow: hidden;
-    border-radius: 0.25em;
-    /*padding-left: 2px;*/
-    padding-right: 2px;
-    position: relative;
-    /*position:absolute;*/
-    /*margin: auto;*/
-    /*border: 1px solid #ddd;*/
-    /*left:810px;*/
-    /*height: 680px;*/
-    /*width: 200px;*/
-    /*overflow: auto !important;*/
-    /*border-radius: 0.25em;*/
-    /*!*padding-left: 2px;*!*/
-    /*padding-right: 2px;*/
-    /*float: right;*/
-
-}
-#inspector-tabs{
-    position: absolute;
-
-    overflow-x: hidden;
-    bottom: 0px;
-    width: 100%;
-    padding-top: 2px;
-    right: 0px;
-
-    /*border-radius: 0.25em;*/
-}
-
-.tab-link{
-    color: #15b3cd;
-
-}
-
-
-/* Style the close button */
-.close-icon {
-    display:block;
-    box-sizing:border-box;
-    width:20px;
-    height:20px;
-    border-width:3px;
-    border-style: solid;
-    border-color:#15b3cd;;
-    border-radius:100%;
-    background: -webkit-linear-gradient(-45deg, transparent 0%, transparent 46%, white 46%,  white 56%,transparent 56%, transparent 100%), -webkit-linear-gradient(45deg, transparent 0%, transparent 46%, white 46%,  white 56%,transparent 56%, transparent 100%);
-    background-color:#15b3cd;;
-    box-shadow:0px 0px 5px 2px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
-}
-
-.tab-content{
-    width: inherit;
-    height: inherit;
-}
-
-
-/*#sbgn-inspector {*/
-/*position: absolute;*/
-/*border: 1px solid #dddddd;*/
-/*overflow-x: hidden;*/
-/*right: 0px;*/
-/*width: 100%;*/
-/*height: 95%;*/
-/*padding: 5px;*/
-/*border-radius: 0.25em;*/
-
-
-/*}*/
-
-#command-history-area{
-    position: absolute;
-    border: 1px solid #dddddd;
-    width: 100%;
-    height: 90%;
-    right: 0px;
-    top: 0px;
-    /*font-size: small;*/
-    overflow: hidden;
-    /*overflow-y: auto;*/
-    /*white-space: pre-wrap;*/
-    /*word-wrap: break-word;*/
-    /*padding: 5px;*/
-    /*-webkit-overflow-scrolling: touch;*/
-    /*border-radius: 0.25em;*/
-    /*float: right;*/
-}
-#command-messages{
-    position: absolute;
-    width: 100%;
-    height: 95%;
-    right: 0px;
-    top: 0px;
-    font-size: small;
-    overflow: auto;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    padding: 5px;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 0.25em;
-    /*float: right;*/
-}
-
-#image-area{
-    overflow: hidden;
-    position: absolute;
-    width: 100%;
-    height: 90%;
-    padding: 5px;
-    right: 0px;
-    top: 0px;
-    font-size: 12px;
-    border: 1px solid #dddddd;
-}
-
-#receivedImages{
-    position: inherit;
-    overflow-y: auto;
-    height: 95%;
-    width: 100%;
-    padding: 5px;
-}
-#upload-image{
-    position: absolute;
-    bottom: 5px;
-}
-
-input[type="file"] {
-    display: none;
-}
-.image-file {
-    border: 1px solid #ccc;
-    display: inline-block;
-    padding: 6px 12px;
-    cursor: pointer;
-    padding-top: 5px;
-    background-color: #0b9bcd;
-    color: white;
-    border-radius: 5px;
-
-}
-.image{
-    padding: 10px;
-    border: ridge;
-    margin: 10px;
-}
-
-#chat-area{
-    position: absolute;
-
-    /*padding-top: 15px;*/
-    /*padding-bottom: 5px;*/
-    width: 100%;
-    height: 90%;
-    padding: 5px;
-    right: 0px;
-    top: 0px;
-    /*bottom: 10px;*/
-    overflow: hidden;
-    /*background: #fefefe;*/
-    background: #ececec;
-
-    border: 1px solid #dddddd;
-
-}
-
-
-#users{
-    position: absolute;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    left: 0;
-    width: 90px;
-    top: 5px;
-    height: 80%;
-    background: #ececec;
-
-
-}
-.user{
-    /*font-size:14px;*/
-    font-size: small;
-    margin: 5px 5px 5px 5px;
-    padding: 5px;
-    border-radius: 10%;
-    word-wrap: break-word;
-
-}
-
-#user-list {
-    list-style: decimal;
-    position: absolute;
-    top: 5px;
-    left: 0px;
-    right: 10px;
-
-}
-#clear-history{
-    position: absolute;
-    margin-left:2px;
-    bottom: 180px;
-    /*right: 5px;*/
-    /*bottom: 100px;*/
-
-}
-#change-user-color{
-
-    margin-left: 5px;
-
-}
-#chat-history{
-    position: absolute;
-    bottom:300px;
-}
-#durationSelect{
-    overflow: hidden;
-    width: 100%;
-}
-
-
-
-#messages {
-    position: absolute;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    /*right: 100px;*/
-    margin-left: 0px; /* to overwrite ul */
-    margin-bottom: 0px;
-    padding-top: 10px;
-    top: 5px;
-    background: #f4f4f4;
-    /*left: 155px;*/
-    right:0px;
-    left: 95px;
-    bottom: 210px;
-    font-size: small;
-
-
-}
-
-
-.message{
-
-    background: #fefefe;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    width: 99%;
-
-
-    margin-top: 5px;
-    margin-right: 5px;
-
-    margin-bottom: 5px;
-    /*padding:  10px;*/
-
-
-
-}
-
-
-.td{
-
-}
-#inputs {
-    position: absolute;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    background: #ececec;
-    /*width: 100%;*/
-    height: 180px;
-    border-top: 1px solid #eeeeee;
-    right: 0px;
-    left: 0px;
-    bottom: 0px;
-    font-size: small;
-    padding: 8px 0 12px 12px;
-}
-
-
-#test-messages{
-
-}
-.time {
-
-    float: right ;
-    color : #888;
-
-}
-
-
-#inputs-form {
-    margin-top: 10px;
-    margin-right: 5px;
-    overflow-y: hidden;
-}
-
-#send-message{
-    margin-top: 5px;
-}
-
-#inputs-comment{
-    width: 100%;
-    /*height: 40px;*/
-    font-size:small;
-    margin-bottom: 1px;
-    overflow-y: hidden;
-
-}
-
-
-/*Debug*/
-#unitTestArea{
-    position: absolute;
-    right: 30px;
-    width: 50px;
-
-    bottom: 20px;
-}
-
-
-#factoid-area{
-    position: absolute;
-    border: 1px solid #dddddd;
-    width: 100%;
-    height: 90%;
-    right: 0px;
-    top: 0px;
-    font-size: small;
-    overflow: auto;
-    overflow-y: auto;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    padding: 5px;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 0.25em;
-}
-
-#pmcBox{
-    width: 120px;
-    margin: 10px;
-}
-#factoid-file-input{
-
-    font-size:medium;
-}
-.instructions{
-    font-size:medium;
-    color: #2c3e50;
-}
-#factoid-input-container{
-
-    position: absolute;
-
-    width: 98%;
-    padding: 10px;
-    height: 99%;
-    /*margin: 5px;*/
-    word-wrap: break-word;
-    color: #444444;
-    background-color: #0B9BCD;
-    overflow: auto;
-    font-size:small;
-    font-family: Verdana;
-}
-#factoidBox{
-    width: 100%;
 }

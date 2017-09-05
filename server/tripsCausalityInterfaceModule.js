@@ -110,7 +110,7 @@ module.exports = function(socket, model, askHuman){
         tm.sendMsg({0: 'request', content: {0: 'CHOOSE-SENSE', 'ekb-term': termStr}});
 
 
-        var patternXml = {0: 'reply', 1: '&key', content: ['OK', '.', '*']};
+        var patternXml = {0: 'reply', 1: '&key', content: ['SUCCESS', '.', '*']};
 
         tm.addHandler(patternXml, function (textXml) {
 
@@ -269,7 +269,9 @@ module.exports = function(socket, model, askHuman){
             var contentObj = KQML.keywordify(text.content);
 
 
+
             self.getTermName(contentObj.source, function (source) {
+
                 self.getTermName(contentObj.target, function (target) {
 
                     var resSource = '';

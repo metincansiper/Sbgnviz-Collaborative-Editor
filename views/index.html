@@ -26,9 +26,13 @@
     <!-- app's style -->
     <!--<link href="node_modules/cytoscape-context-menus/cytoscape-context-menus.css" rel="stylesheet" type="text/css" />-->
     <link href="app/css/chise.css" rel="stylesheet">
+
     <link href="lib/css/jquery.highlighttextarea.css" rel="stylesheet">
     <link href="lib/css/jquery-ui.css" rel="stylesheet">
 
+
+    <!--This should come after chise.css -->
+    <link href="collaborative-app/css/platform.css" rel="stylesheet">
 
 
 <Body:>
@@ -2101,7 +2105,7 @@
 
                 </div>
 
-                <div id ="chat-area"  class="tab-pane fade in active">
+                <div id ="chat-area"  class="tab-pane  fade in active">
                     <div id = "users" as="container"  on-change = "onScroll()">
                         <!--<ul id ="user-list" as = "list">-->
                         <form action=""">
@@ -2206,7 +2210,7 @@
         <audio id="notificationAudio" src="http://www.talkingwav.com/various/beep_02.wav" preload="auto"></audio>
 
         <!--<div id ="agentConnectionArea"> <button class="btn btn-info btn-mini" on-click = "connectCausalityAgent()"> Connect Agent</button></div>-->
-        <!--<div id ="unitTestArea"> <button class="btn btn-info btn-mini" on-click = "runUnitTests()"> Test</button></div>-->
+        <div id ="unitTestArea"> <button class="btn btn-info btn-mini" on-click = "runUnitTests()"> Test</button></div>
 
         <chat-user:>
             <div class="user" style = background:{{_page.doc.users[#pUserId].colorCode}}>

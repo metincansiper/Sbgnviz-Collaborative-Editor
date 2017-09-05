@@ -3,34 +3,15 @@
  */
 
 //Listen and respond to cytoscape events triggered by cytoscape-undo-redo.js
-const CircularJSON = require('circular-json');
-var _ = require('underscore');
+
 
 module.exports = function(modelManager, socket, userId){
 
-    var modelName = {
-        "border-color": "borderColor",
-        "border-width": "borderWidth",
-        "background-opacity": "backgroundOpacity",
-        "background-color": "backgroundColor",
-        "line-color": "lineColor",
-        "width": "width",
-        "cardinality": "cardinality"
-    };
-
-    var modelNameFont = {
-        "font-size": "fontSize",
-        "font-weight": "fontWeight",
-        "font-style": "fontStyle",
-        "font-family": "fontFamily",
-    };
-
-
     //A new sample or file is loaded --update model and inform others
-   $(document).on("sbgnvizLoadSampleEnd sbgnvizLoadFileEnd",  function(event, file){
-       console.log("Loading new sample");
-       modelManager.newModel("me"); //do not delete cytoscape, only the model
-       modelManager.initModel(cy.nodes(), cy.edges(), appUtilities);
+    $(document).on("sbgnvizLoadSampleEnd sbgnvizLoadFileEnd",  function(event, file){
+        console.log("Loading new sample");
+        modelManager.newModel("me"); //do not delete cytoscape, only the model
+        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities);
 
     });
 
@@ -72,7 +53,7 @@ module.exports = function(modelManager, socket, userId){
     });
 
     $(document).on("saveLayout", function (evt) {
-         var layoutProperties = appUtilities.currentLayoutProperties;
+        var layoutProperties = appUtilities.currentLayoutProperties;
         modelManager.updateLayoutProperties(layoutProperties, "me");
     });
 
@@ -98,8 +79,7 @@ module.exports = function(modelManager, socket, userId){
         console.log(res);
 
 
-        //For background-color, background-opacity, border-color, border-width
-        if (actionName === "changeData") {
+        if (actionName === "changeData" || actionName === "changeFontProperties" ) {
 
             var modelElList = [];
             var paramList = [];
@@ -107,100 +87,16 @@ module.exports = function(modelManager, socket, userId){
                 //var ele = param.ele;
 
                 modelElList.push({id: ele.id(), isNode: ele.isNode()});
-                paramList.push(ele.data(res.name));
+                paramList.push(ele.data());
 
             });
-
-
-            var attName = "data." + res.name;// modelName[res.name];
-            modelManager.changeModelElementGroupAttribute(attName, modelElList, paramList, "me");
-
-        }
-        //We don't get the explicity property name from chise, so change all
-        else if(actionName === "changeFontProperties"){
-            var modelElList = [];
-            var paramListSize = [];
-            var paramListStyle = [];
-            var paramListWeight = [];
-            var paramListFamily = [];
-            args.eles.forEach(function (ele) {
-                modelElList.push({id: ele.id(), isNode: ele.isNode()});
-                paramListSize.push(ele.data("font-size"));
-                paramListWeight.push(ele.data("font-weight"));
-                paramListStyle.push(ele.data("font-style"));
-                paramListFamily.push(ele.data("font-family"));
-            });
-
-            modelManager.changeModelElementGroupAttribute("data.font-size", modelElList, paramListSize, "me");
-            modelManager.changeModelElementGroupAttribute("data.font-weight", modelElList, paramListWeight, "me");
-            modelManager.changeModelElementGroupAttribute("data.font-style", modelElList, paramListStyle, "me");
-            modelManager.changeModelElementGroupAttribute("data.font-family", modelElList, paramListFamily, "me");
-
-        }
-        else  if (actionName === "changeNodeLabel" ) {
-
-            var modelElList = [];
-            var paramList = []
-            args.nodes.forEach(function (ele) {
-                modelElList.push({id: ele.id(), isNode: true});
-                paramList.push(ele.data("label"));
-
-            });
-            modelManager.changeModelElementGroupAttribute("data.label", modelElList, paramList, "me");
-
-        }
-        else  if (actionName === "setMultimerStatus" ) {
-
-            var modelElList = [];
-            var paramList = []
-            args.nodes.forEach(function (ele) {
-                modelElList.push({id: ele.id(), isNode: true});
-                paramList.push(ele.data("class"));
-
-            });
-            modelManager.changeModelElementGroupAttribute("data.class", modelElList, paramList, "me");
-
-        }
-
-        else  if (actionName === "setCloneMarkerStatus" ) {
-
-            var modelElList = [];
-            var paramList = []
-            args.nodes.forEach(function (ele) {
-                modelElList.push({id: ele.id(), isNode: true});
-                paramList.push(ele.data("cloneMarker"));
-
-            });
-            modelManager.changeModelElementGroupAttribute("data.cloneMarker", modelElList, paramList, "me");
-
-        }
-
-        else  if (actionName === "resizeNodes" ) {
-
-            var modelElList = [];
-            var paramList = []
-            args.nodes.forEach(function (ele) {
-                modelElList.push({id: ele.id(), isNode: true});
-                paramList.push(ele.data("bbox"));
-            });
-            modelManager.changeModelElementGroupAttribute("data.bbox", modelElList, paramList, "me");
-
-        }
-
-        else if(actionName === "resize") {
-
-            var modelElList = [];
-            var paramList = []
-            var ele = args.node;
-            modelElList.push({id: ele.id(), isNode: true});
-            paramList.push(ele.data("bbox"));
-
-            modelManager.changeModelElementGroupAttribute("data.bbox", modelElList, paramList, "me");
+            modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
 
         }
 
 
-        else  if (actionName === "addStateOrInfoBox" ||actionName === "changeStateOrInfoBox") {
+        else if (actionName === "changeNodeLabel" ||actionName === "resizeNodes"||
+            actionName === "addStateOrInfoBox" || actionName === "setMultimerStatus" || actionName === "setCloneMarkerStatus") {
 
             var modelElList = [];
             var paramList = []
@@ -208,23 +104,20 @@ module.exports = function(modelManager, socket, userId){
                 //var ele = param.ele;
 
                 modelElList.push({id: ele.id(), isNode: true});
-
-                var statesAndInfos = [];
-                for (var i = 0; i < ele.data("statesandinfos").length; i++) {
-                     var stateEl = _.clone(ele.data("statesandinfos")[i]);
-                     stateEl.parent = null;
-                     statesAndInfos.push(stateEl);
-                }
-
-                paramList.push(statesAndInfos);
+                paramList.push(ele.data());
 
             });
-
-            console.log(paramList);
-            modelManager.changeModelElementGroupAttribute("data.statesandinfos", modelElList, paramList, "me");
+            modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
 
         }
+        else if(actionName === "resize"){
 
+            var modelElList = [{id: res.node.id(), isNode: true}];
+            var paramList = [res.node.data()];
+
+
+            modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
+        }
 
         else if (actionName === "changeBendPoints") {
 
@@ -352,27 +245,27 @@ module.exports = function(modelManager, socket, userId){
 
         }
 
-         else if(actionName === "addEdge"){
+        else if(actionName === "addEdge"){
 
             var newEdge = args.newEdge;
             var id = res.eles.id();
-             var param = { source: newEdge.source, target:newEdge.target, class: newEdge.class};
-             //Add to the graph first
-             modelManager.addModelEdge(id, param, "me");
+            var param = { source: newEdge.source, target:newEdge.target, class: newEdge.class};
+            //Add to the graph first
+            modelManager.addModelEdge(id, param, "me");
             //assign other edge properties-- css and data
-             modelManager.initModelEdge(res.eles[0], "me");
+            modelManager.initModelEdge(res.eles[0], "me");
 
-         }
+        }
 
-         else if(actionName === "paste"){
-             res.forEach(function(el){ //first add nodes
-                 if(el.isNode()){
-                     var param = {x: el.position("x"), y: el.position("y"), class: el.data("class")};
-                     modelManager.addModelNode(el.id(), param, "me");
+        else if(actionName === "paste"){
+            res.forEach(function(el){ //first add nodes
+                if(el.isNode()){
+                    var param = {x: el.position("x"), y: el.position("y"), class: el.data("class")};
+                    modelManager.addModelNode(el.id(), param, "me");
 
-                     modelManager.initModelNode(el, "me");
-                 }
-             });
+                    modelManager.initModelNode(el, "me");
+                }
+            });
 
             res.forEach(function(el){ //first add nodes
                 if(el.isEdge()){
@@ -407,7 +300,7 @@ module.exports = function(modelManager, socket, userId){
 
             });
 
-            modelManager.changeModelElementGroupAttribute("data.parent", modelElList, paramListData, "me");
+            modelManager.changeModelElementGroupAttribute("data", modelElList, paramListData, "me");
             modelManager.changeModelElementGroupAttribute("position", modelNodeList, paramListPosition, "me");
 
 
@@ -458,35 +351,34 @@ module.exports = function(modelManager, socket, userId){
 
 
 
-        cy.on("mouseup", "node", function () {
-            modelManager.unselectModelNode(this, "me");
-        });
+    cy.on("mouseup", "node", function () {
+        modelManager.unselectModelNode(this, "me");
+    });
 
 
-        cy.on('select', 'node', function (event) { //Necessary for multiple selections
-            console.log(this.id()); //TODO delete later
-            modelManager.selectModelNode(this,  userId, "me");
+    cy.on('select', 'node', function (event) { //Necessary for multiple selections
+        console.log(this.id()); //TODO delete later
+        modelManager.selectModelNode(this,  userId, "me");
 
-        });
+    });
 
-        cy.on('unselect', 'node', function () { //causes sync problems in delete op
-            modelManager.unselectModelNode(this, "me");
-        });
-        cy.on('grab', 'node', function (event) { //Also works as 'select'
-            modelManager.selectModelNode(this, userId, "me");
-        });
+    cy.on('unselect', 'node', function () { //causes sync problems in delete op
+        modelManager.unselectModelNode(this, "me");
+    });
+    cy.on('grab', 'node', function (event) { //Also works as 'select'
+        modelManager.selectModelNode(this, userId, "me");
+    });
 
-        cy.on('select', 'edge', function (event) {
-            console.log(this.id()); //TODO delete later
-            modelManager.selectModelEdge(this, userId, "me");
+    cy.on('select', 'edge', function (event) {
+        console.log(this.id()); //TODO delete later
+        modelManager.selectModelEdge(this, userId, "me");
 
-        });
+    });
 
-        cy.on('unselect', 'edge', function (event) {
-            modelManager.unselectModelEdge(this, "me");
-        });
+    cy.on('unselect', 'edge', function (event) {
+        modelManager.unselectModelEdge(this, "me");
+    });
 
 
 }
-
 

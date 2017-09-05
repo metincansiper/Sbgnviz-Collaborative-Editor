@@ -34,25 +34,9 @@ var socket;
 
 var modelManager;
 var oneColor = require('onecolor');
-const CircularJSON = require('circular-json');
 
-var cyName = {
-    "borderColor" :"border-color",
-    "borderWidth" :"border-width",
-    "backgroundOpacity" :"background-opacity",
-    "backgroundColor" :"background-color",
-    "lineColor" :"line-color",
-    "width": "width" ,
-    "cardinality": "cardinality" ,
-    "fontSize" :"font-size",
-    "fontWeight" : "font-weight",
-    "fontStyle" :"font-style",
-    "fontFamily" :"font-family",
-    "label" :"label",
-    "statesAndInfos": "statesandinfos",
-    "class": "class",
-    "cloneMarker": "cloneMarker"
-};
+var editorListener;
+
 
 app.on('model', function (model) {
 
@@ -737,7 +721,7 @@ app.proto.create = function (model) {
 
     }
 
-        require('./public/collaborative-app/editor-listener.js')(modelManager,socket, id);
+        editorListener = require('./public/collaborative-app/editor-listener.js')(modelManager,socket, id);
         //Listen to these after cy is loaded
         $("#undo-last-action, #undo-icon").click(function (e) {
             if(modelManager.isUndoPossible()){
@@ -782,7 +766,76 @@ app.proto.loadCyFromModel = function(){
 
     var jsonArr = modelManager.getJsonFromModel();
 
+
+
     if (jsonArr!= null) {
+
+
+        // //handle auxunitlayouts and statevariables
+        // jsonArr.nodes.forEach(function(node){
+        //
+        //     var auxunitlayouts = {};
+        //     for(var location in node.data.auxunitlayouts){
+        //         var val = node.data.auxunitlayouts;
+        //         var auxUnitLayoutObj = new sbgnviz.classes.AuxUnitLayout(val[location].parentNode, location);
+        //         var stateVarsLoc = [];
+        //         for(var i = 0; i < val[location]["units"].length; i++) { //state variables
+        //             var stateEl = val[location]["units"][i];
+        //             var stateObj;
+        //             if (stateEl.clazz === 'state variable') {
+        //                 stateObj = new sbgnviz.classes.StateVariable();
+        //                 for (var att in stateEl) {
+        //                     stateObj[att] = stateEl[att];
+        //                 }
+        //             }
+        //             else {
+        //                 stateObj = new sbgnviz.classes.UnitOfInformation();
+        //                 for (var att in stateEl) {
+        //                     stateObj[att] = stateEl[att];
+        //                 }
+        //
+        //             }
+        //             stateVarsLoc.push(stateObj);
+        //         }
+        //         auxunitlayouts[location] = auxUnitLayoutObj;
+        //         auxunitlayouts[location]["units"] = stateVarsLoc;
+        //
+        //
+        //     }
+        //
+        //
+        //     node.data.auxunitlayouts = auxunitlayouts;
+        //
+        //
+        //
+        //     var stateVars = [];
+        //
+        //     var val = node.data.statesandinfos;
+        //     for(var i = 0; i < node.data.statesandinfos.length; i++) { //state variables
+        //         var stateObj;
+        //         if (val[i].clazz === 'state variable') {
+        //             stateObj = new sbgnviz.classes.StateVariable();
+        //             for (var att in val[i]) {
+        //                 stateObj[att] = val[i][att];
+        //             }
+        //         }
+        //         else {
+        //             stateObj = new sbgnviz.classes.UnitOfInformation();
+        //             for (var att in val[i]) {
+        //                 stateObj[att] = val[i][att];
+        //             }
+        //
+        //         }
+        //         stateVars.push(stateObj);
+        //     }
+        //
+        //     node.data.statesandinfos = stateVars;
+        //
+        //
+        // });
+        //
+
+
         //Updates data fields and sets style fields to default
         chise.updateGraph({
             nodes: jsonArr.nodes,
@@ -798,6 +851,9 @@ app.proto.loadCyFromModel = function(){
             node.position({x:position.x, y: position.y});
 
         });
+
+
+
 
         var props;
         //update app utilities as well
@@ -885,12 +941,14 @@ app.proto.listenToNodeOperations = function(model){
             if(parent == undefined) parent = null;
 
 
+
             var newNode = chise.elementUtilities.addNode(pos.x, pos.y, sbgnclass, id, parent, visibility);
 
             // modelManager.initModelNode(newNode,"me", true);
 
 
-            newNode.move({"parent":parent});
+            var parentEl = cy.getElementById(parent);
+            newNode.move({"parent":parentEl});
 
         }
 
@@ -903,6 +961,8 @@ app.proto.listenToNodeOperations = function(model){
         if(docReady && passed.user == null) {
             var posDiff = {x: (pos.x - cy.getElementById(id).position("x")), y:(pos.y - cy.getElementById(id).position("y"))} ;
             moveNodeAndChildren(posDiff, cy.getElementById(id)); //children need to be updated manually here
+            //parent as well
+
 
         }
     });
@@ -949,168 +1009,42 @@ app.proto.listenToNodeOperations = function(model){
     });
 
 
-    model.on('all', '_page.doc.cy.nodes.*.data.*', function(id, att, op, val,prev, passed) {
+
+
+    //Called by agents to change specific properties of data
+    model.on('all', '_page.doc.cy.nodes.*.data.*', function(id, att, op, val,prev, passed){
+        if(docReady && passed.user == null) {
+
+            cy.getElementById(id).data(att, val);
+            if(att === "parent")
+                cy.getElementById(id).move({"parent":val});
+        }
+    });
+
+
+    model.on('all', '_page.doc.cy.nodes.*.data', function(id,  op, data,prev, passed){
+
+        console.log("only data");
+
+
+
 
         if(docReady && passed.user == null) {
 
-            if(att === "statesandinfos"){
-                //val is non circular
+            //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
+            cy.getElementById(id)._private.data = data;
 
-                var statesandinfos = val;
-                 for(var i = 0; i <  statesandinfos.length; i++) {
+            //to update parent
+            var newParent = data.parent;
+            if(newParent == undefined)
+                newParent = null;  //must be null explicitly
 
-
-                     // //make it circular and an object
-                     if (statesandinfos[i].class === 'state variable') {
-                         var stateVariable = new sbgnviz.classes.StateVariable();
-                         var stateJson = statesandinfos[i];
-                         for (var att in stateJson) {
-                             stateVariable[att] = stateJson[att];
-                         }
-                         statesandinfos[i] = stateVariable;
-                     }
-                     else {//unit of information
-                         var stateVariable = new sbgnviz.classes.UnitOfInformation();
-                         var stateJson = statesandinfos[i];
-                         for (var att in stateJson) {
-                             stateVariable[att] = stateJson[att];
-                         }
-                         statesandinfos[i] = stateVariable;
-                     }
-
-                    statesandinfos[i].parent = cy.getElementById(id);
-                    // val[i].parent = cy.getElementById(id);
-                 }
-
-
-                console.log(val);
-                if(val.length > 0)
-                cy.getElementById(id).data("statesandinfos",statesandinfos);
-
-            }
-            else{
-                //cy.getElementById(id).data(cyName[att], val);
-                cy.getElementById(id).data(att, val);
-                if(att === "parent")
-                    cy.getElementById(id).move({"parent":val});
-            }
+            cy.getElementById(id).move({"parent":newParent});
+            cy.getElementById(id).updateStyle();
 
 
         }
     });
-
-    // model.on('all', '_page.doc.cy.nodes.*.data', function(id, op, val,prev, passed) {
-    //
-    //     model.on('all', '_page.doc.cy.nodes.*.data', function(id,  op, data,prev, passed){
-    //
-    //
-    //         if(docReady && passed.user == null) {
-    //
-    //             //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
-    //             cy.getElementById(id)._private.data = CircularJSON.parse(data);
-    //
-    //             //to update parent
-    //             var newParent = data.parent;
-    //             if(newParent == undefined)
-    //                 newParent = null;  //must be null explicitly
-    //
-    //             cy.getElementById(id).move({"parent":newParent});
-    //             cy.getElementById(id).updateStyle();
-    //
-    //
-    //         }
-    //     });
-    //
-    //
-    // });
-
-
-    // model.on('all', '_page.doc.cy.nodes.*.data.parent', function(id, op, val,prev, passed){
-    //     if(docReady && passed.user == null) {
-    //
-    //         cy.getElementById(id).data("parent", val);
-    //         cy.getElementById(id).move({"parent":val});
-    //     }
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.label', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("label", val);
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.borderWidth', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("border-width", val);
-    // });
-    // model.on('all', '_page.doc.cy.nodes.*.data.borderColor', function(id, op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("border-color", val);
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.backgroundOpacity', function(id, op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("background-opacity", val);
-    //
-    // });
-    // model.on('all', '_page.doc.cy.nodes.*.data.backgroundColor', function(id, op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("background-color", val);
-    //
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.fontSize', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("font-size", val);
-    //
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.fontWeight', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("font-weight", val);
-    //
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.fontStyle', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("font-style", val);
-    //
-    // });
-    //
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.fontFamily', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("font-family", val);
-    //
-    // });
-    // model.on('all', '_page.doc.cy.nodes.*.data.class', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("class", val);
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.cloneMarker', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null)
-    //         cy.getElementById(id).data("cloneMarker", val);
-    // });
-    //
-    // model.on('all', '_page.doc.cy.nodes.*.data.statesAndInfos', function(id,  op, val,prev, passed){
-    //
-    //     if(docReady && passed.user == null) {
-    //
-    //         var circularObj = CircularJSON.parse(val);
-    //         cy.getElementById(id).data("statesandinfos", circularObj);
-    //     }
-    // });
 
 
 
@@ -1481,11 +1415,13 @@ app.proto.changeColorCode = function(){
 
 };
 app.proto.runUnitTests = function(){
+    var userId = this.model.get('_session.userId');
 
     var room = this.model.get('_page.room');
-    require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
+    //require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
     //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
-    // require("./public/test/testsModelManager.js")();
+     require("./public/test/testsModelManager.js")(modelManager, userId);
+     //require("./public/test/testsEditorListener.js")(editorListener);
     require("./public/test/testOptions.js")(); //to print out results
 
 

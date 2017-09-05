@@ -1,0 +1,486 @@
+
+
+
+#sbgn-toolbar{
+    margin: 10px;
+    width: 1000px;
+    height: 30px;
+    margin-bottom: 10px;
+    /*overflow: auto !important;*/
+}
+
+.sbgn-nav-menu {
+    border: 1px solid #ddd;
+    border-radius: 0.25em;
+    margin: 10px;
+    height: 40px;
+    width: 1000px;
+}
+
+#canvas-tab-area {
+    margin: auto;
+
+    border: 1px solid #ddd;
+    border-radius: 0.25em;
+    height: 900px;
+    width: 920px;
+    /*height: 680px;*/
+    /*width: 800px;*/
+    /*overflow: hidden ;*/
+    overflow: hidden;
+
+    /*float: left;*/
+}
+
+
+#canvas-tabs{
+    position: absolute;
+    overflow-x: hidden;
+    /*bottom: 0px;*/
+    /*width: 100%;*/
+    left:5px;
+    /*height: 100px;*/
+    margin: 10px;
+    padding: 2px;
+
+    right: 0px;
+    z-index: 1000000;
+
+    /*border-radius: 0.25em;*/
+}
+
+
+#sbgn-network-container {
+    margin: auto;
+    border:none;
+
+}
+
+
+
+#sbgn-inspector-and-canvas {
+    margin: 10px;
+    margin-top:30px;
+    overflow: auto !important;
+}
+
+#sbgn-inspector {
+    margin: 10px;
+    border: 1px solid #ddd;
+    height: 900px;
+    width: 200px;
+    overflow: auto !important;
+    border-radius: 0.25em;
+    /*padding-left: 2px;*/
+    padding-right: 2px;
+    /*float: right;*/
+}
+
+
+/*#sbgn-network-container {*/
+/*position: absolute;*/
+/*!*margin: auto;*!*/
+/*border: 1px solid #dddddd;*/
+/*border-radius: 0.25em;*/
+/*!*height: 680px;*!*/
+/*bottom: 10px;*/
+/*!*width: 800px;*!*/
+/*top: 95px;*/
+/*left: 40px;*/
+/*!*right: 350px;*!*/
+/*!*overflow: auto !important;*!*/
+/*overflow-x: hidden;*/
+/*!*float: left;*!*/
+/*}*/
+/*#sbgn-network-container {*/
+/*margin: auto;*/
+/*border: 1px solid #ddd;*/
+/*height: 680px;*/
+/*width: 800px;*/
+/*!*overflow: auto !important;*!*/
+/*overflow: hidden;*/
+/*border-radius: 0.25em;*/
+/*!*float: left;*!*/
+/*}*/
+/*#inspector-tab-area{*/
+/*!*width and height are updated dynamically*!*/
+/*position: absolute;*/
+/*right: 0px;*/
+/*overlow: hidden;*/
+/**/
+/*}*/
+#inspector-tab-area{
+
+    margin: auto;
+    border: 1px solid #ddd;
+    height: 900px;
+    width: 400px;
+    overflow: hidden;
+    border-radius: 0.25em;
+    /*padding-left: 2px;*/
+    padding-right: 2px;
+    position: relative;
+    /*position:absolute;*/
+    /*margin: auto;*/
+    /*border: 1px solid #ddd;*/
+    /*left:810px;*/
+    /*height: 680px;*/
+    /*width: 200px;*/
+    /*overflow: auto !important;*/
+    /*border-radius: 0.25em;*/
+    /*!*padding-left: 2px;*!*/
+    /*padding-right: 2px;*/
+    /*float: right;*/
+
+}
+#inspector-tabs{
+    position: absolute;
+
+    overflow-x: hidden;
+    bottom: 0px;
+    width: 100%;
+    padding-top: 2px;
+    right: 0px;
+
+    /*border-radius: 0.25em;*/
+}
+
+.tab-link{
+    color: #15b3cd;
+
+}
+
+
+/* Style the close button */
+.close-icon {
+    display:block;
+    box-sizing:border-box;
+    width:20px;
+    height:20px;
+    border-width:3px;
+    border-style: solid;
+    border-color:#15b3cd;;
+    border-radius:100%;
+    background: -webkit-linear-gradient(-45deg, transparent 0%, transparent 46%, white 46%,  white 56%,transparent 56%, transparent 100%), -webkit-linear-gradient(45deg, transparent 0%, transparent 46%, white 46%,  white 56%,transparent 56%, transparent 100%);
+    background-color:#15b3cd;;
+    box-shadow:0px 0px 5px 2px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+}
+
+.tab-content{
+    width: inherit;
+    height: inherit;
+}
+
+
+/*#sbgn-inspector {*/
+/*position: absolute;*/
+/*border: 1px solid #dddddd;*/
+/*overflow-x: hidden;*/
+/*right: 0px;*/
+/*width: 100%;*/
+/*height: 95%;*/
+/*padding: 5px;*/
+/*border-radius: 0.25em;*/
+
+
+/*}*/
+
+#command-history-area{
+    position: absolute;
+    border: 1px solid #dddddd;
+    width: 100%;
+    height: 90%;
+    right: 0px;
+    top: 0px;
+    /*font-size: small;*/
+    overflow: hidden;
+    /*overflow-y: auto;*/
+    /*white-space: pre-wrap;*/
+    /*word-wrap: break-word;*/
+    /*padding: 5px;*/
+    /*-webkit-overflow-scrolling: touch;*/
+    /*border-radius: 0.25em;*/
+    /*float: right;*/
+}
+#command-messages{
+    position: absolute;
+    width: 100%;
+    height: 95%;
+    right: 0px;
+    top: 0px;
+    font-size: small;
+    overflow: auto;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding: 5px;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0.25em;
+    /*float: right;*/
+}
+
+#image-area{
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    height: 90%;
+    padding: 5px;
+    right: 0px;
+    top: 0px;
+    font-size: 12px;
+    border: 1px solid #dddddd;
+}
+
+#receivedImages{
+    position: inherit;
+    overflow-y: auto;
+    height: 95%;
+    width: 100%;
+    padding: 5px;
+}
+#upload-image{
+    position: absolute;
+    bottom: 5px;
+}
+
+input[type="file"] {
+    display: none;
+}
+.image-file {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    padding-top: 5px;
+    background-color: #0b9bcd;
+    color: white;
+    border-radius: 5px;
+
+}
+.image{
+    padding: 10px;
+    border: ridge;
+    margin: 10px;
+}
+
+#chat-area{
+    position: absolute;
+
+    /*padding-top: 15px;*/
+    /*padding-bottom: 5px;*/
+    width: 100%;
+    height: 90%;
+    padding: 5px;
+    right: 0px;
+    top: 0px;
+    /*bottom: 10px;*/
+    overflow: hidden;
+    /*background: #fefefe;*/
+    background: #ececec;
+
+    border: 1px solid #dddddd;
+
+}
+
+
+#users{
+    position: absolute;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    left: 0;
+    width: 90px;
+    top: 5px;
+    height: 80%;
+    background: #ececec;
+
+
+}
+.user{
+    /*font-size:14px;*/
+    font-size: small;
+    margin: 5px 5px 5px 5px;
+    padding: 5px;
+    border-radius: 10%;
+    word-wrap: break-word;
+
+}
+
+#user-list {
+    list-style: decimal;
+    position: absolute;
+    top: 5px;
+    left: 0px;
+    right: 10px;
+
+}
+#clear-history{
+    position: absolute;
+    margin-left:2px;
+    bottom: 180px;
+    /*right: 5px;*/
+    /*bottom: 100px;*/
+
+}
+#change-user-color{
+
+    margin-left: 5px;
+
+}
+#chat-history{
+    position: absolute;
+    bottom:300px;
+}
+#durationSelect{
+    overflow: hidden;
+    width: 100%;
+}
+
+
+
+#messages {
+    position: absolute;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    /*right: 100px;*/
+    margin-left: 0px; /* to overwrite ul */
+    margin-bottom: 0px;
+    padding-top: 10px;
+    top: 5px;
+    background: #f4f4f4;
+    /*left: 155px;*/
+    right:0px;
+    left: 95px;
+    bottom: 210px;
+    font-size: small;
+
+
+}
+
+
+.message{
+
+    background: #fefefe;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    width: 99%;
+
+
+    margin-top: 5px;
+    margin-right: 5px;
+
+    margin-bottom: 5px;
+    /*padding:  10px;*/
+
+
+
+}
+
+
+.td{
+
+}
+#inputs {
+    position: absolute;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background: #ececec;
+    /*width: 100%;*/
+    height: 180px;
+    border-top: 1px solid #eeeeee;
+    right: 0px;
+    left: 0px;
+    bottom: 0px;
+    font-size: small;
+    padding: 8px 0 12px 12px;
+}
+
+
+#test-messages{
+
+}
+.time {
+
+    float: right ;
+    color : #888;
+
+}
+
+
+#inputs-form {
+    margin-top: 10px;
+    margin-right: 5px;
+    overflow-y: hidden;
+}
+
+#send-message{
+    margin-top: 5px;
+}
+
+#inputs-comment{
+    width: 100%;
+    /*height: 40px;*/
+    font-size:small;
+    margin-bottom: 1px;
+    overflow-y: hidden;
+
+}
+
+
+/*Debug*/
+#unitTestArea{
+    position: absolute;
+    right: 30px;
+    width: 50px;
+
+    bottom: 20px;
+}
+
+
+#factoid-area{
+    position: absolute;
+    border: 1px solid #dddddd;
+    width: 100%;
+    height: 90%;
+    right: 0px;
+    top: 0px;
+    font-size: small;
+    overflow: auto;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    padding: 5px;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 0.25em;
+}
+
+#pmcBox{
+    width: 120px;
+    margin: 10px;
+}
+#factoid-file-input{
+
+    font-size:medium;
+}
+.instructions{
+    font-size:medium;
+    color: #2c3e50;
+}
+#factoid-input-container{
+
+    position: absolute;
+
+    width: 98%;
+    padding: 10px;
+    height: 99%;
+    /*margin: 5px;*/
+    word-wrap: break-word;
+    color: #444444;
+    background-color: #0B9BCD;
+    overflow: auto;
+    font-size:small;
+    font-family: Verdana;
+}
+#factoidBox{
+    width: 100%;
+}

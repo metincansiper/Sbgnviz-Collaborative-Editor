@@ -6,7 +6,6 @@
 
 var _ = require('underscore');
 
-const CircularJSON = require('circular-json');
 
 module.exports = function (model, docId, sbgnviz) {
 
@@ -674,7 +673,6 @@ module.exports = function (model, docId, sbgnviz) {
                 attStr = "borderWidth";
 
 
-
             nodePath.pass({user: user}).set(attStr, attVal);
 
             // var st = nodePath.get('data.statesandinfos');
@@ -998,6 +996,7 @@ module.exports = function (model, docId, sbgnviz) {
         //convert model to array
         getJsonFromModel: function () {
 
+            var self = this;
             var nodes = model.get('_page.doc.cy.nodes');
 
 
@@ -1017,32 +1016,6 @@ module.exports = function (model, docId, sbgnviz) {
                     var jsonNode = {
                         data: node.data
                     };
-
-                    for (var i = 0; i < jsonNode.data.statesandinfos.length; i++) {
-
-                        if(jsonNode.data.statesandinfos[i].class === 'state variable') {
-                            var stateVariable = new sbgnviz.classes.StateVariable();
-                            var stateJson = jsonNode.data.statesandinfos[i];
-                            for(var att in stateJson){
-                                stateVariable[att] = stateJson[att];
-                            }
-                            jsonNode.data.statesandinfos[i] = stateVariable;
-                        }
-                        else {//unit of information
-                            var stateVariable = new sbgnviz.classes.UnitOfInformation();
-                            var stateJson = jsonNode.data.statesandinfos[i];
-                            for(var att in stateJson){
-                                stateVariable[att] = stateJson[att];
-                            }
-
-                          //  stateVariable.shapeFn = sbgnviz.getlibs().cytoscape.sbgn.AfShapeFn;
-                          //  stateVariable.shapeArgsFn =sbgnviz.getlibs().cytoscape.sbgn.AfShapeArgsFn;
-
-                            jsonNode.data.statesandinfos[i] = stateVariable;
-                        }
-
-                    }
-
 
 
                     jsonNodes.push(jsonNode);
@@ -1075,8 +1048,14 @@ module.exports = function (model, docId, sbgnviz) {
          * @param user: to make sure we don't update the data of same client
          * @param noHistUpdate
          */
+
+        /***
+         *
+         * @param node: Cytoscape node
+         * @param user: to make sure we don't update the data of same client
+         * @param noHistUpdate
+         */
         initModelNode: function (node, user, noHistUpdate) {
-            var self = this;
 
 
             var nodePath = model.at('_page.doc.cy.nodes.' + node.id());
@@ -1087,6 +1066,7 @@ module.exports = function (model, docId, sbgnviz) {
 
             nodePath.set('id', node.id());
 
+
             var interactionCount = nodePath.get('interactionCount');
 
             if (interactionCount == null) //this is not stored in cy
@@ -1095,75 +1075,42 @@ module.exports = function (model, docId, sbgnviz) {
             var data = nodePath.get('data');
             //bbox is a random data parameter to make sure all data parts are already in the model
             //if the only data parameters are id and class, it means it has just been added without initialization
-            if (data != null && data.bbox!=null) { //it means data has been added before
-                for(var att in data){
-                    node.data(att, data[att]);
-                    console.log(att);
-                    console.log(data[att]);
-                }
+            if (data != null && data.bbox!=null) //it means data has been added before
+                node.data(data);
 
-            }
             else {
                 //correct the labels from PC queries
                 var nodeData = node.data();
                 if(nodeData == null)
                     nodeData = node._private.data;
 
-
-                var statesAndInfos =[]; //non-circular
                 if(nodeData.statesandinfos) {
 
                     for (var i = 0; i < nodeData.statesandinfos.length; i++) {
 
+                        if (nodeData.statesandinfos[i].clazz === "state variable") {
+                            if (nodeData.statesandinfos[i].state.value === "opthr") {
+                                nodeData.statesandinfos[i].state.value = "p";
+                                nodeData.statesandinfos[i].state.variable = "T" + nodeData.statesandinfos[i].state.variable;
+                            }
+                            else if (nodeData.statesandinfos[i].state.value === "opser") {
+                                nodeData.statesandinfos[i].state.value = "p";
+                                nodeData.statesandinfos[i].state.variable = "S" + nodeData.statesandinfos[i].state.variable;
+                            }
+                            else if (nodeData.statesandinfos[i].state.value === "optyr") {
+                                nodeData.statesandinfos[i].state.value = "p";
+                                nodeData.statesandinfos[i].state.variable = "Y" + nodeData.statesandinfos[i].state.variable;
+                            }
+                        }
 
-                        // if (nodeData.statesandinfos[i].clazz === "state variable") {
-                        //     if (nodeData.statesandinfos[i].state.value === "opthr") {
-                        //         nodeData.statesandinfos[i].state.value = "p";
-                        //         nodeData.statesandinfos[i].state.variable = "T" + nodeData.statesandinfos[i].state.variable;
-                        //     }
-                        //     else if (nodeData.statesandinfos[i].state.value === "opser") {
-                        //         nodeData.statesandinfos[i].state.value = "p";
-                        //         nodeData.statesandinfos[i].state.variable = "S" + nodeData.statesandinfos[i].state.variable;
-                        //     }
-                        //     else if (nodeData.statesandinfos[i].state.value === "optyr") {
-                        //         nodeData.statesandinfos[i].state.value = "p";
-                        //         nodeData.statesandinfos[i].state.variable = "Y" + nodeData.statesandinfos[i].state.variable;
-                        //     }
-                        // }
-
-                        var stateEl = _.clone(nodeData.statesandinfos[i]);
-                        stateEl.parent = null;
-
-                        console.log(stateEl);
-                        console.log(nodeData.statesandinfos[i]);
-                        statesAndInfos.push(stateEl);
                     }
-                  //??  node._private.data.statesandinfos = nodeData.statesandinfos;
-
-                 //   console.log(nodeData.statesandinfos);
-
+                    node._private.data.statesandinfos = nodeData.statesandinfos;
                 }
-
-                self.changeModelNodeAttribute('data.statesandinfos', node.id(), statesAndInfos, user, noHistUpdate);
-
-
-                var nodeAtts = ["id", "background-color", "background-opacity","border-color","border-width","bbox",
-                    "font-size","font-weight","font-style","font-family","parent","class", "ports" ];
-
-                nodeAtts.forEach(function(att){
-                    self.changeModelNodeAttribute(('data.'+ att), node.id(), nodeData[att], user, noHistUpdate);
-                })
-
-
-
-//                console.log(CircularJSON.stringify(nodeData.statesandinfos));
-
-             //   self.changeModelNodeAttribute('data.statesandinfos', node.id(), CircularJSON.stringify(nodeData.statesandinfos), user, noHistUpdate);
-
+                this.changeModelNodeAttribute('data', node.id(), nodeData, user, noHistUpdate);
             }
 
             //make this initially unselected
-        //    nodePath.set('highlightColor', null);
+            //    nodePath.set('highlightColor', null);
 
 
             var pos = nodePath.get('position');
@@ -1178,6 +1125,7 @@ module.exports = function (model, docId, sbgnviz) {
             }
 
             //Initializing css properties causes bypass problems!!
+
 
 
 

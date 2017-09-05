@@ -221,7 +221,7 @@ module.exports = function () {
       if ($(this).val() != "") {
         var file = this.files[0];
         var loadCallbackSBGNMLValidity = function (text) {
-          validateSBGNML(text);
+          //funda validateSBGNML(text);
         }      
         var loadCallbackInvalidityWarning  = function () {
           //FUNDA  promptInvalidFileView.render();
