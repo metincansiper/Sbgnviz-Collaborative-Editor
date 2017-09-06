@@ -2193,8 +2193,8 @@
                     <!--<ul id ="command-list" as = "list" >-->
                     {{each _page.doc.history as #pCommand}}
                         <!--FUNDA CLOSED FOR NOW-->
-                    <!--<li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} > </b>{{#pCommand.opName}} {{#pCommand.opTarget}} {{formatObj(#pCommand.elId)}} {{#pCommand.opAttr}} {{formatObj(#pCommand.param)}}-->
-                    <li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} > </b>{{#pCommand.opName}}
+                    <li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} > </b>{{#pCommand.opName}} {{#pCommand.opTarget}} {{formatObj(#pCommand.elId)}} {{#pCommand.opAttr}} {{formatObj(#pCommand.param)}}
+                    <!--<li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} > </b>{{#pCommand.opName}}-->
                     </li>
                     {{/each}}
                     <!--</ul>-->

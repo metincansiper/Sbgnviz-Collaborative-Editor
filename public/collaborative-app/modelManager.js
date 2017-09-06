@@ -274,6 +274,8 @@ module.exports = function (model, docId, sbgnviz) {
             return (model.get('_page.doc.undoIndex') > 0)
         },
         isRedoPossible: function () {
+
+            console.log(model.get('_page.doc.undoIndex') + " " + model.get('_page.doc.history').length );
             return (model.get('_page.doc.undoIndex') + 1 < model.get('_page.doc.history').length)
         },
 
@@ -281,6 +283,8 @@ module.exports = function (model, docId, sbgnviz) {
             var undoInd = model.get('_page.doc.undoIndex');
             var cmd = model.get('_page.doc.history.' + undoInd); // cmd: opName, opTarget, opAttr, elId, param
 
+            console.log("undo " + cmd.opName );
+            console.log(cmd.prevParam );
 
             if (cmd.opName == "set") {
                 if (cmd.opTarget == "element" && cmd.elType == "node")
@@ -292,7 +296,7 @@ module.exports = function (model, docId, sbgnviz) {
                     this.changeModelElementGroupAttribute(cmd.opAttr, cmd.elId, cmd.prevParam, null);
 
             }
-            else if (cmd.opName == "add") {
+            else if (cmd.opName == "add" || cmd.opName ==="restore") {
                 if (cmd.opTarget == "element" && cmd.elType == "node")
                     this.deleteModelNode(cmd.elId);
                 else if (cmd.opTarget == "element" && cmd.elType == "edge")
@@ -342,6 +346,9 @@ module.exports = function (model, docId, sbgnviz) {
             var undoInd = model.get('_page.doc.undoIndex');
             var cmd = model.get('_page.doc.history.' + (undoInd + 1)); // cmd: opName, opTarget, opAttr, elId, param
 
+            console.log("redo " + cmd.opName );
+            console.log(cmd.param );
+
             if (cmd.opName == "set") {
                 if (cmd.opTarget == "element" && cmd.elType == "node")
                     this.changeModelNodeAttribute(cmd.opAttr, cmd.elId, cmd.param, null); //user is null to enable updating in the editor
@@ -352,11 +359,10 @@ module.exports = function (model, docId, sbgnviz) {
 
                 }
 
-
             }
-            else if (cmd.opName == "add") {
+            else if (cmd.opName == "add" ||cmd.opName == "restore") {
                 if (cmd.opTarget == "element")
-                    this.restoreModelElement(cmd.elType, cmd.elId, cmd.param, null);
+                    this.restoreModelElement(cmd.elType, cmd.elId, cmd.param);
                 else if (cmd.opTarget == "compound")
                     this.addModelCompound(cmd.elId, cmd.param.compoundAtts, cmd.param.childrenList, cmd.param.paramList);
 
@@ -370,7 +376,7 @@ module.exports = function (model, docId, sbgnviz) {
                 else if (cmd.opTarget == "element group")
                     this.deleteModelElementGroup(cmd.elId);
                 else if (cmd.opTarget == "compound")
-                    this.removeModelCompound(cmd.elId, cmd.prevParam.childrenList, cmd.param);
+                    this.removeModelCompound(cmd.elId, cmd.param.childrenList, cmd.param);
 
             }
             else if(cmd.opName === "update"){ //properties
@@ -481,11 +487,12 @@ module.exports = function (model, docId, sbgnviz) {
                 return "Node cannot be duplicated";
 
             model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.data.id', nodeId);
-            model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.position', {x: param.x, y: param.y});
-            model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.data.class', param.class);
+            model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.position', param.position);
+            model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.data', param.data);
 
             //adding the node in cytoscape
             model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.addedLater', true);
+
 
 
             if (!noHistUpdate)
@@ -495,7 +502,8 @@ module.exports = function (model, docId, sbgnviz) {
                     opTarget: 'element',
                     elType: 'node',
                     elId: nodeId,
-                    param: {x: param.x, y: param.y, class: param.class}
+                    param: param
+
                 });
 
 
@@ -509,17 +517,22 @@ module.exports = function (model, docId, sbgnviz) {
                 return "Edge cannot be duplicated";
 
             model.pass({user: user}).set('_page.doc.cy.edges.' + edgeId + '.data.id', edgeId);
-            model.pass({user: user}).set('_page.doc.cy.edges.' + edgeId + '.data.class', param.class);
+            model.pass({user: user}).set('_page.doc.cy.edges.' + edgeId + '.data', param.data);
 
-            model.pass({user: user}).set('_page.doc.cy.edges.' + edgeId + '.data.source', param.source);
-            model.pass({user: user}).set('_page.doc.cy.edges.' + edgeId + '.data.target', param.target);
 
             //adding the edge...other operations should be called after this
             model.pass({user: user}).set('_page.doc.cy.edges.' + edgeId + '.addedLater', true);
 
 
             if (!noHistUpdate)
-                this.updateHistory({opName: 'add', opTarget: 'element', elType: 'edge', elId: edgeId, param: param});
+                this.updateHistory({
+                    opName: 'add',
+                    opTarget: 'element',
+                    elType: 'edge',
+                    elId: edgeId,
+                    param: param
+
+                });
 
             return "success";
 
@@ -751,6 +764,7 @@ module.exports = function (model, docId, sbgnviz) {
         deleteModelNode: function (nodeId, user, noHistUpdate) {
             var nodePath = model.at('_page.doc.cy.nodes.' + nodeId);
 
+
             if (nodePath.get() == null)
                 return "Node id not found";
 
@@ -759,12 +773,14 @@ module.exports = function (model, docId, sbgnviz) {
 
                 prevParam = nodePath.get();
 
+
                 this.updateHistory({
                     opName: 'delete',
                     opTarget: 'element',
                     elType: 'node',
                     elId: nodeId,
                     prevParam: prevParam
+
                 });
 
             }
@@ -851,60 +867,74 @@ module.exports = function (model, docId, sbgnviz) {
             //Restore nodes first
 
             for (var i = 0; i < elList.nodes.length; i++) {
-                self.restoreModelNode(elList.nodes[i].id, param.nodes[i], user, true);
+                self.restoreModelNode(elList.nodes[i].id, param.nodes[i], user, noHistUpdate);
             }
 
             //restore edges later
             for (var i = 0; i < elList.edges.length; i++) {
-                self.restoreModelEdge(elList.edges[i].id, param.edges[i], user, true);
+                self.restoreModelEdge(elList.edges[i].id, param.edges[i], user, noHistUpdate);
             }
 
             //change parents after adding them all
             for (var i = 0; i < elList.nodes.length; i++) {
-                self.changeModelNodeAttribute('parent', elList.nodes[i].id, param.nodes[i].parent, null, false);
+                self.changeModelNodeAttribute('parent', elList.nodes[i].id, param.nodes[i].parent, null, noHistUpdate);
             }
 
 
 
             if (!noHistUpdate)
-                self.updateHistory({opName: 'restore', opTarget: 'element group', elId: elList});
+                self.updateHistory({
+                    opName: 'restore',
+                    opTarget: 'element group',
+                    elId: elList,
+                    param: param
+
+                });
         },
         /**
+         *
          * Restore operations for global undo/redo
          */
         restoreModelNode: function (nodeId, param, user, noHistUpdate) {
 
-            this.addModelNode(nodeId, {x: param.position.x, y: param.position.y, class:param.data.class}, user, noHistUpdate);
+            //param is the previous node data
+            //history is updated as restore command
+            this.addModelNode(nodeId, param, user, true);
 
             //No need to init -- data and position are updated in the next steps
 
+            //model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.position', param.position);
+           // model.pass({user: user}).set('_page.doc.cy.nodes.' + nodeId + '.data', param.data);
 
-            for(att in param){
-                if(param.hasOwnProperty(att) && att !== "addedLater"){
-
-                    model.pass({user:user}).set(('_page.doc.cy.nodes.' + nodeId + '.' + att), param[att]);
-                }
-            }
+            // for(att in param){
+            //     if(param.hasOwnProperty(att) && att !== "addedLater"){
+            //
+            //         console.log(att);
+            //         console.log(param);
+            //         model.pass({user:user}).set(('_page.doc.cy.nodes.' + nodeId + '.' + att), param[att]);
+            //     }
+            // }
 
             if (!noHistUpdate)
-                this.updateHistory({opName: 'restore', opTarget: 'element', elType: 'node', elId: nodeId});
+                this.updateHistory({opName: 'restore', opTarget: 'element', elType: 'node', elId: nodeId, param:param});
         },
 
         restoreModelEdge: function (edgeId, param, user, noHistUpdate) {
-
-            this.addModelEdge(edgeId, {source: param.data.source, target:param.data.target, class: param.data.class}, user, noHistUpdate);
+            //param is the previous edge data
+            //history is updated as restore command
+            this.addModelEdge(edgeId, param, user, true);
             //No need to init -- data and position are updated in the next steps
 
-
-            for(att in param){
-                if(param.hasOwnProperty(att) && att !== "addedLater"){
-                    model.pass({user:user}).set(('_page.doc.cy.edges.' + edgeId + '.' + att), param[att]);
-                }
-            }
+            //
+            // for(att in param){
+            //     if(param.hasOwnProperty(att) && att !== "addedLater"){
+            //         model.pass({user:user}).set(('_page.doc.cy.edges.' + edgeId + '.' + att), param[att]);
+            //     }
+            // }
 
 
             if (!noHistUpdate)
-                this.updateHistory({opName: 'restore', opTarget: 'element', elType: 'edge', elId: edgeId});
+                this.updateHistory({opName: 'restore', opTarget: 'element', elType: 'edge', elId: edgeId, param:param});
         },
 
 
@@ -1041,13 +1071,6 @@ module.exports = function (model, docId, sbgnviz) {
          * @param user: to make sure we don't update the data of same client
          * @param noHistUpdate
          */
-
-        /***
-         *
-         * @param node: Cytoscape node
-         * @param user: to make sure we don't update the data of same client
-         * @param noHistUpdate
-         */
         initModelNode: function (node, user, noHistUpdate) {
 
 
@@ -1059,7 +1082,7 @@ module.exports = function (model, docId, sbgnviz) {
 
             nodePath.set('id', node.id());
 
-            node.data("annotationsView", null);
+            node._private.data.annotationsView = null;
 
             var interactionCount = nodePath.get('interactionCount');
 
@@ -1078,8 +1101,8 @@ module.exports = function (model, docId, sbgnviz) {
                 if(nodeData == null)
                     nodeData = node._private.data;
 
-                nodeData.annotationsView = null; //cyclic
-                node.data("annotationsView", null);
+                //nodeData.annotationsView = null; //cyclic
+
                 if(nodeData.statesandinfos) {
 
                     for (var i = 0; i < nodeData.statesandinfos.length; i++) {
@@ -1139,7 +1162,8 @@ module.exports = function (model, docId, sbgnviz) {
 
             edgePath.set('id', edge.id());
 
-            edge.data("annotationsView", null);
+            edge._private.data.annotationsView = null;
+
 
             //make this initially unselected
             //edgePath.set('highlightColor', null);
@@ -1155,8 +1179,7 @@ module.exports = function (model, docId, sbgnviz) {
                 if(edgeData == null)
                     edgeData = edge._private.data;
 
-                edge.data("annotationsView", null);
-                edgeData.annotationsView = null; //cyclic
+               // edgeData.annotationsView = null; //cyclic
 
 
                 this.changeModelEdgeAttribute('data', edge.id(), edgeData, user, noHistUpdate);

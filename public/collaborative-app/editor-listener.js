@@ -306,11 +306,11 @@ module.exports = function(modelManager, socket, userId){
         else if (actionName === "addNode") {
             var newNode = args.newNode;
             var id = res.eles.id();
-            var param = {x: newNode.x, y: newNode.y, class: newNode.class};
+            var param = {position: {x: newNode.x, y: newNode.y}, data:{class: newNode.class, parent: newNode.parent}};
             //Add to the graph first
             modelManager.addModelNode(id, param, "me");
             //assign other node properties-- css and data
-            modelManager.initModelNode(res.eles[0], "me");
+            modelManager.initModelNode(res.eles[0], "me", true);
 
         }
 
@@ -318,21 +318,23 @@ module.exports = function(modelManager, socket, userId){
 
             var newEdge = args.newEdge;
             var id = res.eles.id();
-            var param = { source: newEdge.source, target:newEdge.target, class: newEdge.class};
+            //var param = { source: newEdge.source, target:newEdge.target, class: newEdge.class};
+            var param = {data:{ source: newEdge.source, target:newEdge.target, class: newEdge.class}};
             //Add to the graph first
             modelManager.addModelEdge(id, param, "me");
             //assign other edge properties-- css and data
-            modelManager.initModelEdge(res.eles[0], "me");
+            modelManager.initModelEdge(res.eles[0], "me", true);
 
         }
 
         else if(actionName === "paste"){
             res.forEach(function(el){ //first add nodes
                 if(el.isNode()){
-                    var param = {x: el.position("x"), y: el.position("y"), class: el.data("class")};
+                 //   var param = {x: el.position("x"), y: el.position("y"), class: el.data("class")};
+                    var param = {position: {x: el.position("x"), y: el.position("y")}, data:el.data()};
                     modelManager.addModelNode(el.id(), param, "me");
 
-                    modelManager.initModelNode(el, "me");
+                    modelManager.initModelNode(el, "me", true);
                 }
             });
 
@@ -340,7 +342,7 @@ module.exports = function(modelManager, socket, userId){
                 if(el.isEdge()){
                     var param = { source: el.data("source"), target:el.data("target"), class: el.data("class")};
                     modelManager.addModelEdge(el.id(), param, "me");
-                    modelManager.initModelEdge(el, "me");
+                    modelManager.initModelEdge(el, "me", true);
                 }
             });
 

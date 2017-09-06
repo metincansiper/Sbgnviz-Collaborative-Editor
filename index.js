@@ -27,6 +27,7 @@ var docReady = false;
 var useQunit = true;
 
 var factoidHandler;
+var notyView;
 
 var socket;
  var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
@@ -280,6 +281,7 @@ app.proto.create = function (model) {
     var isQueryWindow = false;
 
     socket = io();
+    notyView = noty({layout: "bottom",text: "Please wait while model is loading."});
 
     $('#messages').contentchanged = function () {
 
@@ -338,6 +340,8 @@ app.proto.create = function (model) {
             setTimeout(function() {
 
                 modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+
+                //Menu and options can be active then
             },2000);
         }
 
@@ -599,13 +603,12 @@ app.proto.listenToNodeOperations = function(model){
         console.log("only data");
 
 
-
-
         if(docReady && passed.user == null) {
 
             //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
             cy.getElementById(id)._private.data = data;
 
+            console.log(data);
             //to update parent
             var newParent = data.parent;
             if(newParent == undefined)
@@ -871,6 +874,18 @@ app.proto.init = function (model) {
 
     });
 
+    //Cy updated by other clients
+    model.on('all', '_page.doc.cy.initTime', function( val, prev, passed){
+
+        if(docReady ) {
+
+
+            console.log(val);
+            notyView.close();
+
+        }
+    });
+
 
 
     //Cy updated by other clients
@@ -879,6 +894,7 @@ app.proto.init = function (model) {
         if(docReady &&  passed.user == null) {
 
             self.loadCyFromModel();
+            notyView.close();
 
         }
     });
