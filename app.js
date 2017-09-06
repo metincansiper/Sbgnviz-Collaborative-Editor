@@ -1176,6 +1176,20 @@ app.proto.listenToEdgeOperations = function(model){
 
     });
 
+    model.on('all', '_page.doc.cy.edges.*.data', function(id, op, data,prev, passed){
+
+        if(docReady && passed.user == null) {
+
+            //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
+            cy.getElementById(id)._private.data = data;
+
+
+            cy.getElementById(id).updateStyle();
+
+
+        }
+
+    });
 
     model.on('all', '_page.doc.cy.edges.*.data.*', function(id, att, op, val,prev, passed){
 
@@ -1214,13 +1228,13 @@ app.proto.listenToEdgeOperations = function(model){
             try{
                 var edge = cy.getElementById(id);
                 if(bendPoints.weights && bendPoints.weights.length > 0) {
-                    edge.scratch('cyedgebendeditingWeights', bendPoints.weights);
-                    edge.scratch('cyedgebendeditingDistances', bendPoints.distances);
+                    edge.data('cyedgebendeditingWeights', bendPoints.weights);
+                    edge.data('cyedgebendeditingDistances', bendPoints.distances);
                     edge.addClass('edgebendediting-hasbendpoints');
                 }
                 else{
-                    edge.removeScratch('cyedgebendeditingWeights');
-                    edge.removeScratch('cyedgebendeditingDistances');
+                    edge.data('cyedgebendeditingWeights',[]);
+                    edge.data('cyedgebendeditingDistances',[]);
                     edge.removeClass('edgebendediting-hasbendpoints');
                 }
 

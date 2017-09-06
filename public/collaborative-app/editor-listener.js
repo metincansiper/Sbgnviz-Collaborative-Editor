@@ -87,6 +87,8 @@ module.exports = function(modelManager, socket, userId){
                 //var ele = param.ele;
 
                 modelElList.push({id: ele.id(), isNode: ele.isNode()});
+
+                ele.data("annotationsView", null);
                 paramList.push(ele.data());
 
             });
@@ -104,6 +106,8 @@ module.exports = function(modelManager, socket, userId){
                 //var ele = param.ele;
 
                 modelElList.push({id: ele.id(), isNode: true});
+
+                ele.data("annotationsView", null);
                 paramList.push(ele.data());
 
             });
@@ -128,7 +132,7 @@ module.exports = function(modelManager, socket, userId){
             modelElList.push({id: args.edge.id(), isNode: false});
 
 
-            paramList.push({weights: args.edge.scratch('cyedgebendeditingWeights'), distances:args.edge.scratch('cyedgebendeditingDistances')});
+            paramList.push({weights: args.edge.data('cyedgebendeditingWeights'), distances:args.edge.data('cyedgebendeditingDistances')});
 
             modelManager.changeModelElementGroupAttribute("bendPoints", modelElList, paramList, "me");
 
