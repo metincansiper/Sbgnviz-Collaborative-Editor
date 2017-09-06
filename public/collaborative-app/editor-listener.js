@@ -79,6 +79,7 @@ module.exports = function(modelManager, socket, userId){
         console.log(res);
 
 
+
         if (actionName === "changeData" || actionName === "changeFontProperties" ) {
 
             var modelElList = [];
@@ -117,6 +118,7 @@ module.exports = function(modelManager, socket, userId){
         else if(actionName === "resize"){
 
             var modelElList = [{id: res.node.id(), isNode: true}];
+            res.node.data("annotationsView", null);
             var paramList = [res.node.data()];
 
 
@@ -138,7 +140,70 @@ module.exports = function(modelManager, socket, userId){
 
         }
 
+        else if(actionName === "batch"){
+            args.forEach(function(arg){
+                console.log(arg.name);
+                console.log(arg.param);
+                if(arg.name === "thinBorder" || arg.name === 'thickenBorder'){
+                    var modelElList = [];
+                    var paramList = [];
+                    arg.param.forEach(function (ele) {
+                        //var ele = param.ele;
 
+                        modelElList.push({id: ele.id(), isNode: ele.isNode()});
+
+                        ele.data("annotationsView", null);
+                        paramList.push(ele.data());
+
+                    });
+                    modelManager.changeModelElementGroupAttribute("data", modelElList, paramList, "me");
+                }
+                else if(arg.name === 'hideAndPerformLayout' || arg.name === 'hide'){
+                    var modelElList = [];
+                    var paramList = [];
+                    var paramListPos = [];
+
+                    if(arg.param) {
+                        var eles = arg.param.eles;
+                        if(!eles) eles = arg.param;
+
+                        eles.forEach(function (ele) {
+                            modelElList.push({id: ele.id(), isNode: ele.isNode()});
+                            paramList.push("hide");
+                            paramListPos.push(ele.position());
+
+
+                        });
+                    }
+
+                    modelManager.changeModelElementGroupAttribute("visibilityStatus", modelElList, paramList, "me");
+                    modelManager.changeModelElementGroupAttribute("position", modelElList, paramListPos, "me");
+                }
+                else if(arg.name === 'showAndPerformLayout' || arg.name === 'show' ){
+                    var modelElList = [];
+                    var paramList = [];
+                    var paramListPos = [];
+
+                    if(arg.param) {
+                        var eles = arg.param.eles;
+                        if(!eles) eles = arg.param;
+
+                        eles.forEach(function (ele) {
+                            modelElList.push({id: ele.id(), isNode: ele.isNode()});
+                            paramList.push("show");
+                            paramListPos.push(ele.position());
+
+
+                        });
+                    }
+
+                    modelManager.changeModelElementGroupAttribute("visibilityStatus", modelElList, paramList, "me");
+                    modelManager.changeModelElementGroupAttribute("position", modelElList, paramListPos, "me");
+                }
+            })
+
+
+        }
         else if (actionName === "hide" || actionName === "show") {
             var modelElList = [];
             var paramList = [];
@@ -289,6 +354,7 @@ module.exports = function(modelManager, socket, userId){
                 //var ele = param.ele;
 
                 modelElList.push({id: ele.id(), isNode: ele.isNode()});
+                ele.data("annotationsView", null);
                 paramListData.push(ele.data());
                 paramListPosition.push(ele.position());
 
@@ -320,7 +386,7 @@ module.exports = function(modelManager, socket, userId){
 
 
                 modelElList.push({id: ele.id(), isNode: true});
-
+                ele.data("annotationsView", null);
                 paramList.push(ele.data()); //includes parent information
 
             }

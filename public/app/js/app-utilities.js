@@ -78,7 +78,7 @@ appUtilities.defaultGeneralProperties = {
   fitLabelsToNodes: false,
   fitLabelsToInfoboxes: false,
   rearrangeAfterExpandCollapse: true,
-  animateOnDrawingChanges: true,
+  animateOnDrawingChanges: false, //funda
   adjustNodeLabelFontSizeAutomatically: false,
   enablePorts: true,
   allowCompoundNodeResize: false,

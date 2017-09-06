@@ -99,7 +99,6 @@ module.exports = function (model, docId, sbgnviz) {
         },
 
         deleteUser: function(userId){
-            // console.log("user deleted");
          //   model.del('_page.doc.users.'+ userId);
             var userIds = model.get('_page.doc.userIds');
 
@@ -883,12 +882,6 @@ module.exports = function (model, docId, sbgnviz) {
             for(att in param){
                 if(param.hasOwnProperty(att) && att !== "addedLater"){
 
-
-                    console.log(att);
-                    console.log(param[att]);
-
-
-                    console.log(user);
                     model.pass({user:user}).set(('_page.doc.cy.nodes.' + nodeId + '.' + att), param[att]);
                 }
             }
@@ -1066,6 +1059,7 @@ module.exports = function (model, docId, sbgnviz) {
 
             nodePath.set('id', node.id());
 
+            node.data("annotationsView", null);
 
             var interactionCount = nodePath.get('interactionCount');
 
@@ -1084,6 +1078,8 @@ module.exports = function (model, docId, sbgnviz) {
                 if(nodeData == null)
                     nodeData = node._private.data;
 
+                nodeData.annotationsView = null; //cyclic
+                node.data("annotationsView", null);
                 if(nodeData.statesandinfos) {
 
                     for (var i = 0; i < nodeData.statesandinfos.length; i++) {
@@ -1143,7 +1139,7 @@ module.exports = function (model, docId, sbgnviz) {
 
             edgePath.set('id', edge.id());
 
-
+            edge.data("annotationsView", null);
 
             //make this initially unselected
             //edgePath.set('highlightColor', null);
@@ -1158,6 +1154,10 @@ module.exports = function (model, docId, sbgnviz) {
                 var edgeData = edge.data();
                 if(edgeData == null)
                     edgeData = edge._private.data;
+
+                edge.data("annotationsView", null);
+                edgeData.annotationsView = null; //cyclic
+
 
                 this.changeModelEdgeAttribute('data', edge.id(), edgeData, user, noHistUpdate);
             }

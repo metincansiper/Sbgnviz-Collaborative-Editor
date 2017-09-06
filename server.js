@@ -1,1 +1,1 @@
-require('./server/index.js').run(__dirname+'/app.js', {noRedis: true});
+require('./server/index.js').run(__dirname+'/index.js', {noRedis: true});
