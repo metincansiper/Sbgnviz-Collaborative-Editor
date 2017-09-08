@@ -225,6 +225,7 @@ module.exports = function (model, docId, sbgnviz) {
 
 
 
+
                 model.set('_page.doc.undoIndex', ind);
             }
 

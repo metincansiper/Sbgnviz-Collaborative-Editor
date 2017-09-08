@@ -30,7 +30,7 @@ var factoidHandler;
 var notyView;
 
 var socket;
- var jsonMerger = require('./public/collaborative-app/reach-functions/json-merger.js');
+
 
 
 var modelManager;
@@ -69,8 +69,6 @@ app.get('/', function (page, model, params) {
     function getId() {
         return model.id();
     }
-
-
 
 
     function idIsReserved() {
@@ -281,7 +279,7 @@ app.proto.create = function (model) {
     var isQueryWindow = false;
 
     socket = io();
-    notyView = noty({layout: "bottom",text: "Please wait while model is loading."});
+    notyView = noty({layout: "bottom",theme:"bootstrapTheme", text: "Please wait while model is loading."});
 
     $('#messages').contentchanged = function () {
 
@@ -320,11 +318,14 @@ app.proto.create = function (model) {
     //Notify server about the client connection
     socket.emit("subscribeHuman", { userName:name, room:  model.get('_page.room'), userId: id}, function(){
 
-        //start listening to agent after human is subscribedd
-        var agentSocket = require('./public/collaborative-app/agent-socket-handler')(this, modelManager);
-        agentSocket.listen();
+
 
     }); //subscribe to current doc as a new room
+
+
+
+    var agentSocket = require('./public/collaborative-app/agent-socket-handler')(this, modelManager, socket);
+    agentSocket.listen();
 
 
     // //If we get a message on a separate window
@@ -352,15 +353,18 @@ app.proto.create = function (model) {
 
 
     //Loading cytoscape and clients
-    setTimeout(function(){
+   // setTimeout(function(){
 
     if(!isQueryWindow) { //initialization for a regular window
         var isModelEmpty = self.loadCyFromModel();
 
+        console.log("cy loaded");
         //TODO????????????????
         setTimeout(function () {
             if (isModelEmpty)
                 modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+            else
+                notyView.close();
 
 
 
@@ -385,7 +389,7 @@ app.proto.create = function (model) {
         });
 
 
-    }, 2000);
+ //   }, 2000);
 
 
 
@@ -413,6 +417,7 @@ app.proto.loadCyFromModel = function(){
 
     var jsonArr = modelManager.getJsonFromModel();
 
+    console.log(jsonArr);
 
 
     if (jsonArr!= null) {
@@ -480,6 +485,16 @@ app.proto.listenToNodeOperations = function(model){
 
 
     });
+
+    model.on('change', '_page.doc.undoIndex', function (id, cmdInd) {
+
+        var cmd = model.get('_page.doc.history.' + id);
+        //modelOp = cmd.opName;
+        //console.log(modelOp);
+
+
+    });
+
 
     //Update inspector
 
@@ -608,7 +623,6 @@ app.proto.listenToNodeOperations = function(model){
             //cy.getElementById(id).data(data); //can't call this if cy element does not have a field called "data"
             cy.getElementById(id)._private.data = data;
 
-            console.log(data);
             //to update parent
             var newParent = data.parent;
             if(newParent == undefined)
@@ -665,14 +679,11 @@ app.proto.listenToNodeOperations = function(model){
                 var viewUtilities = cy.viewUtilities('get');
 
 
-                console.log(visibilityStatus);
-                if(visibilityStatus === "show") {
-                    viewUtilities.show(cy.getElementById(id));
-                    console.log(id);
-                }
-                else {
+                if(visibilityStatus === "hide") {
                     viewUtilities.hide(cy.getElementById(id));
-                    console.log(id);
+                }
+                else { //default is show
+                    viewUtilities.show(cy.getElementById(id));
                 }
 
             }
@@ -829,10 +840,10 @@ app.proto.listenToEdgeOperations = function(model){
         if(docReady && passed.user == null) {
             var viewUtilities = cy.viewUtilities('get');
             try{
-                if(visibilityStatus === "show")
-                    viewUtilities.show(cy.getElementById(id));
-                else
+                if(visibilityStatus === "hide")
                     viewUtilities.hide(cy.getElementById(id));
+                else
+                    viewUtilities.show(cy.getElementById(id));
             }
             catch(e){
                 console.log(e);
@@ -1010,22 +1021,31 @@ app.proto.runUnitTests = function(){
      //require("./public/test/testsEditorListener.js")(editorListener);
     require("./public/test/testOptions.js")(); //to print out results
 
-
-
-
 }
+
 
 app.proto.connectCausalityAgent = function(){
 
-    var CausalityAgent = require("./agent-interaction/CausalityAgent");
-    agent = new CausalityAgent("Agent1", "Agent1");
-    agent.connectToServer("http://localhost:3000/", function (socket) {
-        agent.loadModel(function() {
-            agent.init();
-            agent.loadChatHistory(function(){
-            });
-        });
-    });
+    //We can't run it in node because it uses browser's database functionality
+    // var CausalityAgent = require("./agent-interaction/CausalityAgent");
+    // agent = new CausalityAgent("Agent1", "Agent1");
+    // agent.connectToServer("http://localhost:3000/", function (socket) {
+    //     agent.loadModel(function() {
+    //         agent.init();
+    //         agent.loadChatHistory(function(){
+    //         });
+    //     });
+    // });
+
+
+
+        var w = window.open("http://localhost:63342/Sbgnviz-Collaborative-Editor/agent-interaction/computerAgent.html");
+
+        w.blur();
+
+
+
+
 }
 
 app.proto.enterMessage= function(event){
@@ -1177,80 +1197,6 @@ app.proto.formatObj = function(obj){
 };
 
 
-app.proto.mergeSbgn = function(sbgnText, callback){
-
-    var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
-    this.mergeJsonWithCurrent(newJson, callback);
-};
-
-//Merge an array of json objects to output a single json object.
-app.proto.mergeJsons = function(jsonGraph, callback) {
-    var idxCardNodeMap = {};
-    var sentenceNodeMap = {};
-
-    var jsonObj = jsonMerger.mergeJsons(jsonGraph, sentenceNodeMap, idxCardNodeMap);
-
-    modelManager.newModel( "me", true);
-
-    chise.updateGraph(jsonObj);
-
-
-
-    setTimeout(function(){
-        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
-
-        $("#perform-layout").trigger('click');
-
-        //Call merge notification after the layout
-        setTimeout(function(){
-            modelManager.mergeJsons("me", true);
-
-            if(callback) callback();
-        }, 1000);
-
-
-    },2000); //wait for chise to complete updating graph
-    return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
-};
-
-//Merge an array of json objects with the json of the current sbgn network
-//on display to output a single json object.
-app.proto.mergeJsonWithCurrent = function(jsonGraph, callback) {
-    var currJson = sbgnviz.createJson();
-    modelManager.setRollbackPoint(); //before merging
-    var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
-
-    //get another sbgncontainer and display the new SBGN model.
-    modelManager.newModel( "me", true);
-    //this takes a while so wait before initiating the model
-    chise.updateGraph(jsonObj);
-    //DEBUG
-    // cy.nodes().forEach(function (node){
-    //     if(node._private.data == null){
-    //         console.log("Data not assigned");
-    //         console.log(node);
-    //     }
-    // });
-
-    setTimeout(function() {
-        modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
-
-        //select the new graph
-        jsonGraph.nodes.forEach(function(node){
-            cy.getElementById(node.data.id).select();
-        });
-
-        //Call Layout
-        $("#perform-layout").trigger('click');
-
-        //Call merge notification after the layout
-        setTimeout(function(){
-            modelManager.mergeJsons("me", true);
-            if(callback) callback("success");
-        }, 1000);
-
-    }, 2000); //wait for chise to complete updating graph
-};
 
 app.proto.dynamicResize = function (images) {
     var win = $(window);

@@ -141,7 +141,7 @@ module.exports = function(modelManager, socket, userId){
         }
 
         else if(actionName === "batch"){
-            args.forEach(function(arg){
+            res.forEach(function(arg){
                 console.log(arg.name);
                 console.log(arg.param);
                 if(arg.name === "thinBorder" || arg.name === 'thickenBorder'){
@@ -162,6 +162,7 @@ module.exports = function(modelManager, socket, userId){
                     var modelElList = [];
                     var paramList = [];
                     var paramListPos = [];
+                    var paramListData = [];
 
                     if(arg.param) {
                         var eles = arg.param.eles;
@@ -171,18 +172,25 @@ module.exports = function(modelManager, socket, userId){
                             modelElList.push({id: ele.id(), isNode: ele.isNode()});
                             paramList.push("hide");
                             paramListPos.push(ele.position());
-
+                            ele.data("annotationsView", null);
+                            paramListData.push(ele.data());
 
                         });
                     }
 
+                    modelManager.changeModelElementGroupAttribute("data", modelElList, paramListData, "me");
+
+
                     modelManager.changeModelElementGroupAttribute("visibilityStatus", modelElList, paramList, "me");
                     modelManager.changeModelElementGroupAttribute("position", modelElList, paramListPos, "me");
+
                 }
                 else if(arg.name === 'showAndPerformLayout' || arg.name === 'show' ){
                     var modelElList = [];
                     var paramList = [];
                     var paramListPos = [];
+                    var paramListData = [];
+
 
                     if(arg.param) {
                         var eles = arg.param.eles;
@@ -193,29 +201,34 @@ module.exports = function(modelManager, socket, userId){
                             paramList.push("show");
                             paramListPos.push(ele.position());
 
+                            ele.data("annotationsView", null);
+                            paramListData.push(ele.data());
 
                         });
                     }
 
+                    modelManager.changeModelElementGroupAttribute("data", modelElList, paramListData, "me");
                     modelManager.changeModelElementGroupAttribute("visibilityStatus", modelElList, paramList, "me");
                     modelManager.changeModelElementGroupAttribute("position", modelElList, paramListPos, "me");
+
+
                 }
             })
 
 
         }
-        else if (actionName === "hide" || actionName === "show") {
-            var modelElList = [];
-            var paramList = [];
-
-            args.forEach(function (ele) {
-                modelElList.push({id: ele.id(), isNode: ele.isNode()});
-                paramList.push(actionName);
-
-            });
-
-            modelManager.changeModelElementGroupAttribute("visibilityStatus", modelElList, paramList, "me");
-        }
+        // else if (actionName === "hide" || actionName === "show") {
+        //     var modelElList = [];
+        //     var paramList = [];
+        //
+        //     args.forEach(function (ele) {
+        //         modelElList.push({id: ele.id(), isNode: ele.isNode()});
+        //         paramList.push(actionName);
+        //
+        //     });
+        //
+        //     modelManager.changeModelElementGroupAttribute("visibilityStatus", modelElList, paramList, "me");
+        // }
 
         else if (actionName === "highlight") {
             var modelElList = [];
@@ -275,14 +288,18 @@ module.exports = function(modelManager, socket, userId){
 
                 var modelElList = [];
                 var paramList = [];
+                var paramListData = [];
                 args.eles.forEach(function (ele) {
                     if(ele.isNode()){
                         modelElList.push({id: ele.id(), isNode: true});
                         paramList.push(ele.position());
+                        //ele.data("annotationsView", null);
+                        //paramListData.push(ele.data());
                     }
                 });
 
                 modelManager.changeModelElementGroupAttribute("position", modelElList, paramList, "me");
+                // modelManager.changeModelElementGroupAttribute("data", modelElList, paramListData, "me"); //bounding boxes may change
             });
         }
 
@@ -304,6 +321,7 @@ module.exports = function(modelManager, socket, userId){
         }
 
         else if (actionName === "addNode") {
+            res.eles.data("annotationsView", null);
             var newNode = args.newNode;
             var id = res.eles.id();
             var param = {position: {x: newNode.x, y: newNode.y}, data:{class: newNode.class, parent: newNode.parent}};

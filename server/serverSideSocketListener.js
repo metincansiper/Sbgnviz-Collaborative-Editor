@@ -36,6 +36,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
             var clientSocket = io.sockets.connected[roomMate.socketId];
             clientSocket.emit(requestStr, data, function(val){
 
+                console.log(requestStr);
                 if(callback) callback(val);
             });
 
@@ -1007,6 +1008,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
         });
 
         socket.on('MergePCQuery', function(queryData, callback){
+
 
 
             var req = request(queryData.url , function (error, response, body) {

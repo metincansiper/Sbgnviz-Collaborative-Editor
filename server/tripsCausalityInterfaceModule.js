@@ -422,16 +422,22 @@ module.exports = function(socket, model, askHuman){
 
 
 
+
+
        self.modelId  = model.get('documents.' + socket.room + '.pysb.modelId');
+
+       //TODO: We now assume that the system is not reset after sbgnviz is connected-- so it keeps the model-id indefinitely
+        //We also need to check modelid does not exist in the system
+        //Or each time we get a new model id
+
        if(!self.modelId) {
 
            var ekbTerm = '"<ekb>' + '' + '</ekb>"';
 
-
            tm.sendMsg({0: 'request', content: {0: 'BUILD-MODEL', description: ekbTerm}});
        }
 
-        //Listen to model id response
+        //Listen to model id response from MRA
         var pattern = { 0: 'reply', 1:'&key', content: [ 'success',  '.', '*'], sender: 'MRA'};
 
         tm.addHandler(pattern, function (text) { //listen to requests
@@ -445,6 +451,7 @@ module.exports = function(socket, model, askHuman){
 
 
         });
+
 
 
         //self.proposeGoal();

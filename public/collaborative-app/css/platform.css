@@ -270,7 +270,7 @@ input[type="file"] {
     /*padding-top: 15px;*/
     /*padding-bottom: 5px;*/
     width: 100%;
-    height: 90%;
+    height: 95%;
     padding: 5px;
     right: 0px;
     top: 0px;
@@ -317,11 +317,12 @@ input[type="file"] {
 #clear-history{
     position: absolute;
     margin-left:2px;
-    bottom: 180px;
+    bottom: 190px;
     /*right: 5px;*/
     /*bottom: 100px;*/
 
 }
+
 #change-user-color{
 
     margin-left: 5px;
@@ -386,13 +387,19 @@ input[type="file"] {
     word-wrap: break-word;
     background: #ececec;
     /*width: 100%;*/
-    height: 180px;
+    height: 185px;
     border-top: 1px solid #eeeeee;
     right: 0px;
     left: 0px;
-    bottom: 0px;
+    bottom: 10px;
     font-size: small;
     padding: 8px 0 12px 12px;
+}
+#connect-causality-agent{
+
+    margin-top: 5px;
+
+
 }
 
 
@@ -414,7 +421,7 @@ input[type="file"] {
 }
 
 #send-message{
-    margin-top: 5px;
+    margin-top: 2px;
 }
 
 #inputs-comment{

@@ -1885,6 +1885,7 @@
                         <li class = "tab-link"><a data-toggle="tab" href="#sbgn-inspector">Inspector</a></li>
                         <li class = "tab-link"><a data-toggle="tab" href="#command-history-area">Operations</a></li>
                         <li class = "tab-link"><a data-toggle="tab" href="#factoid-area">Factoid</a></li>
+
                     </ul>
                 </div>
 
@@ -2131,6 +2132,10 @@
 
 
 
+
+
+
+
                     <!--</div>-->
                     <div id="inputs">
                         User name: <input id="inputs-name" value="{{_page.doc.users[_session.userId].name}}">
@@ -2146,6 +2151,8 @@
 
 
 
+
+                        <!--<button id = "connect-causality-agent" class = "btn  btn-mini" on-click = "connectCausalityAgent()">CausalityAgent</button>-->
 
                         <select id = "test-messages" on-change="updateMessage()">
                             <option value = "1">How does SETDB1 affect ADAM17?</option>
@@ -2192,10 +2199,11 @@
                     <ul id = "command-messages">
                     <!--<ul id ="command-list" as = "list" >-->
                     {{each _page.doc.history as #pCommand}}
-                        <!--FUNDA CLOSED FOR NOW-->
-                    <li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} > </b>{{#pCommand.opName}} {{#pCommand.opTarget}} {{formatObj(#pCommand.elId)}} {{#pCommand.opAttr}} {{formatObj(#pCommand.param)}}
-                    <!--<li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} > </b>{{#pCommand.opName}}-->
-                    </li>
+
+                        <!--Param is too long and sometimes cannot be displayed-->
+                        <li> <b>{{#pCommand.userName}} {{_page.showTime && formatTime(#pCommand)}} : </b>{{#pCommand.opName}} {{#pCommand.opTarget}} {{formatObj(#pCommand.elId)}} {{#pCommand.opAttr}}</li>
+                        <!--{{formatObj(#pCommand.param)}}-->
+
                     {{/each}}
                     <!--</ul>-->
                     </ul>
@@ -2209,8 +2217,10 @@
 
         <audio id="notificationAudio" src="http://www.talkingwav.com/various/beep_02.wav" preload="auto"></audio>
 
-        <!--<div id ="agentConnectionArea"> <button class="btn btn-info btn-mini" on-click = "connectCausalityAgent()"> Connect Agent</button></div>-->
+
         <div id ="unitTestArea"> <button class="btn btn-info btn-mini" on-click = "runUnitTests()"> Test</button></div>
+
+
 
         <chat-user:>
             <div class="user" style = background:{{_page.doc.users[#pUserId].colorCode}}>
@@ -2283,6 +2293,8 @@
         }
 
     }
+
+
 </script>
 
 

@@ -2,64 +2,65 @@
  * Created by durupina on 11/14/16.
  * Human listens to agent socket and performs menu operations requested by the agent
 */
+var jsonMerger = require('./reach-functions/json-merger.js');
 
 module.exports =  function(app, modelManager, socket) {
 
 
-    return   {
+    return {
 
 
-        listen: function(){
+        listen: function () {
             var self = this;
-            var modelOp;
+
 
 
             //For debugging
-            socket.on('message', function (msg){
+            socket.on('message', function (msg) {
 
                 console.log(msg.comment);
             });
-            socket.on('loadFile', function(txtFile, callback){
+            socket.on('loadFile', function (txtFile, callback) {
                 try {
 
                     sbgnviz.loadSBGNMLText(txtFile);
-                    if(callback) callback("success");
+                    if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
 
             });
 
-            socket.on('newFile', function(data, callback){
-                try{
+            socket.on('newFile', function (data, callback) {
+                try {
                     cy.remove(cy.elements());
                     modelManager.newModel("me"); //do not delete cytoscape, only the model
-                    if(callback) callback("success");
+                    if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
-            socket.on('runLayout', function(data, callback){
+            socket.on('runLayout', function (data, callback) {
                 try {
                     $("#perform-layout").trigger('click');
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
 
-            socket.on('addNode', function(data, callback){
+            socket.on('addNode', function (data, callback) {
                 try {
                     //does not trigger cy events
                     var newNode = chise.elementUtilities.addNode(data.x, data.y, data.class);
@@ -70,16 +71,15 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback(newNode.id());
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
 
-
-            socket.on('deleteEles', function(data, callback){
+            socket.on('deleteEles', function (data, callback) {
                 try {
                     //unselect all others
                     cy.elements().unselect();
@@ -98,30 +98,34 @@ module.exports =  function(app, modelManager, socket) {
 
 
                     var p1 = new Promise(function (resolve) {
-                        if(modelOp === "delete"){
-                            var undoInd =  model.get('_page.doc.undoIndex');
+
+                        var modelOp = modelManager.getLatestCommand();
+
+
+                        if (modelOp === "delete") {
+                            var undoInd = model.get('_page.doc.undoIndex');
 
                             var cmd = model.get('_page.doc.history.' + undoInd);
+
                             console.log(cmd.opName);
                             resolve("success");
                         }
                     });
-                    p1.then(function(){
+                    p1.then(function () {
 
-                        if(callback) callback("deleted!!");
+                        if (callback) callback("deleted!!");
                     });
 
 
-
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
-            socket.on('addImage', function(data, callback){
+            socket.on('addImage', function (data, callback) {
                 try {
 
 
@@ -132,30 +136,20 @@ module.exports =  function(app, modelManager, socket) {
                     var status = modelManager.addImage(data);
 
 
-
-                    if(callback) callback(status);
+                    if (callback) callback(status);
 
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
 
 
-            model.on('change', '_page.doc.undoIndex', function(id, cmdInd){
 
-                var cmd = model.get('_page.doc.history.' + id);
-                modelOp = cmd.opName;
-                //console.log(modelOp);
-
-
-            });
-
-
-            socket.on('addEdge', function(data, callback){
+            socket.on('addEdge', function (data, callback) {
                 try {
                     //does not trigger cy events
                     var newEdge = chise.elementUtilities.addEdge(source, target, sbgnclass, id, visibility);
@@ -166,21 +160,21 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback(newEdge.id());
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
 
-            socket.on('align', function(data, callback){
+            socket.on('align', function (data, callback) {
                 try {
                     var nodes = cy.collection();
-                    if(data.nodeIds === '*' || data.nodeIds === 'all')
+                    if (data.nodeIds === '*' || data.nodeIds === 'all')
                         nodes = cy.nodes();
                     else
-                        data.nodeIds.forEach(function(nodeId){
+                        data.nodeIds.forEach(function (nodeId) {
                             nodes.add(cy.getElementById(nodeId));
                         });
 
@@ -188,14 +182,14 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
 
             });
-            socket.on('updateVisibility', function(data, callback){
+            socket.on('updateVisibility', function (data, callback) {
                 try {
                     //unselect all others
                     cy.elements().unselect();
@@ -216,14 +210,14 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
-            socket.on('searchByLabel', function(data, callback){
+            socket.on('searchByLabel', function (data, callback) {
                 try {
                     //unselect all others
                     cy.elements().unselect();
@@ -233,21 +227,21 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
-            socket.on('updateHighlight', function(data, callback){
+            socket.on('updateHighlight', function (data, callback) {
                 try {
                     //unselect all others
                     cy.elements().unselect();
 
-                    if(data.val === "remove"){
+                    if (data.val === "remove") {
                         $("#remove-highlights").trigger('click');
                     }
-                    else{
+                    else {
                         data.elementIds.forEach(function (id) {
                             cy.getElementById(id).select();
                         });
@@ -260,14 +254,14 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
-            socket.on('updateExpandCollapse', function(data, callback){
+            socket.on('updateExpandCollapse', function (data, callback) {
                 try {
 
                     //unselect all others
@@ -284,15 +278,15 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
 
-            socket.on('addCompound', function(data, callback){
+            socket.on('addCompound', function (data, callback) {
                 try {
                     //unselect all others
                     cy.elements().unselect();
@@ -310,15 +304,15 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
 
             });
 
-            socket.on('clone', function(data, callback){
+            socket.on('clone', function (data, callback) {
                 try {
                     cy.elements().unselect();
 
@@ -331,27 +325,27 @@ module.exports =  function(app, modelManager, socket) {
 
                     if (callback) callback("success");
                 }
-                catch(e){
+                catch (e) {
                     console.log(e);
-                    if(callback) callback("fail");
+                    if (callback) callback("fail");
 
                 }
             });
 
 
+            socket.on("mergeSbgn", function (data, callback) {
 
-            socket.on("mergeSbgn", function(data, callback){
-                self.mergeSbgn(data, function(){
-                    if(callback) callback("success");
+                console.log("merging agent" + data);
+                self.mergeSbgn(data, function () {
+                    if (callback) callback("success");
                 });
 
 
             });
 
-            socket.on("mergeJsonWithCurrent", function(data){
+            socket.on("mergeJsonWithCurrent", function (data) {
                 self.mergeJsonWithCurrent(data);
             });
-
 
 
             // socket.on('agentContextQuestion', function(socketId){
@@ -364,13 +358,86 @@ module.exports =  function(app, modelManager, socket) {
             // });
 
 
+        },
 
+        //TODO: move these to a different place
+        mergeSbgn: function (sbgnText, callback) {
+
+
+            var newJson = sbgnviz.convertSbgnmlTextToJson(sbgnText);
+            console.log(newJson);
+            this.mergeJsonWithCurrent(newJson, callback);
+
+        },
+
+        //Merge an array of json objects to output a single json object.
+        mergeJsons: function (jsonGraph, callback) {
+            var idxCardNodeMap = {};
+            var sentenceNodeMap = {};
+
+            var jsonObj = jsonMerger.mergeJsons(jsonGraph, sentenceNodeMap, idxCardNodeMap);
+
+            modelManager.newModel("me", true);
+
+            chise.updateGraph(jsonObj);
+
+            setTimeout(function () {
+                modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+
+                $("#perform-layout").trigger('click');
+
+                //Call merge notification after the layout
+                setTimeout(function () {
+                    modelManager.mergeJsons("me", true);
+
+                    if (callback) callback();
+                }, 1000);
+
+
+            }, 2000); //wait for chise to complete updating graph
+            return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
+        },
+
+        //Merge an array of json objects with the json of the current sbgn network
+        //on display to output a single json object.
+        mergeJsonWithCurrent: function (jsonGraph, callback) {
+            var currJson = sbgnviz.createJson();
+            modelManager.setRollbackPoint(); //before merging
+            var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
+
+            //get another sbgncontainer and display the new SBGN model.
+            modelManager.newModel("me", true);
+            //this takes a while so wait before initiating the model
+            chise.updateGraph(jsonObj);
+            //DEBUG
+            // cy.nodes().forEach(function (node){
+            //     if(node._private.data == null){
+            //         console.log("Data not assigned");
+            //         console.log(node);
+            //     }
+            // });
+
+            setTimeout(function () {
+                modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+
+                //select the new graph
+                jsonGraph.nodes.forEach(function (node) {
+                    cy.getElementById(node.data.id).select();
+                });
+
+                //Call Layout
+                $("#perform-layout").trigger('click');
+
+                //Call merge notification after the layout
+                setTimeout(function () {
+                    modelManager.mergeJsons("me", true);
+                    if (callback) callback("success");
+                }, 1000);
+
+            }, 2000); //wait for chise to complete updating graph
         }
 
-
     }
-
-
 }
 
 
