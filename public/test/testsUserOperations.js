@@ -27,16 +27,22 @@ module.exports = function(){
   // TODO go back this function to consider the cases where a compound cannot be created.
   function createCompoundTest(id, compoundType) {
     QUnit.test('chise.createCompoundForGivenNodes()', function (assert) {
-      // chise.addNode(100, 200, 'macromolecule', "anotherMacromolecule")
-      // chise.createCompoundForGivenNodes(cy.nodes('#anotherMacromolecule'), 'complex');
-      // var node = cy.getElementById(id);
-      chise.createCompoundForGivenNodes(cy.getElementById(id), compoundType);
-      var allNodes = cy.nodes();
-      // New compound is located just before its children on the nodes list
-      var newCompound = allNodes[allNodes.length - 2];
-      // assert.equal(cy.nodes('#anotherMacromolecule').parent().data('class'), 'complex', 'Create compound operation is successful node');
-      assert.equal(newCompound.id(), cy.getElementById(id).data('parent'), "Compound is created");
-      assert.equal(newCompound.data('class'), compoundType, "Compound has the correct sbgn class");
+      chise.addNode(100, 100, 'macromolecule', 'macromoleculeToCreateCompound');
+
+      var existingIdMap = {};
+
+      cy.nodes().forEach(function (ele) {
+        existingIdMap[ele.id()] = true;
+      });
+
+      chise.createCompoundForGivenNodes(cy.getElementById('macromoleculeToCreateCompound'), compoundType);
+
+      var newEle = cy.nodes().filter(function (ele) {
+        return existingIdMap[ele.id()] !== true;
+      });
+
+      assert.equal(newEle.length, 1, "New compound is created");
+      assert.equal(newEle.data('class'), compoundType, "New compound has the expected class");
     });
   }
 
@@ -188,15 +194,49 @@ module.exports = function(){
     });
   }
 
-  addNodeTest('addNode1', 'macromolecule', 100, 100);
-  addNodeTest('addNode2', 'process', 100, 200);
-  addNodeTest('addNode3', 'macromolecule', 200, 200);
-  addEdgeTest('addEdge', 'addNode1', 'addNode2', 'necessary stimulation');
-  createCompoundTest('addNode3', 'complex');
+  addNodeTest('pdNode0', 'macromolecule', 100, 100);
+  addNodeTest('pdNode1', 'process', 100, 200);
+  addNodeTest('pdNode2', 'macromolecule', 200, 200);
+
+  addEdgeTest('pdEdge', 'pdNode1', 'pdNode2', 'necessary stimulation');
+
+  var pdNodeTypes = ['macromolecule', 'complex', 'simple chemical', 'unspecified entity',
+    'nucleic acid feature', 'perturbing agent', 'source and sink', 'phenotype', 'process',
+    'omitted process', 'uncertain process', 'association', 'dissociation', 'tag',
+    'compartment', 'submap', 'and', 'or', 'not'
+  ];
+
+  for (var i = 0; i < pdNodeTypes.length; i++) {
+    var id = 'pdNode' + (i + 3);
+    addNodeTest(id, pdNodeTypes[i], 300, 200);
+  }
+
+  chise.resetMapType(); // Reset the map type to unknown to allow adding AF elements
+
+  var afNodeTypes = ['biological activity', 'BA plain', 'BA unspecified entity',
+    'BA simple chemical', 'BA macromolecule', 'BA nucleic acid feature',
+    'BA perturbing agent', 'BA complex', 'delay'];
+
+  for (var i = 0; i < afNodeTypes.length; i++) {
+    var id = 'afNode' + i;
+    addNodeTest(id, afNodeTypes[i], 300, 200);
+  }
+
+  var pdEdgeTypes = ['consumption', 'production', 'modulation', 'stimulation',
+    'catalysis', 'necessary stimulation', 'logic arc', 'equivalence arc'];
+
+  for (var i = 0; i < pdEdgeTypes.length; i++) {
+    var id = 'pdEdge' + i;
+    var src = 'pdNode' + i;
+    var tgt = 'pdNode' + (pdNodeTypes.length - i - 1);
+    addEdgeTest(id, src, tgt, pdEdgeTypes[i]);
+  }
+
+  createCompoundTest('pdNode2', 'complex');
   cloneElementsTest();
   expandCollapseTest(':parent');
-  deleteElesTest('#addNode1');
-  hideElesTest('#addNode2');
+  deleteElesTest('#pdNodeO');
+  hideElesTest('#pdNode1');
   showAllElesTest();
   highlightNeighboursTest('[class="macromolecule"]');
   removeHighlightsTest();
@@ -231,6 +271,6 @@ module.exports = function(){
     h: 20
   };
 
-  addStateOrInfoboxTest('addNode3', stateVarObj);
-  addStateOrInfoboxTest('addNode3', unitOfInfoObj);
+  addStateOrInfoboxTest('pdNode3', stateVarObj);
+  addStateOrInfoboxTest('pdNode3', unitOfInfoObj);
 };
