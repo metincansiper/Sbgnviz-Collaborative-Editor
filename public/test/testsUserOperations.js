@@ -194,6 +194,76 @@ module.exports = function(){
     });
   }
 
+  // 'type' paremeter is used for state variables, it is useless for units of information
+  function changeStateOrInfoBoxTest (id, index, value, type) {
+    QUnit.test('chise.changeStateOrInfoBox()', function (assert) {
+      var node = cy.getElementById(id);
+      chise.changeStateOrInfoBox(node, index, value, type);
+
+      // Get the updated unit to check if it is updated correctly
+      var unit = node.data('statesandinfos')[index];
+
+      // If type is not set we assume that it is a unit of information
+      if (type) {
+        assert.equal(unit.state[type], value, "State variable is updated by " + type + " field.");
+      }
+      else {
+        assert.equal(unit.label['text'], value, "Unit of information label text is updated correctly.")
+      }
+    });
+  }
+
+  function removeStateOrInfoBoxTest (id, index) {
+    QUnit.test('chise.removeStateOrInfoBox()', function (assert) {
+      var node = cy.getElementById(id);
+      var unitToRemove = node.data('statesandinfos')[index];
+      chise.removeStateOrInfoBox(node, index);
+      var checkIndex = node.data('statesandinfos').indexOf(unitToRemove);
+      assert.equal(checkIndex, -1, "Auxiliary unit is removed successfully");
+    });
+  }
+
+  function setMultimerStatusTest (selector, status) {
+    QUnit.test('chise.setMultimerStatus()', function (assert) {
+      var nodes = cy.nodes(selector);
+      chise.setMultimerStatus(nodes, status);
+      var filteredNodes = nodes.filter(function(node) {
+        var isMultimer = node.data('class').indexOf('multimer') > -1;
+        return isMultimer === status;
+      });
+      assert.equal(filteredNodes.length, nodes.length, "Multimer status is set/unset for all nodes");
+    });
+  }
+
+  function setCloneMarkerStatusTest (selector, status) {
+    QUnit.test('chise.setCloneMarkerStatus()', function (assert) {
+      var nodes = cy.nodes(selector);
+      chise.setCloneMarkerStatus(nodes, status);
+      var filteredNodes = nodes.filter(function(node) {
+        var isCloneMarker = ( node.data('clonemarker') === true );
+        return isCloneMarker === status;
+      });
+      assert.equal(filteredNodes.length, nodes.length, "clonemarker status is set/unset for all nodes");
+    });
+  }
+
+  function changeFontPropertiesTest (selector, data) {
+    QUnit.test('chise.changeFontProperties()', function (assert) {
+      var nodes = cy.nodes(selector);
+      chise.changeFontProperties(nodes, data);
+      var filteredNodes = nodes.filter(function(node) {
+        for (var prop in data) {
+          if (node.data(prop) !== data[prop]) {
+            return false;
+          }
+
+          return true;
+        }
+      });
+      assert.equal(filteredNodes.length, nodes.length, "Font properties are updated for all nodes");
+    });
+  }
+
   addNodeTest('pdNode0', 'macromolecule', 100, 100);
   addNodeTest('pdNode1', 'process', 100, 200);
   addNodeTest('pdNode2', 'macromolecule', 200, 200);
@@ -230,6 +300,15 @@ module.exports = function(){
     var src = 'pdNode' + i;
     var tgt = 'pdNode' + (pdNodeTypes.length - i - 1);
     addEdgeTest(id, src, tgt, pdEdgeTypes[i]);
+  }
+
+  var afEdgeTypes = ['unknown influence', 'positive influence', 'negative influence'];
+
+  for (var i = 0; i < afEdgeTypes.length; i++) {
+    var id = 'afEdge' + i;
+    var src = 'afNode' + i;
+    var tgt = 'afNode' + (afNodeTypes.length - i - 1);
+    addEdgeTest(id, src, tgt, afEdgeTypes[i]);
   }
 
   createCompoundTest('pdNode2', 'complex');
@@ -273,4 +352,21 @@ module.exports = function(){
 
   addStateOrInfoboxTest('pdNode3', stateVarObj);
   addStateOrInfoboxTest('pdNode3', unitOfInfoObj);
+
+  changeStateOrInfoBoxTest('pdNode3', 0, 'updated val', 'value');
+  changeStateOrInfoBoxTest('pdNode3', 0, 'updated var', 'variable');
+  changeStateOrInfoBoxTest('pdNode3', 1, 'updated label');
+
+  removeStateOrInfoBoxTest('pdNode3', 0);
+  setMultimerStatusTest('[class="macromolecule"]', true);
+  setCloneMarkerStatusTest('[class="macromolecule multimer"]', true);
+
+  setMultimerStatusTest('[class="macromolecule multimer"]', false);
+  setCloneMarkerStatusTest('[class="macromolecule"]', false);
+
+  changeFontPropertiesTest('[class="macromolecule"]', {
+    'font-size': '10px',
+    'font-family': 'Arial',
+    'font-weight': 'bolder'
+  });
 };
