@@ -146,11 +146,11 @@ module.exports = function(){
     });
   }
 
-  function changeDataTest (selector, name, testVal, parseFloatOnCompare) {
+  function changeDataTest (selector, name, testVal, parseFloatOnCompare, omitStyle) {
       QUnit.test('chise.changeData()', function (assert) {
-        var nodes = cy.nodes(selector);
-        nodes.unselect(); // Unselect the nodes because node selection affects some style properties like border color
-        chise.changeData(nodes, name, testVal);
+        var elements = cy.$(selector);
+        elements.unselect(); // Unselect the nodes because node selection affects some style properties like border color
+        chise.changeData(elements, name, testVal);
 
         var evalByParseOpt = function(val) {
           if (parseFloatOnCompare) {
@@ -159,16 +159,21 @@ module.exports = function(){
           return val;
         }
 
-        var dataUpdated = nodes.filter(function(node) {
-          return evalByParseOpt(node.data(name)) === testVal;
+        var dataUpdated = elements.filter(function(ele) {
+          return evalByParseOpt(ele.data(name)) === testVal;
         });
 
-        var styleUpdated = nodes.filter(function(node) {
-          return evalByParseOpt(node.css(name)) === testVal;
-        });
+        assert.equal(dataUpdated.length, elements.length, "Change " + name + " operation is successfully changed element data");
 
-        assert.equal(dataUpdated.length, nodes.length, "Change " + name + " operation is successfully changed element data");
-        assert.equal(styleUpdated.length, nodes.length, "Change " + name + " operation is successfully changed element style");
+        // Generally data fields have a corresponding style fields that are updated by their values.
+        // If there is an exceptional case 'omitStyle' flag should be set upon calling this function.
+        if (!omitStyle) {
+          var styleUpdated = elements.filter(function(ele) {
+            return evalByParseOpt(ele.css(name)) === testVal;
+          });
+
+          assert.equal(styleUpdated.length, elements.length, "Change " + name + " operation is successfully changed element style");
+        }
       });
   }
 
@@ -324,10 +329,15 @@ module.exports = function(){
   changeNodeLabelTest('[class="macromolecule"]');
   resizeNodesTest('w');
   resizeNodesTest('h');
+  // For change data test 4th parameter indicates if values are parsed to float while comparing
+  // the 5th flag indicates whether the style should be omitted in assertions
   changeDataTest('[class="macromolecule"]', 'border-color', '#b6f442');
   changeDataTest('[class="macromolecule"]', 'background-color', '#15076d');
   changeDataTest('[class="macromolecule"]', 'border-width', 2, true);
   changeDataTest('[class="macromolecule"]', 'background-opacity', 1, true);
+  changeDataTest('edge', 'width', 3.5, true);
+  changeDataTest('edge', 'cardinality', 3, true, true);
+  changeDataTest('edge', 'line-color', '#b6f442');
 
   var stateVarObj = {};
   stateVarObj.clazz = 'state variable';
