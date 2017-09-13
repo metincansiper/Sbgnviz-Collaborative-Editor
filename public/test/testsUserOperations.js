@@ -374,6 +374,16 @@ module.exports = function(){
     });
   }
 
+  function setPortsOrderingTest(selector, ordering) {
+    QUnit.test('chise.setPortsOrdering()', function (assert) {
+      var nodes = cy.nodes(selector);
+      chise.setPortsOrdering(nodes, ordering);
+      var commonOrdering = chise.elementUtilities.getPortsOrdering(nodes);
+
+      assert.equal(commonOrdering, ordering, "Ports ordering is set for all nodes");
+    });
+  }
+
   addNodeTest('pdNode0', 'macromolecule', 100, 100);
   addNodeTest('pdNode1', 'process', 100, 200);
   addNodeTest('pdNode2', 'macromolecule', 200, 200);
@@ -501,6 +511,10 @@ module.exports = function(){
   chise.addNode(150, 150, 'macromolecule', 'mm1');
   chise.addNode(150, 190, 'macromolecule', 'mm2');
   changeParentTest('#mm1, #mm2', 'aCompartment', 5, 5);
+
+  chise.addNode(50, 50, 'process', 'process1');
+  chise.addNode(50, 100, 'omitted process', 'process2');
+  setPortsOrderingTest('#process1, #process2', 'T-to-B');
 
   selectTest('*');
   selectTest('node');
