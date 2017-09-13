@@ -2,6 +2,8 @@ QUnit = require('qunitjs');
 module.exports = function(){
   QUnit.module( "User operations tests to see if model is updated correctly." );
 
+  // TODOs select etc.
+
   function addNodeTest(id, className, posX, posY) {
     QUnit.test('chise.addNode()', function (assert) {
       chise.addNode(posX, posY, className, id);
@@ -24,6 +26,12 @@ module.exports = function(){
     });
   }
 
+  function selectTest(selector) {
+    QUnit.test('chise.select()', function (assert) {
+      assert.equal(cy.elements(selector).length, cy.elements(selector).filter(':visible').length, "select " + selector + " operation is successful");
+    });
+  }
+
   // TODO go back this function to consider the cases where a compound cannot be created.
   function createCompoundTest(id, compoundType) {
     QUnit.test('chise.createCompoundForGivenNodes()', function (assert) {
@@ -43,6 +51,44 @@ module.exports = function(){
 
       assert.equal(newEle.length, 1, "New compound is created");
       assert.equal(newEle.data('class'), compoundType, "New compound has the expected class");
+    });
+  }
+
+  function changeParentTest(selector, newParentId, posDiffX, posDiffY) {
+    QUnit.test('chise.changeParentTest()', function (assert) {
+      // Keep initial positions of the nodes to be able to check if they are repositioned as expected
+      var oldPositions = {};
+      var nodes = cy.nodes(selector);
+
+      nodes.forEach(function(node) {
+        oldPositions[node.id()] = {
+          x: node.position('x'),
+          y: node.position('y')
+        };
+      });
+
+      chise.changeParent(nodes, newParentId, posDiffX, posDiffY);
+
+      var updatedNodes = cy.nodes(selector); // Node list should be updated after change parent operation
+
+      // Filter the nodes that are moved to the new parent
+      var filteredNodes = updatedNodes.filter(function (node) {
+        return node.data('parent') === newParentId;
+      });
+
+      assert.equal(filteredNodes.length, nodes.length, "All nodes are moved to the new parent");
+
+      var allRepositionedCorrectly = true;
+
+      // Check if the nodes are repositioned as expected
+      updatedNodes.forEach(function(node) {
+        if (node.position('x') - oldPositions[node.id()].x !== posDiffX
+            || node.position('y') - oldPositions[node.id()].y !== posDiffY) {
+          allRepositionedCorrectly = false;
+        }
+      });
+
+      assert.equal(allRepositionedCorrectly, true, "All nodes are repositioned as expected");
     });
   }
 
@@ -77,6 +123,17 @@ module.exports = function(){
     });
   }
 
+  function deleteNodesSmartTest(selector) {
+    QUnit.test('chise.deleteElesSimple()', function (assert) {
+      var allNodes = cy.nodes();
+      var nodes = cy.nodes(selector);
+      var nodesToKeep = chise.elementUtilities.extendRemainingNodes(nodes, allNodes);
+      var nodesNotToKeep = allNodes.not(nodesToKeep);
+      chise.deleteNodesSmart(nodes);
+      assert.equal(cy.nodes(selector).length, 0, "Delete smart operation is successful");
+    });
+  }
+
   function hideElesTest(selector) {
     QUnit.test('chise.hideNodesSmart()', function (assert) {
       var nodes = cy.nodes(selector);
@@ -92,6 +149,14 @@ module.exports = function(){
     QUnit.test('chise.showAll()', function (assert) {
       chise.showAll();
       assert.equal(cy.nodes().length, cy.nodes(':visible').length, "Show all operation is successful");
+    });
+  }
+
+  function highlightElesTest (selector) {
+    QUnit.test('chise.highlightEles()', function (assert) {
+      var eles = cy.$(selector);
+      chise.highlightSelected(eles); // This method highlights the given eles not the selected ones. It has an unfortune name.
+      assert.equal(eles.filter('.highlighted').length, eles.length, "Highlight operation is successful");
     });
   }
 
@@ -269,6 +334,49 @@ module.exports = function(){
     });
   }
 
+  function alignTest (selector, horizontal, vertical, alignToId) {
+    QUnit.test('chise.align()', function (assert) {
+      var nodes = cy.nodes(selector);
+
+      // If node to align to is not set use the first node in the list
+      var alignToNode = alignToId ? cy.getElementById(alignToId) : nodes[0];
+
+      // Return the alignment coordinate of the given node. This alignment coordinate is depandent on
+      // the horizontal and vertical parameters and after the align operation all nodes should have the same
+      // alignment coordinate of the align to node.
+      var getAlignmentCoord = function(node) {
+        if (vertical === 'center') {
+          return node.position('x');
+        }
+        if (vertical === 'left') {
+          return node.position('x') - node.outerWidth() / 2;
+        }
+        if (vertical === 'right') {
+          return node.position('x') + node.outerWidth() / 2;
+        }
+        if (horizontal === 'middle') {
+          return node.position('y');
+        }
+        if (horizontal === 'top') {
+          return node.position('y') - node.outerHeight() / 2;
+        }
+        if (horizontal === 'bottom') {
+          return node.position('y') + node.outerHeight() / 2;
+        }
+      }
+
+      var expectedCoord = getAlignmentCoord(alignToNode);
+
+      chise.align(nodes, horizontal, vertical, alignToNode);
+      var filteredNodes = nodes.filter(function(node) {
+        var coord = getAlignmentCoord(node);
+        return coord === expectedCoord;
+      });
+
+      assert.equal(filteredNodes.length, nodes.length, "Align operation is successful for all nodes " + horizontal + " " + vertical);
+    });
+  }
+
   addNodeTest('pdNode0', 'macromolecule', 100, 100);
   addNodeTest('pdNode1', 'process', 100, 200);
   addNodeTest('pdNode2', 'macromolecule', 200, 200);
@@ -319,9 +427,21 @@ module.exports = function(){
   createCompoundTest('pdNode2', 'complex');
   cloneElementsTest();
   expandCollapseTest(':parent');
+
   deleteElesTest('#pdNodeO');
+  deleteNodesSmartTest('#pdNode7')
   hideElesTest('#pdNode1');
   showAllElesTest();
+
+  alignTest('node', 'left'); // TODO check if calling this before show all test fails it
+  alignTest('node', 'right');
+  alignTest('node', 'center');
+  alignTest('node', 'none', 'top');
+  alignTest('node', 'none', 'bottom');
+  alignTest('node', 'none', 'middle');
+
+  highlightElesTest('[class="macromolecule"]');
+  removeHighlightsTest();
   highlightNeighboursTest('[class="macromolecule"]');
   removeHighlightsTest();
   highlightProcessesTest('[class="macromolecule"]');
@@ -379,4 +499,13 @@ module.exports = function(){
     'font-family': 'Arial',
     'font-weight': 'bolder'
   });
+
+  chise.addNode(100, 100, 'compartment', 'aCompartment');
+  chise.addNode(150, 150, 'macromolecule', 'mm1');
+  chise.addNode(150, 190, 'macromolecule', 'mm2');
+  changeParentTest('#mm1, #mm2', 'aCompartment', 5, 5);
+
+  selectTest('*');
+  selectTest('node');
+  selectTest('edge');
 };
