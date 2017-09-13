@@ -2,8 +2,6 @@ QUnit = require('qunitjs');
 module.exports = function(){
   QUnit.module( "User operations tests to see if model is updated correctly." );
 
-  // TODOs select etc.
-
   function addNodeTest(id, className, posX, posY) {
     QUnit.test('chise.addNode()', function (assert) {
       chise.addNode(posX, posY, className, id);
@@ -32,7 +30,6 @@ module.exports = function(){
     });
   }
 
-  // TODO go back this function to consider the cases where a compound cannot be created.
   function createCompoundTest(id, compoundType) {
     QUnit.test('chise.createCompoundForGivenNodes()', function (assert) {
       chise.addNode(100, 100, 'macromolecule', 'macromoleculeToCreateCompound');
