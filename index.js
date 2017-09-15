@@ -856,11 +856,12 @@ app.proto.init = function (model) {
 
     //Listen to other model operations
 
-
+    //
     // model.on('all', '_page.doc.messages.**', function(id, op, val, prev, passed){
     //
+    //     // // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
     //     // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-    //     $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+    //
     //
     //
     // });
@@ -1071,49 +1072,54 @@ app.proto.add = function (event, model, filePath) {
 
 
 
-        var comment;
-        comment = model.del('_page.newComment'); //to clear  the input box
-        if (!comment) {
-            return;
+    var comment;
+    comment = model.del('_page.newComment'); //to clear  the input box
+    if (!comment) {
+        return;
+    }
+
+    var targets  = [];
+    var users = model.get('_page.doc.userIds');
+
+    var myId = model.get('_session.userId');
+    for(var i = 0; i < users.length; i++){
+        var user = users[i];
+        if(user == myId ||  document.getElementById(user).checked){
+            targets.push({id: user});
         }
+    }
 
-        var targets  = [];
-        var users = model.get('_page.doc.userIds');
+    var msgUserId = model.get('_session.userId');
+    var msgUserName = model.get('_page.doc.users.' + msgUserId +'.name');
 
-        var myId = model.get('_session.userId');
-        for(var i = 0; i < users.length; i++){
-            var user = users[i];
-            if(user == myId ||  document.getElementById(user).checked){
-                targets.push({id: user});
-            }
-        }
+    socket.emit('getDate', function(date){ //get the date from the server
 
-        var msgUserId = model.get('_session.userId');
-        var msgUserName = model.get('_page.doc.users.' + msgUserId +'.name');
-
-       socket.emit('getDate', function(date){ //get the date from the server
-
-           comment.style = "font-size:large";
-            model.add('_page.doc.messages', {
-                room: model.get('_page.room'),
-                targets: targets,
-                userId: msgUserId,
-                userName: msgUserName,
-                comment: comment,
-                date: date
-            });
+       comment.style = "font-size:large";
+        model.add('_page.doc.messages', {
+            room: model.get('_page.room'),
+            targets: targets,
+            userId: msgUserId,
+            userName: msgUserName,
+            comment: comment,
+            date: date
+        });
 
 
-           event.preventDefault();
+       event.preventDefault();
 
-            //change scroll position
-           $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+        //change scroll position
+       $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
 
 
 
-       });
+    });
 
 
+    var messages = model.get('_page.doc.messages');
+    if(messages){
+        var uttNum = messages.length;
+        socket.emit('relayMessageToTripsRequest', {text: '"' + comment +'"', uttNum: uttNum});
+    }
 
     //update test messages as the last message
     try{

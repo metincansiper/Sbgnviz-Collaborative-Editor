@@ -132,19 +132,7 @@ module.exports = function(socket, model, askHuman){
 
         var textCorrelationRequestFromBA;
 
-        //bob also listens to them
-        //Listen to spoken sentences
-        var pattern = {0:'tell',  1:'&key', content:['spoken', '.', '*']};
-        tm.addHandler(pattern, function (text) {
-            var contentObj = KQML.keywordify(text.content);
 
-            if(contentObj) {
-                var msg = {userName: socket.userName, userId: socket.userId, room: socket.room, date: +(new Date)};
-                msg.comment = trimDoubleQuotes(contentObj.what);
-                model.add('documents.' + msg.room + '.messages', msg);
-            }
-
-        });
 
 
         //Listen to the natural language sentences from the translation agent and display them
@@ -166,96 +154,6 @@ module.exports = function(socket, model, askHuman){
                 tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success',  target:contentObj.target, correlation: contentObj.correlation}});
 
                 console.log(contentObj.target);
-
-            }
-
-        });
-
-        //
-        // var pattern = {0:'request',  1:'&key', content:['display-sbgn', '.', '*']};
-        // tm.addHandler(pattern, function (text) {
-        //
-        //     var contentObj = KQML.keywordify(text.content);
-        //     if(contentObj) {
-        //
-        //         var sbgnModel = contentObj.graph;
-        //
-        //         sbgnModel = trimDoubleQuotes(sbgnModel);
-        //
-        //         sbgnModel = sbgnModel.replace(/(\\")/g, '"');
-        //         sbgnModel = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n" + sbgnModel;
-        //
-        //
-        //         askHuman(socket.userId, socket.room, "mergeSbgn", sbgnModel, function (val) {
-        //
-        //             tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
-        //         });
-        //
-        //     }
-        //
-        // });
-
-        var pattern = {0:'tell',  1:'&key', content:['display-model', '.', '*']};
-        tm.addHandler(pattern, function (text) {
-
-            var contentObj = KQML.keywordify(text.content);
-
-            if(contentObj && contentObj.type.toUpperCase() === "INDRA") {
-
-                var indraStmts = JSON.parse(contentObj.model);
-
-             //   console.log(indraStmts);
-            }
-
-        });
-
-
-        var pattern = {0:'tell',  1:'&key', content:['display-image', '.', '*']};
-        tm.addHandler(pattern, function (text) {
-
-            var contentObj = KQML.keywordify(text.content);
-            if(contentObj) {
-
-                var imageTabMap = {
-                    'reactionnetwork': {ind: 1, label: 'RXN'},
-                    'contactmap': {ind: 2, label: 'CM'},
-                    'influencemap': {ind: 3, label: 'IM'},
-                    'simulation': {ind: 4, label: 'SIM'}
-                }
-
-
-
-                var imgPath = trimDoubleQuotes(contentObj.path);
-                try {
-                    var fs = require('fs');
-                    fs.readFile(imgPath, function (error, fileContent) {
-                        if (error) {
-                            console.log('exec error: ' + error);
-                            return;
-                        }
-
-                        var imgContent = 'data:image/png;base64,'+ fileContent.toString('base64');
-
-                        var imgData = {
-                            img: imgContent,
-                            tabIndex: imageTabMap[contentObj.type].ind,
-                            tabLabel: imageTabMap[contentObj.type].label,
-                            fileName: imgPath
-                        }
-
-
-
-                        askHuman(socket.userId, socket.room, "addImage", imgData, function (val) {
-
-                            tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
-                        });
-
-                    });
-                }
-                catch(error){
-                    console.log("Error " + error);
-                }
-
 
             }
 
@@ -425,68 +323,7 @@ module.exports = function(socket, model, askHuman){
 
 
 
-       self.modelId  = model.get('documents.' + socket.room + '.pysb.modelId');
 
-       //TODO: We now assume that the system is not reset after sbgnviz is connected-- so it keeps the model-id indefinitely
-        //We also need to check modelid does not exist in the system
-        //Or each time we get a new model id
-
-       if(!self.modelId) {
-
-           var ekbTerm = '"<ekb>' + '' + '</ekb>"';
-
-           tm.sendMsg({0: 'request', content: {0: 'BUILD-MODEL', description: ekbTerm}});
-       }
-
-        //Listen to model id response from MRA
-        var pattern = { 0: 'reply', 1:'&key', content: [ 'success',  '.', '*'], sender: 'MRA'};
-
-        tm.addHandler(pattern, function (text) { //listen to requests
-            var contentObj = KQML.keywordify(text.content);
-
-
-
-            if(contentObj.modelId) {
-
-                self.modelId = contentObj.modelId;
-                model.set('documents.' + socket.room + '.pysb.modelId', self.modelId);
-                model.set('documents.' + socket.room + '.pysb.model', contentObj.model);
-
-
-
-                console.log("New model started: " + self. modelId);
-
-                console.log(model.get('documents.' + socket.room + '.pysb.model'));
-            }
-
-
-        });
-
-
-
-        //self.proposeGoal();
-
-
-
-    });
-
-    //Utterances are sent to trips
-    socket.on('relayMessageToTripsRequest', function(data){
-
-        //BsB relays everything to trips anyway
-
-        //console.log(data);
-        var pattern = {0:'tell', content:{0:'started-speaking', mode:'text', uttnum: data.uttNum, channel: 'Desktop', direction:'input'}};
-        tm.sendMsg(pattern);
-
-        pattern = {0:'tell', content:{0:'stopped-speaking', mode:'text', uttnum: data.uttNum, channel: 'Desktop', direction:'input'}};
-        tm.sendMsg(pattern);
-
-        pattern = {0:'tell', content:{0:'word', 1: data.text, uttnum: data.uttNum, index: 1, channel: 'Desktop',direction:'input'}};
-        tm.sendMsg(pattern);
-
-        pattern = {0:'tell', content:{0:'utterance', mode:'text',  uttnum: data.uttNum, text:data.text, channel: 'Desktop',direction:'input'}};
-        tm.sendMsg(pattern);
 
     });
 

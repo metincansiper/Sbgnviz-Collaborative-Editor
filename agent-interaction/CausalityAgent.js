@@ -13,7 +13,7 @@ CausalityAgent.prototype = new Agent();
 
 
 function CausalityAgent(name, id) {
-    this.agentName = name;
+    this.agentName = "Bob";
     this.agentId = id;
 
     this.pnnlDb;
