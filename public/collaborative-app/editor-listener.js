@@ -7,7 +7,7 @@
 
 module.exports = function(modelManager, socket, userId){
 
-    this.debugMode = true;
+    // this.debugMode = true;
 
 
     //A new sample or file is loaded --update model and inform others
@@ -76,12 +76,12 @@ module.exports = function(modelManager, socket, userId){
     });
 
     cy.on("afterDo afterRedo", function (event, actionName, args, res) {
-        if(this.debugMode){
+        // if(this.debugMode){
 
             console.log(actionName);
             console.log(args);
             console.log(res);
-        }
+        // }
 
 
         if (actionName === "changeData" || actionName === "changeFontProperties" ) {
@@ -353,7 +353,10 @@ module.exports = function(modelManager, socket, userId){
             res.forEach(function(el){ //first add nodes
                 if(el.isNode()){
                  //   var param = {x: el.position("x"), y: el.position("y"), class: el.data("class")};
+
+                    el.data("annotationsView", null);
                     var param = {position: {x: el.position("x"), y: el.position("y")}, data:el.data()};
+
                     modelManager.addModelNode(el.id(), param, "me");
 
                     modelManager.initModelNode(el, "me", true);
