@@ -335,6 +335,8 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
         if(data.userId != self.agentId) {
 
+
+            console.log("Causality agent speaks again" + data.comment);
             self.relayMessage(data.comment);
 
 

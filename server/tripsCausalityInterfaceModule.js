@@ -158,12 +158,14 @@ module.exports = function(socket, model, askHuman){
 
                 var msg = {userName: socket. userName, userId: socket.userId, room: socket.room, date: +(new Date)};
                 contentObj.msg = trimDoubleQuotes(contentObj.msg);
-                msg.comment = contentObj.msg + " Do you have any causal explanation for this?" ;
+                msg.comment = contentObj.msg ;
 
                 model.add('documents.' + msg.room + '.messages', msg);
 
                 //Send any response so that bioagents resolve the subgoal
-                tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success'}});
+                tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success',  target:contentObj.target, correlation: contentObj.correlation}});
+
+                console.log(contentObj.target);
 
             }
 
@@ -202,7 +204,7 @@ module.exports = function(socket, model, askHuman){
 
                 var indraStmts = JSON.parse(contentObj.model);
 
-                console.log(indraStmts);
+             //   console.log(indraStmts);
             }
 
         });
@@ -312,9 +314,6 @@ module.exports = function(socket, model, askHuman){
                         }
                     });
 
-
-
-
             });
             });
 
@@ -410,6 +409,8 @@ module.exports = function(socket, model, askHuman){
                     //enter data separately to keep the order
                     tm.sendMsg({0:'request', receiver:'CAUSALITY-TRANSLATION-AGENT', content: {0:'TRANSLATE-CORRELATION', id1: data.id1, id2: data.id2, pSite1: pSite1, pSite2: pSite2, correlation: data.correlation}});
 
+                    // tm.replyToMsg(text, {0: 'reply', content: {0: 'correlation success',  target:data.id2, correlation: data.correlation}});
+
 
                 });
             });
@@ -444,9 +445,18 @@ module.exports = function(socket, model, askHuman){
             var contentObj = KQML.keywordify(text.content);
 
 
+
             if(contentObj.modelId) {
+
                 self.modelId = contentObj.modelId;
                 model.set('documents.' + socket.room + '.pysb.modelId', self.modelId);
+                model.set('documents.' + socket.room + '.pysb.model', contentObj.model);
+
+
+
+                console.log("New model started: " + self. modelId);
+
+                console.log(model.get('documents.' + socket.room + '.pysb.model'));
             }
 
 

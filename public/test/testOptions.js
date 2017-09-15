@@ -1,3 +1,4 @@
+
 QUnit = require('qunitjs');
 module.exports = function() {
     QUnit.testStart(function( details ) {
@@ -5,7 +6,7 @@ module.exports = function() {
     });
 
     QUnit.log(function( details ) {
-        console.log( "Log: ", details.result, details.message );
+        console.log( "Log: ", details.result, details.message, details.actual, details.expected );
     });
 
 

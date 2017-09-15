@@ -324,7 +324,7 @@ app.proto.create = function (model) {
 
 
 
-    var agentSocket = require('./public/collaborative-app/agent-socket-handler')(this, modelManager, socket);
+    var agentSocket = require('./public/collaborative-app/agentSocket-handler')(this, modelManager, socket);
     agentSocket.listen();
 
 
@@ -1017,8 +1017,9 @@ app.proto.runUnitTests = function(){
     var room = this.model.get('_page.room');
     //require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
     //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
-     require("./public/test/testsModelManager.js")(modelManager, userId);
+    //  require("./public/test/testsModelManager.js")(modelManager, userId);
      //require("./public/test/testsEditorListener.js")(editorListener);
+     require("./public/test/testsUserOperations.js")(modelManager);
     require("./public/test/testOptions.js")(); //to print out results
 
 }
@@ -1056,6 +1057,8 @@ app.proto.enterMessage= function(event){
        //  $('#inputs-comment')[0].value = "abc";
        // // $('#inputs-comment')[0].focus();
        //  $('#inputs-comment')[0].setSelectionRange(0,0);
+
+
 
         // prevent default behavior
         event.preventDefault();
@@ -1112,6 +1115,17 @@ app.proto.add = function (event, model, filePath) {
 
 
        });
+
+
+
+    //update test messages as the last message
+    try{
+        this.updateMessage();
+    }
+    catch(e) {
+        console.log(e);
+    }
+
 
 
 };
