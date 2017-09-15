@@ -7,6 +7,9 @@
 
 module.exports = function(modelManager, socket, userId){
 
+    this.debugMode = true;
+
+
     //A new sample or file is loaded --update model and inform others
     $(document).on("sbgnvizLoadSampleEnd sbgnvizLoadFileEnd",  function(event, file){
         console.log("Loading new sample");
@@ -73,11 +76,12 @@ module.exports = function(modelManager, socket, userId){
     });
 
     cy.on("afterDo afterRedo", function (event, actionName, args, res) {
+        if(this.debugMode){
 
-        console.log(actionName);
-        console.log(args);
-        console.log(res);
-
+            console.log(actionName);
+            console.log(args);
+            console.log(res);
+        }
 
 
         if (actionName === "changeData" || actionName === "changeFontProperties" ) {
@@ -447,7 +451,7 @@ module.exports = function(modelManager, socket, userId){
 
 
     cy.on('select', 'node', function (event) { //Necessary for multiple selections
-        console.log(this.id()); //TODO delete later
+        //console.log(this.id()); //TODO delete later
         modelManager.selectModelNode(this,  userId, "me");
 
     });
@@ -460,7 +464,7 @@ module.exports = function(modelManager, socket, userId){
     });
 
     cy.on('select', 'edge', function (event) {
-        console.log(this.id()); //TODO delete later
+        //console.log(this.id()); //TODO delete later
         modelManager.selectModelEdge(this, userId, "me");
 
     });
@@ -472,3 +476,6 @@ module.exports = function(modelManager, socket, userId){
 
 }
 
+module.exports.setDebugMode = function(val){
+    this.debugMode = false;
+}

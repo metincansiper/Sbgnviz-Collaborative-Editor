@@ -189,16 +189,6 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 
-
-                     //   model.set('_page.newComment', "how does SETDB1 affect ADAM17?"); //TODO: delete later
-                   //     model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-          //          model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
-               //     model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
-               //     model.set('_page.newComment', "How does  ITGAV affect ILK?"); //TODO: delete later
-           //        model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
-            //        model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-
-
                     return page.render();
                 });
             });
@@ -372,21 +362,22 @@ app.proto.create = function (model) {
 
     }
 
-        editorListener = require('./public/collaborative-app/editor-listener.js')(modelManager,socket, id);
-        //Listen to these after cy is loaded
-        $("#undo-last-action, #undo-icon").click(function (e) {
-            if(modelManager.isUndoPossible()){
-                modelManager.undoCommand();
+    editorListener = require('./public/collaborative-app/editor-listener.js')(modelManager,socket, id);
 
-            }
-        });
+    //Listen to these after cy is loaded
+    $("#undo-last-action, #undo-icon").click(function (e) {
+        if(modelManager.isUndoPossible()){
+            modelManager.undoCommand();
 
-        $("#redo-last-action, #redo-icon").click(function (e) {
-            if(modelManager.isRedoPossible()){
-                modelManager.redoCommand();
+        }
+    });
 
-            }
-        });
+    $("#redo-last-action, #redo-icon").click(function (e) {
+        if(modelManager.isRedoPossible()){
+            modelManager.redoCommand();
+
+        }
+    });
 
 
  //   }, 2000);
@@ -1015,10 +1006,16 @@ app.proto.runUnitTests = function(){
     var userId = this.model.get('_session.userId');
 
     var room = this.model.get('_page.room');
+
+    //Null editorlistener why?????
+   // console.log(editorListener);
+    //editorListener.debugMode = false;
     //require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
     //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
     //  require("./public/test/testsModelManager.js")(modelManager, userId);
      //require("./public/test/testsEditorListener.js")(editorListener);
+
+
      require("./public/test/testsUserOperations.js")(modelManager);
     require("./public/test/testOptions.js")(); //to print out results
 

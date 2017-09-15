@@ -595,7 +595,7 @@ module.exports = function (model, docId, sbgnviz) {
 
             var compoundAtts = {
                 id: compoundId,
-                class: nodePath.get('class'),
+                class: nodePath.get('data.class'),
                 x: nodePath.get('position.x'),
                 y: nodePath.get('position.y')
 
