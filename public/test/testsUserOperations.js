@@ -46,7 +46,7 @@ module.exports = function(modelManager){
     });
   }
 
-  function createCompoundTest(id, compoundType) {
+  function createCompoundTest(compoundType) {
     QUnit.test('chise.createCompoundForGivenNodes()', function (assert) {
       chise.addNode(100, 100, 'macromolecule', 'macromoleculeToCreateCompound');
 
@@ -68,7 +68,7 @@ module.exports = function(modelManager){
       var compoundModel = modelManager.getModelNode(newEle.id());
 
       assert.ok(compoundModel, "Compound is added to the model.");
-      assert.equal(modelManager.getModelNodeAttribute("data.id", newEle.id()), cy.getElementById(id).data("parent"), "Compound is the parent of the node.");
+      assert.equal(modelManager.getModelNodeAttribute("data.id", newEle.id()), cy.getElementById('macromoleculeToCreateCompound').data("parent"), "Compound is the parent of the node.");
 
       assert.equal(modelManager.getModelNodeAttribute("data.class", newEle.id()), compoundType, "Model compound has the correct sbgn class.");
     });
@@ -195,13 +195,19 @@ module.exports = function(modelManager){
 
   function showAllElesTest() {
     QUnit.test('chise.showAll()', function (assert) {
+      var done = assert.async();
       chise.showAll();
-      assert.equal(cy.nodes().length, cy.nodes(':visible').length, "Show all operation is successful");
 
-      cy.nodes().forEach(function(node){
-        var visibilityStatus = modelManager.getModelNodeAttribute('visibilityStatus', node.id());
-        assert.equal(visibilityStatus, "show", "Show on node " + node.id()  + " is successful");
-      });
+      setTimeout(function() {
+        assert.equal(cy.nodes().length, cy.nodes(':visible').length, "Show all operation is successful");
+
+        cy.nodes().forEach(function(node){
+          var visibilityStatus = modelManager.getModelNodeAttribute('visibilityStatus', node.id());
+          assert.equal(visibilityStatus, "show", "Show on node " + node.id()  + " is successful");
+        });
+
+        done();
+      }, 0);
 
     });
   }
@@ -342,7 +348,7 @@ module.exports = function(modelManager){
 
         elements.forEach(function(ele){
           var attStr = 'data.' + name;
-          var attVal = modelManager.getModelNodeAttribute(attStr, ele.id());
+          var attVal = ele.isNode() ? modelManager.getModelNodeAttribute(attStr, ele.id()) : modelManager.getModelEdgeAttribute(attStr, ele.id());
           assert.equal(attVal, testVal, "Change " + name + " operation is successful in the model.");
         });
       });
@@ -493,11 +499,13 @@ module.exports = function(modelManager){
     });
   }
 
-  addNodeTest('pdNode0', 'macromolecule', 100, 100);
-  addNodeTest('pdNode1', 'process', 100, 200);
-  addNodeTest('pdNode2', 'macromolecule', 200, 200);
+  var timeoutDuration = 1000;
 
-  addEdgeTest('pdEdge', 'pdNode1', 'pdNode2', 'necessary stimulation');
+  setTimeout(addNodeTest, timeoutDuration, 'pdNode0', 'macromolecule', 100, 100);
+  setTimeout(addNodeTest, timeoutDuration, 'pdNode1', 'process', 100, 200);
+  setTimeout(addNodeTest, timeoutDuration, 'pdNode2', 'macromolecule', 200, 200);
+
+  setTimeout(addEdgeTest, timeoutDuration, 'pdEdge', 'pdNode1', 'pdNode2', 'necessary stimulation');
 
   var pdNodeTypes = ['macromolecule', 'complex', 'simple chemical', 'unspecified entity',
     'nucleic acid feature', 'perturbing agent', 'source and sink', 'phenotype', 'process',
@@ -507,7 +515,7 @@ module.exports = function(modelManager){
 
   for (var i = 0; i < pdNodeTypes.length; i++) {
     var id = 'pdNode' + (i + 3);
-    addNodeTest(id, pdNodeTypes[i], 300, 200);
+    setTimeout(addNodeTest, timeoutDuration, id, pdNodeTypes[i], 300, 200);
   }
 
   chise.resetMapType(); // Reset the map type to unknown to allow adding AF elements
@@ -518,7 +526,7 @@ module.exports = function(modelManager){
 
   for (var i = 0; i < afNodeTypes.length; i++) {
     var id = 'afNode' + i;
-    addNodeTest(id, afNodeTypes[i], 300, 200);
+    setTimeout(addNodeTest, timeoutDuration, id, afNodeTypes[i], 300, 200);
   }
 
   var pdEdgeTypes = ['consumption', 'production', 'modulation', 'stimulation',
@@ -528,7 +536,7 @@ module.exports = function(modelManager){
     var id = 'pdEdge' + i;
     var src = 'pdNode' + i;
     var tgt = 'pdNode' + (pdNodeTypes.length - i - 1);
-    addEdgeTest(id, src, tgt, pdEdgeTypes[i]);
+    setTimeout(addEdgeTest, timeoutDuration, id, src, tgt, pdEdgeTypes[i]);
   }
 
   var afEdgeTypes = ['unknown influence', 'positive influence', 'negative influence'];
@@ -537,43 +545,43 @@ module.exports = function(modelManager){
     var id = 'afEdge' + i;
     var src = 'afNode' + i;
     var tgt = 'afNode' + (afNodeTypes.length - i - 1);
-    addEdgeTest(id, src, tgt, afEdgeTypes[i]);
+    setTimeout(addEdgeTest, timeoutDuration, id, src, tgt, afEdgeTypes[i]);
   }
 
-  createCompoundTest('pdNode2', 'complex');
-  cloneElementsTest();
-  expandCollapseTest(':parent');
+  setTimeout(createCompoundTest, timeoutDuration, 'complex');
+  setTimeout(cloneElementsTest, timeoutDuration);
+  setTimeout(expandCollapseTest, timeoutDuration, ':parent');
 
-  deleteElesTest('#pdNodeO');
-  deleteNodesSmartTest('#pdNode7')
-  hideElesTest('#pdNode1');
-  showAllElesTest();
+  setTimeout(deleteElesTest, timeoutDuration, '#pdNodeO');
+  setTimeout(deleteNodesSmartTest, timeoutDuration, '#pdNode7');
+  setTimeout(hideElesTest, timeoutDuration, '#pdNode1');
+  setTimeout(showAllElesTest, timeoutDuration);
 
-  alignTest('node', 'left'); // TODO check if calling this before show all test fails it
-  alignTest('node', 'right');
-  alignTest('node', 'center');
-  alignTest('node', 'none', 'top');
-  alignTest('node', 'none', 'bottom');
-  alignTest('node', 'none', 'middle');
+  setTimeout(alignTest, timeoutDuration, 'node', 'left'); // TODO check if calling this before show all test fails it
+  setTimeout(alignTest, timeoutDuration, 'node', 'right');
+  setTimeout(alignTest, timeoutDuration, 'node', 'center');
+  setTimeout(alignTest, timeoutDuration, 'node', 'none', 'top');
+  setTimeout(alignTest, timeoutDuration, 'node', 'none', 'bottom');
+  setTimeout(alignTest, timeoutDuration, 'node', 'none', 'middle');
 
-  highlightElesTest('[class="macromolecule"]');
-  removeHighlightsTest();
-  highlightNeighboursTest('[class="macromolecule"]');
-  removeHighlightsTest();
-  highlightProcessesTest('[class="macromolecule"]');
-  removeHighlightsTest();
-  changeNodeLabelTest('[class="macromolecule"]');
-  resizeNodesTest('w');
-  resizeNodesTest('h');
+  setTimeout(highlightElesTest, timeoutDuration, '[class="macromolecule"]');
+  setTimeout(removeHighlightsTest, timeoutDuration);
+  setTimeout(highlightNeighboursTest, timeoutDuration, '[class="macromolecule"]');
+  setTimeout(removeHighlightsTest, timeoutDuration);
+  setTimeout(highlightProcessesTest, timeoutDuration, '[class="macromolecule"]');
+  setTimeout(removeHighlightsTest, timeoutDuration);
+  setTimeout(changeNodeLabelTest, timeoutDuration, '[class="macromolecule"]');
+  setTimeout(resizeNodesTest, timeoutDuration, 'w');
+  setTimeout(resizeNodesTest, timeoutDuration, 'h');
   // For change data test 4th parameter indicates if values are parsed to float while comparing
   // the 5th flag indicates whether the style should be omitted in assertions
-  changeDataTest('[class="macromolecule"]', 'border-color', '#b6f442');
-  changeDataTest('[class="macromolecule"]', 'background-color', '#15076d');
-  changeDataTest('[class="macromolecule"]', 'border-width', 2, true);
-  changeDataTest('[class="macromolecule"]', 'background-opacity', 1, true);
-  changeDataTest('edge', 'width', 3.5, true);
-  changeDataTest('edge', 'cardinality', 3, true, true);
-  changeDataTest('edge', 'line-color', '#b6f442');
+  setTimeout(changeDataTest, timeoutDuration, '[class="macromolecule"]', 'border-color', '#b6f442');
+  setTimeout(changeDataTest, timeoutDuration, '[class="macromolecule"]', 'background-color', '#15076d');
+  setTimeout(changeDataTest, timeoutDuration, '[class="macromolecule"]', 'border-width', 2, true);
+  setTimeout(changeDataTest, timeoutDuration, '[class="macromolecule"]', 'background-opacity', 1, true);
+  setTimeout(changeDataTest, timeoutDuration, 'edge', 'width', 3.5, true);
+  setTimeout(changeDataTest, timeoutDuration, 'edge', 'cardinality', 3, true, true);
+  setTimeout(changeDataTest, timeoutDuration, 'edge', 'line-color', '#b6f442');
 
   var stateVarObj = {};
   stateVarObj.clazz = 'state variable';
@@ -596,36 +604,36 @@ module.exports = function(modelManager){
     h: 20
   };
 
-  addStateOrInfoboxTest('pdNode3', stateVarObj);
-  addStateOrInfoboxTest('pdNode3', unitOfInfoObj);
+  setTimeout(addStateOrInfoboxTest, timeoutDuration, 'pdNode3', stateVarObj);
+  setTimeout(addStateOrInfoboxTest, timeoutDuration, 'pdNode3', unitOfInfoObj);
 
-  changeStateOrInfoBoxTest('pdNode3', 0, 'updated val', 'value');
-  changeStateOrInfoBoxTest('pdNode3', 0, 'updated var', 'variable');
-  changeStateOrInfoBoxTest('pdNode3', 1, 'updated label');
+  setTimeout(changeStateOrInfoBoxTest, timeoutDuration, 'pdNode3', 0, 'updated val', 'value');
+  setTimeout(changeStateOrInfoBoxTest, timeoutDuration, 'pdNode3', 0, 'updated var', 'variable');
+  setTimeout(changeStateOrInfoBoxTest, timeoutDuration, 'pdNode3', 1, 'updated label');
 
-  removeStateOrInfoBoxTest('pdNode3', 0);
-  setMultimerStatusTest('[class="macromolecule"]', true);
-  setCloneMarkerStatusTest('[class="macromolecule multimer"]', true);
+  setTimeout(removeStateOrInfoBoxTest, timeoutDuration, 'pdNode3', 0);
+  setTimeout(setMultimerStatusTest, timeoutDuration, '[class="macromolecule"]', true);
+  setTimeout(setCloneMarkerStatusTest, timeoutDuration, '[class="macromolecule multimer"]', true);
 
-  setMultimerStatusTest('[class="macromolecule multimer"]', false);
-  setCloneMarkerStatusTest('[class="macromolecule"]', false);
+  setTimeout(setMultimerStatusTest, timeoutDuration, '[class="macromolecule multimer"]', false);
+  setTimeout(setCloneMarkerStatusTest, timeoutDuration, '[class="macromolecule"]', false);
 
-  changeFontPropertiesTest('[class="macromolecule"]', {
+  setTimeout(changeFontPropertiesTest, timeoutDuration, '[class="macromolecule"]', {
     'font-size': '10px',
     'font-family': 'Arial',
     'font-weight': 'bolder'
   });
 
-  chise.addNode(100, 100, 'compartment', 'aCompartment');
+  chise.addNode(100, timeoutDuration, 'compartment', 'aCompartment');
   chise.addNode(150, 150, 'macromolecule', 'mm1');
   chise.addNode(150, 190, 'macromolecule', 'mm2');
-  changeParentTest('#mm1, #mm2', 'aCompartment', 5, 5);
+  setTimeout(changeParentTest, timeoutDuration, '#mm1, #mm2', 'aCompartment', 5, 5);
 
   chise.addNode(50, 50, 'process', 'process1');
   chise.addNode(50, 100, 'omitted process', 'process2');
-  setPortsOrderingTest('#process1, #process2', 'T-to-B');
+  setTimeout(setPortsOrderingTest, timeoutDuration, '#process1, #process2', 'T-to-B');
 
-  selectTest('*');
-  selectTest('node');
-  selectTest('edge');
+  setTimeout(selectTest, timeoutDuration, '*');
+  setTimeout(selectTest, timeoutDuration, 'node');
+  setTimeout(selectTest, timeoutDuration, 'edge');
 };
