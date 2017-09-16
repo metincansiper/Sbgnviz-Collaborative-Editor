@@ -227,7 +227,7 @@ module.exports = function(modelManager){
           assert.equal(highlightStatus, "highlighted", "Highlight on node " + ele.id()  + " is successful");
         }
         else{
-          var highlightStatus = modelManager.getModelEdgeAttribute('highlightStatus', node.id());
+          var highlightStatus = modelManager.getModelEdgeAttribute('highlightStatus', ele.id());
           assert.equal(highlightStatus, "highlighted", "Highlight on edge " + ele.id()  + " is successful");
         }
       });
