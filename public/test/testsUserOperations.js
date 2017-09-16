@@ -499,6 +499,25 @@ module.exports = function(modelManager){
     });
   }
 
+  function cloneNodeTest(id) {
+    QUnit.test('chise.cloneElements()', function (assert) {
+      var eles = cy.nodes('#' + id);
+      var node = cy.getElementById(id);
+
+      console.log(eles);
+
+      chise.cloneElements(eles);
+
+      var nodeModel = modelManager.getModelNode(id);
+
+      for(var att in node.data()){
+        if(node.data().hasOwnProperty(att) && att !== "bbox"){
+          assert.propEqual(nodeModel.data[att],node.data(att), 'Data ' + att +' of actual and cloned elements are the same.');
+        }
+      }
+    });
+  }
+
   var timeoutDuration = 1000;
 
   setTimeout(addNodeTest, timeoutDuration, 'pdNode0', 'macromolecule', 100, 100);
@@ -550,6 +569,7 @@ module.exports = function(modelManager){
 
   setTimeout(createCompoundTest, timeoutDuration, 'complex');
   setTimeout(cloneElementsTest, timeoutDuration);
+  setTimeout(cloneNodeTest, timeoutDuration, 'pdNode5');
   setTimeout(expandCollapseTest, timeoutDuration, ':parent');
 
   setTimeout(deleteElesTest, timeoutDuration, '#pdNodeO');
