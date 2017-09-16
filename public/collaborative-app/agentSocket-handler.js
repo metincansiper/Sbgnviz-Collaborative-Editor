@@ -99,15 +99,15 @@ module.exports =  function(app, modelManager, socket) {
 
                     var p1 = new Promise(function (resolve) {
 
-                        var modelOp = modelManager.getLatestCommand();
+                        var modelOp = modelManager.getLastCommandName();
 
 
                         if (modelOp === "delete") {
-                            var undoInd = model.get('_page.doc.undoIndex');
-
-                            var cmd = model.get('_page.doc.history.' + undoInd);
-
-                            console.log(cmd.opName);
+                            // var undoInd = model.get('_page.doc.undoIndex');
+                            //
+                            // var cmd = model.get('_page.doc.history.' + undoInd);
+                            //
+                            // console.log(cmd.opName);
                             resolve("success");
                         }
                     });

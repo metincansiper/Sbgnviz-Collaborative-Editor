@@ -627,8 +627,8 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
         socket.on('agentConnectToTripsRequest', function(){
 
-            //let tripsSocketInterface handle therest
-            var tripsInterfaceModule = require('./tripsCausalityInterfaceModule.js')(socket, model, askHuman);
+            //let tripsSocketInterface handle the rest
+            var tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(socket, model, askHuman);
             var causalityNLGModule = require('./tripsCausalityNLGModule.js')();
 
             //const tripsCausalityModule = require('./tripsCausalityTesterModule.js')(socket, model);
@@ -734,6 +734,15 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
             });
 
+            try {
+
+                var tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(socket, model, askHuman);
+
+
+            }
+            catch(e){
+                console.log("Trips not connected. " + e);
+            }
 
         });
 

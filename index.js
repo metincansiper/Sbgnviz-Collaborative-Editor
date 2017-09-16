@@ -189,16 +189,6 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 
-
-                     //   model.set('_page.newComment', "how does SETDB1 affect ADAM17?"); //TODO: delete later
-                   //     model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-          //          model.set('_page.newComment', "How does MAPK1 affect JUND?"); //TODO: delete later
-               //     model.set('_page.newComment', "What genes does MAPK1 phosphorylate?"); //TODO: delete later
-               //     model.set('_page.newComment', "How does  ITGAV affect ILK?"); //TODO: delete later
-           //        model.set('_page.newComment', "What genes activate ILK?"); //TODO: delete later
-            //        model.set('_page.newComment', "How does KRAS activate MAPK3?"); //TODO: delete later
-
-
                     return page.render();
                 });
             });
@@ -324,7 +314,7 @@ app.proto.create = function (model) {
 
 
 
-    var agentSocket = require('./public/collaborative-app/agent-socket-handler')(this, modelManager, socket);
+    var agentSocket = require('./public/collaborative-app/agentSocket-handler')(this, modelManager, socket);
     agentSocket.listen();
 
 
@@ -372,21 +362,22 @@ app.proto.create = function (model) {
 
     }
 
-        editorListener = require('./public/collaborative-app/editor-listener.js')(modelManager,socket, id);
-        //Listen to these after cy is loaded
-        $("#undo-last-action, #undo-icon").click(function (e) {
-            if(modelManager.isUndoPossible()){
-                modelManager.undoCommand();
+    editorListener = require('./public/collaborative-app/editor-listener.js')(modelManager,socket, id);
 
-            }
-        });
+    //Listen to these after cy is loaded
+    $("#undo-last-action, #undo-icon").click(function (e) {
+        if(modelManager.isUndoPossible()){
+            modelManager.undoCommand();
 
-        $("#redo-last-action, #redo-icon").click(function (e) {
-            if(modelManager.isRedoPossible()){
-                modelManager.redoCommand();
+        }
+    });
 
-            }
-        });
+    $("#redo-last-action, #redo-icon").click(function (e) {
+        if(modelManager.isRedoPossible()){
+            modelManager.redoCommand();
+
+        }
+    });
 
 
  //   }, 2000);
@@ -865,11 +856,12 @@ app.proto.init = function (model) {
 
     //Listen to other model operations
 
-
+    //
     // model.on('all', '_page.doc.messages.**', function(id, op, val, prev, passed){
     //
+    //     // // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
     //     // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-    //     $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+    //
     //
     //
     // });
@@ -1015,11 +1007,17 @@ app.proto.runUnitTests = function(){
     var userId = this.model.get('_session.userId');
 
     var room = this.model.get('_page.room');
+
+    //Null editorlistener why?????
+   // console.log(editorListener);
+    //editorListener.debugMode = false;
     //require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
     //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
-    // require("./public/test/testsModelManager.js")(modelManager, userId);
+    //  require("./public/test/testsModelManager.js")(modelManager, userId);
      //require("./public/test/testsEditorListener.js")(editorListener);
-    require("./public/test/testsUserOperations.js")();
+
+
+     require("./public/test/testsUserOperations.js")(modelManager);
     require("./public/test/testOptions.js")(); //to print out results
 
 }
@@ -1058,6 +1056,8 @@ app.proto.enterMessage= function(event){
        // // $('#inputs-comment')[0].focus();
        //  $('#inputs-comment')[0].setSelectionRange(0,0);
 
+
+
         // prevent default behavior
         event.preventDefault();
 
@@ -1072,47 +1072,63 @@ app.proto.add = function (event, model, filePath) {
 
 
 
-        var comment;
-        comment = model.del('_page.newComment'); //to clear  the input box
-        if (!comment) {
-            return;
+    var comment;
+    comment = model.del('_page.newComment'); //to clear  the input box
+    if (!comment) {
+        return;
+    }
+
+    var targets  = [];
+    var users = model.get('_page.doc.userIds');
+
+    var myId = model.get('_session.userId');
+    for(var i = 0; i < users.length; i++){
+        var user = users[i];
+        if(user == myId ||  document.getElementById(user).checked){
+            targets.push({id: user});
         }
+    }
 
-        var targets  = [];
-        var users = model.get('_page.doc.userIds');
+    var msgUserId = model.get('_session.userId');
+    var msgUserName = model.get('_page.doc.users.' + msgUserId +'.name');
 
-        var myId = model.get('_session.userId');
-        for(var i = 0; i < users.length; i++){
-            var user = users[i];
-            if(user == myId ||  document.getElementById(user).checked){
-                targets.push({id: user});
-            }
-        }
+    socket.emit('getDate', function(date){ //get the date from the server
 
-        var msgUserId = model.get('_session.userId');
-        var msgUserName = model.get('_page.doc.users.' + msgUserId +'.name');
-
-       socket.emit('getDate', function(date){ //get the date from the server
-
-           comment.style = "font-size:large";
-            model.add('_page.doc.messages', {
-                room: model.get('_page.room'),
-                targets: targets,
-                userId: msgUserId,
-                userName: msgUserName,
-                comment: comment,
-                date: date
-            });
+       comment.style = "font-size:large";
+        model.add('_page.doc.messages', {
+            room: model.get('_page.room'),
+            targets: targets,
+            userId: msgUserId,
+            userName: msgUserName,
+            comment: comment,
+            date: date
+        });
 
 
-           event.preventDefault();
+       event.preventDefault();
 
-            //change scroll position
-           $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
+        //change scroll position
+       $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
 
 
 
-       });
+    });
+
+
+    var messages = model.get('_page.doc.messages');
+    if(messages){
+        var uttNum = messages.length;
+        socket.emit('relayMessageToTripsRequest', {text: '"' + comment +'"', uttNum: uttNum});
+    }
+
+    //update test messages as the last message
+    try{
+        this.updateMessage();
+    }
+    catch(e) {
+        console.log(e);
+    }
+
 
 
 };

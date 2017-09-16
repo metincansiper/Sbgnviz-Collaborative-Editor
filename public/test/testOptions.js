@@ -1,3 +1,4 @@
+
 QUnit = require('qunitjs');
 module.exports = function() {
     QUnit.testStart(function( details ) {

@@ -91,7 +91,7 @@ module.exports = function(){
 
             var msg =  '"'+toCorrelationDetailString(data)+ '"';
 
-            var response = {0: 'reply', content: {0: 'success', msg: msg }, sender:tm.name};
+            var response = {0: 'reply', content: {0: 'success', msg: msg, target:contentObj.id2 }, sender:tm.name};
 
             tm.replyToMsg(text, response);
 

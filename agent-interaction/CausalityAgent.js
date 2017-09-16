@@ -13,7 +13,7 @@ CausalityAgent.prototype = new Agent();
 
 
 function CausalityAgent(name, id) {
-    this.agentName = name;
+    this.agentName = "Bob";
     this.agentId = id;
 
     this.pnnlDb;
@@ -335,6 +335,8 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
         if(data.userId != self.agentId) {
 
+
+            console.log("Causality agent speaks again" + data.comment);
             self.relayMessage(data.comment);
 
 

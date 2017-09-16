@@ -7,6 +7,7 @@ module.exports = (function() {
     var DefaultPort = 6200;
     var MaxPortTries = 100;
 
+    var isConnected = true; //funda
     var socket;
 
     var globalPat = "";
@@ -61,32 +62,56 @@ module.exports = (function() {
 
         //FUNDA: socket connection needs to be closed
         disconnect: function(){
+
             socket.destroy();
         },
 
         connect: function(onconnect) {
             var that = this;
-            if (this.autoConnect) {
-                var tries = this.scanForPort ? MaxPortTries : 1;
-                // TODO detect failure to connect somehow?
-                socket = new net.connect(this.port, this.host, function() {
-                    that.socket = KQML.wrapStream(socket);
-                    that.socket.on('data', function(msg) {
+            try { //funda
+                if (this.autoConnect) {
+                    var tries = this.scanForPort ? MaxPortTries : 1;
+                    // TODO detect failure to connect somehow?
+                    try {
+                        socket = new net.connect(this.port, this.host, function () {
+
+                            that.socket = KQML.wrapStream(socket);
+                            that.socket.on('data', function (msg) {
+                                that.handleMessage(KQML.keywordify(msg));
+                            });
+                            if (onconnect !== undefined) {
+                                onconnect();
+                            }
+
+                            isConnected = true;
+                        });
+
+                        socket.on('error', function(){  //FUNDA: this detects disconnection
+                            console.log("TRIPS is not connected.");
+                            isConnected = false;
+
+                        });
+                    }
+                    catch(e){
+                        console.log("Could not connect. " +e);
+                    }
+                } else { // connect to stdin/stdout
+                    var pair = new StreamPair(process.stdin, process.stdout);
+
+                    this.socket = KQML.wrapStream(pair);
+                    this.socket.on('data', function (msg) {
                         that.handleMessage(KQML.keywordify(msg));
                     });
                     if (onconnect !== undefined) {
                         onconnect();
                     }
-                });
-            } else { // connect to stdin/stdout
-                var pair = new StreamPair(process.stdin, process.stdout);
-                this.socket = KQML.wrapStream(pair);
-                this.socket.on('data', function(msg) {
-                    that.handleMessage(KQML.keywordify(msg));
-                });
-                if (onconnect !== undefined) {
-                    onconnect();
+                    isConnected = true;
                 }
+
+
+            }
+            catch(e) {
+                console.log(e + " Trips is disconnected.");
             }
         },
 
@@ -150,7 +175,11 @@ module.exports = (function() {
          */
 
         sendMsg: function(msg) {
-            this.socket.write(msg);
+
+            if(isConnected)
+                this.socket.write(msg);
+
+
         },
 
         replyToMsg: function(msg, reply) {

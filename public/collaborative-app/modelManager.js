@@ -230,6 +230,21 @@ module.exports = function (model, docId, sbgnviz) {
             }
 
         },
+        getLastCommand: function(){
+            var undoIndex = model.get('_page.doc.undoIndex');
+            var cmd = model.get('_page.doc.history.' + undoIndex);
+
+            return cmd;
+
+        },
+
+        getLastCommandName: function(){
+            var undoIndex = model.get('_page.doc.undoIndex');
+            var cmd = model.get('_page.doc.history.' + undoIndex);
+
+            return cmd.opName;
+
+        },
 
         getHistory: function () {
             return model.get('_page.doc.history');
@@ -580,7 +595,7 @@ module.exports = function (model, docId, sbgnviz) {
 
             var compoundAtts = {
                 id: compoundId,
-                class: nodePath.get('class'),
+                class: nodePath.get('data.class'),
                 x: nodePath.get('position.x'),
                 y: nodePath.get('position.y')
 
