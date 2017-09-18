@@ -26,25 +26,19 @@ function TripsGeneralInterfaceAgent(agentName, id) {
  */
 TripsGeneralInterfaceAgent.prototype.init = function(){
 
-    var self = this;
 
-
-    self.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: true, userName: self.agentName}); //interfaceAgent
-
-    self.listenToMessages();
-
-
+    this.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: true, userName: self.agentName}); //interfaceAgent
+    this.listenToMessages();
 }
-
 
 
 TripsGeneralInterfaceAgent.prototype.relayMessage = function(text){
     var msg = "";
-    var self = this;
 
-    self.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: self.tripsUttNum});
 
-    self.tripsUttNum++;
+    this.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: self.tripsUttNum});
+
+    this.tripsUttNum++;
 }
 
 

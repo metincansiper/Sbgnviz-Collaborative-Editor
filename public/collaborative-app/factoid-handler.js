@@ -6,9 +6,10 @@
 
 
 
-module.exports =  function(app, modelManager) {
+module.exports =  function(agentSocket, modelManager) {
 
     var idxcardjson = require('./reach-functions/idxcardjson-to-json-converter.js');
+
 
     var socket = io();
     var idxCardView = require('./reach-functions/idxCard-info.js');
@@ -91,7 +92,7 @@ module.exports =  function(app, modelManager) {
 
 
 
-                    nodeMap = app.mergeJsons(jsonGraphs, function(){
+                    nodeMap = agentSocket.mergeJsons(jsonGraphs, function(){
 
                         //save it to the model
                         modelManager.updateFactoidModel({jsonGraphs: jsonGraphs, nodeMap: nodeMap, text: text}, "me");

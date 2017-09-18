@@ -31,7 +31,7 @@ var notyView;
 
 var socket;
 
-
+var agentSocket;
 
 var modelManager;
 var oneColor = require('onecolor');
@@ -288,8 +288,6 @@ app.proto.create = function (model) {
     modelManager = require('./public/collaborative-app/modelManager.js')(model, model.get('_page.room'), sbgnviz );
     modelManager.setName( model.get('_session.userId'),name);
 
-    factoidHandler = require('./public/collaborative-app/factoid-handler')(this, modelManager) ;
-    factoidHandler.initialize();
 
 
     //$(window).on('resize', _.debounce(this.dynamicResize, 100));
@@ -315,8 +313,13 @@ app.proto.create = function (model) {
 
 
 
-    var agentSocket = require('./public/collaborative-app/agentSocket-handler')(this, modelManager, socket);
+    agentSocket = require('./public/collaborative-app/agentSocket-handler')(this, modelManager, socket);
     agentSocket.listen();
+
+
+    factoidHandler = require('./public/collaborative-app/factoid-handler')(agentSocket, modelManager) ;
+    factoidHandler.initialize();
+
 
 
     // //If we get a message on a separate window
