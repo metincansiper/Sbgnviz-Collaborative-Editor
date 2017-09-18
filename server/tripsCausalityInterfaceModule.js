@@ -4,7 +4,7 @@
  * Its role is to receive and decode messages and transfer them to causalityAgent
  */
 
-module.exports = function(socket, model, askHuman){
+module.exports = function(agentId, agentName, socket, model, askHuman){
 
     var tripsModule = require('./tripsModule.js');
     var tm = new tripsModule(['-name', 'Causality-Interface-Agent']);
@@ -12,6 +12,7 @@ module.exports = function(socket, model, askHuman){
 
     var self = this;
     this.modelId;
+
 
     const indraRelationMap ={
         "PHOSPHORYLATES": "Phosphorylation",
@@ -133,8 +134,6 @@ module.exports = function(socket, model, askHuman){
         var textCorrelationRequestFromBA;
 
 
-
-
         //Listen to the natural language sentences from the translation agent and display them
         var pattern = { 0: 'reply', 1:'&key', content: [ 'success',  '.', '*'], sender: 'CAUSALITY-TRANSLATION-AGENT'};
         tm.addHandler(pattern, function (text) {
@@ -144,11 +143,11 @@ module.exports = function(socket, model, askHuman){
 
             if(contentObj) {
 
-                var msg = {userName: socket. userName, userId: socket.userId, room: socket.room, date: +(new Date)};
+                var msg = {agentName, userId: agentId, room: socket.room, date: +(new Date)};
                 contentObj.msg = trimDoubleQuotes(contentObj.msg);
                 msg.comment = contentObj.msg ;
 
-                model.add('documents.' + msg.room + '.messages', msg);
+                //model.add('documents.' + msg.room + '.messages', msg);
 
                 //Send any response so that bioagents resolve the subgoal
                 tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success',  target:contentObj.target, correlation: contentObj.correlation}});
@@ -159,15 +158,12 @@ module.exports = function(socket, model, askHuman){
 
         });
 
-
         //Listen to queries about the causal relationship between to genes
         //E.g. How does MAPK1 affect JUND?
         var pattern = { 0: 'request', 1:'&key', content: [ 'find-causal-path',  '.', '*']};
-
         tm.addHandler(pattern, function (text) { //listen to requests
 
             var contentObj = KQML.keywordify(text.content);
-
 
 
             self.getTermName(contentObj.source, function (source) {
@@ -199,8 +195,16 @@ module.exports = function(socket, model, askHuman){
                             var stringJson = JSON.stringify(indraJson);
                             stringJson = '"' + stringJson.replace(/["]/g, "\\\"") + '"';
 
-                            if(self.modelId){
-                                tm.sendMsg( {0:'request',  content:{0: 'EXPAND-MODEL',  format:"indra_json", description: stringJson, 'model-id': self.modelId}});
+                            if (self.modelId) {
+                                tm.sendMsg({
+                                    0: 'request',
+                                    content: {
+                                        0: 'EXPAND-MODEL',
+                                        format: "indra_json",
+                                        description: stringJson,
+                                        'model-id': self.modelId
+                                    }
+                                });
                             }
                             else
                                 console.log("Model id not initialized.");
@@ -212,9 +216,9 @@ module.exports = function(socket, model, askHuman){
                         }
                     });
 
-            });
-            });
+                });
 
+            });
         });
 
         //Listen to queries asking the targets of a causal relationship
@@ -282,14 +286,9 @@ module.exports = function(socket, model, askHuman){
 
 
         //Listen to requests for correlation queries
-
         var pattern = { 0: 'request', 1:'&key', content: [ 'dataset-correlated-entity',  '.', '*']};
-
         tm.addHandler(pattern, function (text) { //listen to requests
-
-
             var contentObj = KQML.keywordify(text.content);
-
 
             //Correlation request from BA
             textCorrelationRequestFromBA = text;
@@ -317,7 +316,9 @@ module.exports = function(socket, model, askHuman){
 
         tm.run();
 
-       tm.sendMsg({0: 'tell', content: ['start-conversation']});
+        tm.sendMsg({0: 'tell', content: ['start-conversation']});
+
+
 
 
 
@@ -326,6 +327,8 @@ module.exports = function(socket, model, askHuman){
 
 
     });
+
+
 
 
     //TRIPS connection should be closed explicitly

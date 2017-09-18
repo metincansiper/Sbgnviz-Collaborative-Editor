@@ -13,7 +13,7 @@ CausalityAgent.prototype = new Agent();
 
 
 function CausalityAgent(name, id) {
-    this.agentName = "Bob";
+    this.agentName = "PCA";
     this.agentId = id;
 
     this.pnnlDb;
@@ -31,8 +31,6 @@ function CausalityAgent(name, id) {
 
     this.geneContext;
 
-
-    this.tripsUttNum = 1;
 
 
 }
@@ -94,11 +92,11 @@ CausalityAgent.prototype.init = function(){
     // }, 1000);
 
 
-    self.sendRequest('agentConnectToTripsRequest');
+    self.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: false, userName: self.agentName});
 
     //Agent initiates the request
 
-    self.sendMessage("Let’s build a pathway model for ovarian cancer using the phosphoproteomics dataset from PNNL.", "*");
+    // self.sendMessage("Let’s build a pathway model for ovarian cancer using the phosphoproteomics dataset from PNNL.", "*");
 
 
 
@@ -109,15 +107,15 @@ CausalityAgent.prototype.init = function(){
 }
 
 
-
-CausalityAgent.prototype.relayMessage = function(text){
-    var msg = "";
-    var self = this;
-
-    self.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: self.tripsUttNum});
-
-    self.tripsUttNum++;
-}
+//
+// CausalityAgent.prototype.relayMessage = function(text){
+//     var msg = "";
+//     var self = this;
+//
+//     self.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: self.tripsUttNum});
+//
+//     self.tripsUttNum++;
+// }
 
 
 
@@ -303,14 +301,14 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
     });
 
-    this.socket.on('displayModel', function(sbgn, callback){
-
-        this.sendRequest('agentNewFileRequest');
-
-        this.sendRequest('agentMergeGraphRequest', {type: 'sbgn', graph: sbgn}, function (data) {
-            if (callback) callback();
-        });
-    });
+    // this.socket.on('displayModel', function(sbgn, callback){
+    //
+    //     this.sendRequest('agentNewFileRequest');
+    //
+    //     this.sendRequest('agentMergeGraphRequest', {type: 'sbgn', graph: sbgn}, function (data) {
+    //         if (callback) callback();
+    //     });
+    // });
 
     this.socket.on('findCorrelation', function(source, callback){
 
@@ -327,93 +325,93 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
 
     })
-    this.socket.on('message', function(data){
-
-
-
-
-
-        if(data.userId != self.agentId) {
-
-
-            console.log("Causality agent speaks again" + data.comment);
-            self.relayMessage(data.comment);
-
-
-        //     //convert every word to upper case and remove punctuation
-        //
-        //     var sentence = (data.comment.toUpperCase()).replace(/[.,\/#!?$%\^&\*;:{}=\-_`~()]/g, "");
-        //     var words = sentence.split(' ');
-        //
-        //     if(sentence.indexOf("YES")>=0) {
-        //         var agentMsg  = "OK, I am updating my model and the graph..."
-        //
-        //
-        //         self.sendMessage(agentMsg, "*", function () {
-        //             self.updateAgentModel(data.comment, function(){
-        //
-        //
-        //                 if (callback) callback();
-        //             });
-        //
-        //         });
-        //
-        //
-        //     }
-        //     else if(sentence.indexOf("NO")>=0 || sentence.indexOf("ELSE")>=0) { //also works for KNOW!!!!
-        //         // setTimeout(function () {
-        //         //     self.tellNextNonCausalityNonCausality(self.geneContext, callback);
-        //         // }, 1000);
-        //
-        //
-        //         self.tellCorrelation(self.geneContext, callback);
-        //     }
-        //     else if(words.indexOf("MORE")>=2){ //e.g <show> n more
-        //         var n =  Number(words[words.indexOf("MORE") -1]); //get the previous word
-        //         if(self.geneContext) {
-        //             self.tellMultiple(self.geneContext, n,  callback);
-        //         }
-        //
-        //     }
-        //     else {
-        //
-        //
-        //
-        //         self.findRelevantGeneFromSentence(words, function (gene) {
-        //
-        //             // console.log(self.geneContext  + " " + gene);
-        //             if(self.geneContext !== gene) { //a new gene with different values
-        //
-        //                 self.currCorrelation.correlation = -1000;
-        //                 self.tellMutSig(gene, callback);
-        //
-        //
-        //             }
-        //
-        //             //tell anyway
-        //             self.geneContext = gene;
-        //
-        //
-        //             self.tellCorrelation(gene, callback);
-        //             // }
-        //
-        //
-        //
-        //
-        //         });
-        //
-        //         if (sentence.indexOf("RELATION") >= 0 ||sentence.indexOf("EXPLANATION") >= 0) {
-        //             if (self.indCausal > -1)
-        //                 self.tellCausality(self.geneContext, callback);
-        //
-        //             setTimeout(function () {
-        //                 self.tellNonCausality(self.geneContext, callback);
-        //             }, 1000);
-        //         }
-        //     }
-        //
-         }
-    });
+    // this.socket.on('message', function(data){
+    //
+    //
+    //
+    //
+    //
+    //     if(data.userId != self.agentId) {
+    //
+    //
+    //         //console.log("Causality agent speaks again" + data.comment);
+    //         //self.relayMessage(data.comment);
+    //
+    //
+    //     //     //convert every word to upper case and remove punctuation
+    //     //
+    //     //     var sentence = (data.comment.toUpperCase()).replace(/[.,\/#!?$%\^&\*;:{}=\-_`~()]/g, "");
+    //     //     var words = sentence.split(' ');
+    //     //
+    //     //     if(sentence.indexOf("YES")>=0) {
+    //     //         var agentMsg  = "OK, I am updating my model and the graph..."
+    //     //
+    //     //
+    //     //         self.sendMessage(agentMsg, "*", function () {
+    //     //             self.updateAgentModel(data.comment, function(){
+    //     //
+    //     //
+    //     //                 if (callback) callback();
+    //     //             });
+    //     //
+    //     //         });
+    //     //
+    //     //
+    //     //     }
+    //     //     else if(sentence.indexOf("NO")>=0 || sentence.indexOf("ELSE")>=0) { //also works for KNOW!!!!
+    //     //         // setTimeout(function () {
+    //     //         //     self.tellNextNonCausalityNonCausality(self.geneContext, callback);
+    //     //         // }, 1000);
+    //     //
+    //     //
+    //     //         self.tellCorrelation(self.geneContext, callback);
+    //     //     }
+    //     //     else if(words.indexOf("MORE")>=2){ //e.g <show> n more
+    //     //         var n =  Number(words[words.indexOf("MORE") -1]); //get the previous word
+    //     //         if(self.geneContext) {
+    //     //             self.tellMultiple(self.geneContext, n,  callback);
+    //     //         }
+    //     //
+    //     //     }
+    //     //     else {
+    //     //
+    //     //
+    //     //
+    //     //         self.findRelevantGeneFromSentence(words, function (gene) {
+    //     //
+    //     //             // console.log(self.geneContext  + " " + gene);
+    //     //             if(self.geneContext !== gene) { //a new gene with different values
+    //     //
+    //     //                 self.currCorrelation.correlation = -1000;
+    //     //                 self.tellMutSig(gene, callback);
+    //     //
+    //     //
+    //     //             }
+    //     //
+    //     //             //tell anyway
+    //     //             self.geneContext = gene;
+    //     //
+    //     //
+    //     //             self.tellCorrelation(gene, callback);
+    //     //             // }
+    //     //
+    //     //
+    //     //
+    //     //
+    //     //         });
+    //     //
+    //     //         if (sentence.indexOf("RELATION") >= 0 ||sentence.indexOf("EXPLANATION") >= 0) {
+    //     //             if (self.indCausal > -1)
+    //     //                 self.tellCausality(self.geneContext, callback);
+    //     //
+    //     //             setTimeout(function () {
+    //     //                 self.tellNonCausality(self.geneContext, callback);
+    //     //             }, 1000);
+    //     //         }
+    //     //     }
+    //     //
+    //      }
+    // });
 }
 
 CausalityAgent.prototype.updateAgentModel = function(text, callback){
@@ -523,10 +521,10 @@ CausalityAgent.prototype.tellMultiple = function (gene, n, callback) {
         agentMsg = self.formMultipleCorrMsg(gene, geneCorrArr, indCorrArr);
 
 
-        self.sendMessage(agentMsg, "*", function () {
-
-            if (callback) callback();
-        });
+        // self.sendMessage(agentMsg, "*", function () {
+        //
+        //     if (callback) callback();
+        // });
 
     });
 }
@@ -616,10 +614,10 @@ CausalityAgent.prototype.tellNonCausality = function(gene, callback) {
 
             agentMsg += makeUpstreamStr(commonUpstreams);
 
-                self.sendMessage(agentMsg, "*", function () {
-
-                    if (callback) callback();
-            });
+            //     self.sendMessage(agentMsg, "*", function () {
+            //
+            //         if (callback) callback();
+            // });
         }
     });
 

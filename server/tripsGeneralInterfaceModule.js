@@ -5,20 +5,90 @@
  * It handles general requests such as displaying, message sending and model building
  */
 
-module.exports = function(socket, model, askHuman){
+module.exports = function(agentId,  agentName, socket, model, askHuman){
+
 
     var tripsModule = require('./tripsModule.js');
-    var tm = new tripsModule(['-name', 'Sbgnviz-Interface-Agent']);
+    tm = new tripsModule(['-name', 'Sbgnviz-Interface-Agent']);
     var KQML = require('./KQML/kqml.js');
 
     var self = this;
     this.modelId;
 
+    this.displayImage = function(text){
+        var contentObj = KQML.keywordify(text.content);
+        if (contentObj) {
+
+            var imageTabMap = {
+                'reactionnetwork': {ind: 1, label: 'RXN'},
+                'contactmap': {ind: 2, label: 'CM'},
+                'influencemap': {ind: 3, label: 'IM'},
+                'simulation': {ind: 4, label: 'SIM'}
+            }
+
+
+            var imgPath = trimDoubleQuotes(contentObj.path);
+            try {
+                var fs = require('fs');
+                fs.readFile(imgPath, function (error, fileContent) {
+                    if (error) {
+                        console.log('exec error: ' + error);
+                        return;
+                    }
+
+
+
+
+                    var imgContent = 'data:image/png;base64,' + fileContent.toString('base64');
+
+                    var imgData = {
+                        img: imgContent,
+                        tabIndex: imageTabMap[contentObj.type].ind,
+                        tabLabel: imageTabMap[contentObj.type].label,
+                        fileName: imgPath
+                    }
+
+
+                    askHuman(agentId, socket.room, "addImage", imgData, function (val) {
+
+                        tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
+                    });
+
+                });
+            }
+            catch (error) {
+                console.log("Error " + error);
+            }
+
+
+        }
+    }
+
+    this.displaySbgn  = function(text) {
+        var contentObj = KQML.keywordify(text.content);
+        if (contentObj) {
+
+            var sbgnModel = contentObj.graph;
+
+            sbgnModel = trimDoubleQuotes(sbgnModel);
+
+            sbgnModel = sbgnModel.replace(/(\\")/g, '"');
+            sbgnModel = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n" + sbgnModel;
+
+
+            //Request this information from the tripsInterface
+            socket.emit('displayModel', sbgnModel, function (val) {
+
+            });
+
+        }
+    }
 
     try {
         tm.init(function () {
 
             tm.register();
+
 
 
             //Listen to spoken sentences
@@ -28,7 +98,9 @@ module.exports = function(socket, model, askHuman){
 
                 if (contentObj) {
 
-                    var msg = {userName: "Bob", userId: socket.userId, room: socket.room, date: +(new Date)};
+                    var msg = {userName: agentName, userId: agentId, room: socket.room, date: +(new Date)};
+
+
                     msg.comment = trimDoubleQuotes(contentObj.what);
                     model.add('documents.' + msg.room + '.messages', msg);
                 }
@@ -36,91 +108,26 @@ module.exports = function(socket, model, askHuman){
             });
 
 
-            var pattern = {0: 'request', 1: '&key', content: ['display-sbgn', '.', '*']};
+            var pattern = {0: 'tell', 1: '&key', content: ['display-sbgn', '.', '*']};
             tm.addHandler(pattern, function (text) {
-
-                var contentObj = KQML.keywordify(text.content);
-                if (contentObj) {
-
-                    var sbgnModel = contentObj.graph;
-
-                    sbgnModel = trimDoubleQuotes(sbgnModel);
-
-                    sbgnModel = sbgnModel.replace(/(\\")/g, '"');
-                    sbgnModel = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n" + sbgnModel;
-
-
-                    askHuman(socket.userId, socket.room, "mergeSbgn", sbgnModel, function (val) {
-
-                        tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
-                    });
-
-                }
-
+                self.displaySbgn(text);
             });
 
-            // var pattern = {0:'tell',  1:'&key', content:['display-model', '.', '*']};
-            // tm.addHandler(pattern, function (text) {
-            //
-            //     var contentObj = KQML.keywordify(text.content);
-            //
-            //     if(contentObj && contentObj.type.toUpperCase() === "INDRA") {
-            //
-            //         var indraStmts = JSON.parse(contentObj.model);
-            //
-            //      //   console.log(indraStmts);
-            //     }
-            //
-            // });
+
+            var pattern = {0: 'request', 1: '&key', content: ['display-sbgn', '.', '*']};
+            tm.addHandler(pattern, function (text) {
+                self.displaySbgn(text);
+            });
 
 
             var pattern = {0: 'tell', 1: '&key', content: ['display-image', '.', '*']};
             tm.addHandler(pattern, function (text) {
+                self.displayImage(text);
+            });
 
-                var contentObj = KQML.keywordify(text.content);
-                if (contentObj) {
-
-                    var imageTabMap = {
-                        'reactionnetwork': {ind: 1, label: 'RXN'},
-                        'contactmap': {ind: 2, label: 'CM'},
-                        'influencemap': {ind: 3, label: 'IM'},
-                        'simulation': {ind: 4, label: 'SIM'}
-                    }
-
-
-                    var imgPath = trimDoubleQuotes(contentObj.path);
-                    try {
-                        var fs = require('fs');
-                        fs.readFile(imgPath, function (error, fileContent) {
-                            if (error) {
-                                console.log('exec error: ' + error);
-                                return;
-                            }
-
-                            var imgContent = 'data:image/png;base64,' + fileContent.toString('base64');
-
-                            var imgData = {
-                                img: imgContent,
-                                tabIndex: imageTabMap[contentObj.type].ind,
-                                tabLabel: imageTabMap[contentObj.type].label,
-                                fileName: imgPath
-                            }
-
-
-                            askHuman(socket.userId, socket.room, "addImage", imgData, function (val) {
-
-                                tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
-                            });
-
-                        });
-                    }
-                    catch (error) {
-                        console.log("Error " + error);
-                    }
-
-
-                }
-
+            var pattern = {0: 'request', 1: '&key', content: ['display-image', '.', '*']};
+            tm.addHandler(pattern, function (text) {
+                self.displayImage(text);
             });
 
 
@@ -173,62 +180,29 @@ module.exports = function(socket, model, askHuman){
 
     try {
         //Utterances are sent to trips
-        socket.on('relayMessageToTripsRequest', function (data) {
+        socket.on('relayMessageToTripsRequest', function(data){
 
-            //BsB relays everything to trips anyway
 
-            //console.log(data);
-            var pattern = {
-                0: 'tell',
-                content: {
-                    0: 'started-speaking',
-                    mode: 'text',
-                    uttnum: data.uttNum,
-                    channel: 'Desktop',
-                    direction: 'input'
-                }
-            };
-            tm.sendMsg(pattern);
+            // if(data.userId !== agentId){
 
-            pattern = {
-                0: 'tell',
-                content: {
-                    0: 'stopped-speaking',
-                    mode: 'text',
-                    uttnum: data.uttNum,
-                    channel: 'Desktop',
-                    direction: 'input'
-                }
-            };
-            tm.sendMsg(pattern);
+                //console.log(data);
+                var pattern = {0:'tell', content:{0:'started-speaking', mode:'text', uttnum: data.uttNum, channel: 'Desktop', direction:'input'}};
+                tm.sendMsg(pattern);
 
-            pattern = {
-                0: 'tell',
-                content: {
-                    0: 'word',
-                    1: data.text,
-                    uttnum: data.uttNum,
-                    index: 1,
-                    channel: 'Desktop',
-                    direction: 'input'
-                }
-            };
-            tm.sendMsg(pattern);
+                pattern = {0:'tell', content:{0:'stopped-speaking', mode:'text', uttnum: data.uttNum, channel: 'Desktop', direction:'input'}};
+                tm.sendMsg(pattern);
 
-            pattern = {
-                0: 'tell',
-                content: {
-                    0: 'utterance',
-                    mode: 'text',
-                    uttnum: data.uttNum,
-                    text: data.text,
-                    channel: 'Desktop',
-                    direction: 'input'
-                }
-            };
-            tm.sendMsg(pattern);
+                pattern = {0:'tell', content:{0:'word', 1: data.text, uttnum: data.uttNum, index: 1, channel: 'Desktop',direction:'input'}};
+                tm.sendMsg(pattern);
+
+                pattern = {0:'tell', content:{0:'utterance', mode:'text',  uttnum: data.uttNum, text:data.text, channel: 'Desktop',direction:'input'}};
+                tm.sendMsg(pattern);
+            // }
+
 
         });
+
+
 
     }
     catch(e){
@@ -239,6 +213,7 @@ module.exports = function(socket, model, askHuman){
         tm.disconnect();
     });
 
+    return this;
 }
 
 function trimDoubleQuotes(str){
@@ -250,4 +225,3 @@ function trimDoubleQuotes(str){
     return strTrimmed;
 
 }
-

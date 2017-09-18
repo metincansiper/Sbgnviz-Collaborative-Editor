@@ -66,6 +66,15 @@ module.exports = function (model, docId, sbgnviz) {
             return model.get('_page.doc.users.' + userId + '.name');
         },
 
+        /***
+         *
+         * @param id of the user we want to change color of
+         * @param color
+         */
+        setColorCode: function(id, color){
+            model.set('_page.doc.users.' + id +'.colorCode', color);
+        },
+
         getMessages: function(){
             return model.get('_page.doc.messages');
         },

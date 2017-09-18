@@ -299,6 +299,7 @@ app.proto.create = function (model) {
 
     $(window).on('resize', function(){
         var images = model.get('_page.doc.images');
+        console.log(images);
         self.dynamicResize(images);
     });
 
@@ -1023,24 +1024,27 @@ app.proto.runUnitTests = function(){
 }
 
 
-app.proto.connectCausalityAgent = function(){
-
-    //We can't run it in node because it uses browser's database functionality
-    // var CausalityAgent = require("./agent-interaction/CausalityAgent");
-    // agent = new CausalityAgent("Agent1", "Agent1");
-    // agent.connectToServer("http://localhost:3000/", function (socket) {
-    //     agent.loadModel(function() {
-    //         agent.init();
-    //         agent.loadChatHistory(function(){
-    //         });
-    //     });
-    // });
 
 
+app.proto.connectTripsAgent = function(){
 
-        var w = window.open("http://localhost:63342/Sbgnviz-Collaborative-Editor/agent-interaction/computerAgent.html");
+//    We can't run causality agent directly in node because it uses browser's database functionality
 
-        w.blur();
+    var TripsInterfaceAgent = require("./agent-interaction/TripsGeneralInterfaceAgent.js");
+    var agent = new TripsInterfaceAgent("Bob", "Bob123");
+    agent.connectToServer("http://localhost:3000/", function (socket) {
+        agent.loadModel(function() {
+            agent.init();
+            agent.loadChatHistory(function(){
+            });
+        });
+    });
+
+
+
+        //var w = window.open("http://localhost:63342/Sbgnviz-Collaborative-Editor/agent-interaction/computerAgent.html");
+
+        //w.blur();
 
 
 
@@ -1115,19 +1119,20 @@ app.proto.add = function (event, model, filePath) {
     });
 
 
-    var messages = model.get('_page.doc.messages');
-    if(messages){
-        var uttNum = messages.length;
-        socket.emit('relayMessageToTripsRequest', {text: '"' + comment +'"', uttNum: uttNum});
-    }
 
-    //update test messages as the last message
-    try{
-        this.updateMessage();
-    }
-    catch(e) {
-        console.log(e);
-    }
+    // var messages = model.get('_page.doc.messages');
+    // if(messages){
+    //     var uttNum = messages.length;
+    //     socket.emit('relayMessageToTripsRequest', {text: '"' + comment +'"', uttNum: uttNum});
+    // }
+
+    // //update test messages as the last message
+    // try{
+    //     this.updateMessage();
+    // }
+    // catch(e) {
+    //     console.log(e);
+    // }
 
 
 

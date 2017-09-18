@@ -625,14 +625,20 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
 
 
-        socket.on('agentConnectToTripsRequest', function(){
+        socket.on('agentConnectToTripsRequest', function(param){
 
-            //let tripsSocketInterface handle the rest
-            var tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(socket, model, askHuman);
-            var causalityNLGModule = require('./tripsCausalityNLGModule.js')();
 
-            //const tripsCausalityModule = require('./tripsCausalityTesterModule.js')(socket, model);
+            if(param.isInterfaceAgent){
+                var tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
+            }
+            else {
+                var tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
+                var causalityNLGModule = require('./tripsCausalityNLGModule.js')();
+            }
+
         });
+
+
 
     };
 
@@ -733,16 +739,21 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
 
             });
-
-            try {
-
-                var tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(socket, model, askHuman);
-
-
-            }
-            catch(e){
-                console.log("Trips not connected. " + e);
-            }
+            //
+            // try {
+            //
+            //     var tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(socket, model, askHuman);
+            //     setTimeout(function(){
+            //         modelManagerList[data.room].setName(tripsInterfaceModule.userId, tripsInterfaceModule.userName);
+            //         modelManagerList[data.room].addUser(tripsInterfaceModule.userId);
+            //         modelManagerList[data.room].setColorCode(tripsInterfaceModule.userId, '#ffb366');
+            //     },1000); //wait for trips to connect
+            //
+            //
+            // }
+            // catch(e){
+            //     console.log("Trips not connected. " + e);
+            // }
 
         });
 

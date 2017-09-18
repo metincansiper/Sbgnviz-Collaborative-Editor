@@ -79,9 +79,9 @@ module.exports = function(modelManager, socket, userId){
         // if(this.debugMode){
 
             console.log(actionName);
-            console.log(args);
-            console.log(res);
-        // }
+            // console.log(args);
+            // console.log(res);
+
 
 
         if (actionName === "changeData" || actionName === "changeFontProperties" ) {
@@ -147,7 +147,7 @@ module.exports = function(modelManager, socket, userId){
         else if(actionName === "batch"){
             res.forEach(function(arg){
                 console.log(arg.name);
-                console.log(arg.param);
+               console.log(arg.param);
                 if(arg.name === "thinBorder" || arg.name === 'thickenBorder'){
                     var modelElList = [];
                     var paramList = [];

@@ -395,9 +395,11 @@ input[type="file"] {
     font-size: small;
     padding: 8px 0 12px 12px;
 }
-#connect-causality-agent{
+
+#connect-trips-agent{
 
     margin-top: 5px;
+    margin-right: 5px;
 
 
 }
