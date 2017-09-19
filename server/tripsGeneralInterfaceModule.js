@@ -102,6 +102,7 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
 
 
                     msg.comment = trimDoubleQuotes(contentObj.what);
+
                     model.add('documents.' + msg.room + '.messages', msg);
                 }
 

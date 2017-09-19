@@ -99,7 +99,7 @@ module.exports = function(){
         });
 
         tm.run();
-        tm.sendMsg({0: 'tell', content: ['start-conversation']});
+        // tm.sendMsg({0: 'tell', content: ['start-conversation']});
 
 
     });

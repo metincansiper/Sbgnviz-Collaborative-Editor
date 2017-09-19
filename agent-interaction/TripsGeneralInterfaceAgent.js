@@ -27,7 +27,7 @@ function TripsGeneralInterfaceAgent(agentName, id) {
 TripsGeneralInterfaceAgent.prototype.init = function(){
 
 
-    this.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: true, userName: self.agentName}); //interfaceAgent
+    this.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: true, userName: this.agentName }); //interfaceAgent
     this.listenToMessages();
 }
 
@@ -36,7 +36,7 @@ TripsGeneralInterfaceAgent.prototype.relayMessage = function(text){
     var msg = "";
 
 
-    this.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: self.tripsUttNum});
+    this.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: this.tripsUttNum});
 
     this.tripsUttNum++;
 }

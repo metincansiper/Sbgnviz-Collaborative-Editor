@@ -304,9 +304,9 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
                     var pSite2 = data.pSite2 || '-';
 
                     //enter data separately to keep the order
-                    tm.sendMsg({0:'request', receiver:'CAUSALITY-TRANSLATION-AGENT', content: {0:'TRANSLATE-CORRELATION', id1: data.id1, id2: data.id2, pSite1: pSite1, pSite2: pSite2, correlation: data.correlation}});
+                    //tm.sendMsg({0:'request', receiver:'CAUSALITY-TRANSLATION-AGENT', content: {0:'TRANSLATE-CORRELATION', id1: data.id1, id2: data.id2, pSite1: pSite1, pSite2: pSite2, correlation: data.correlation}});
 
-                    // tm.replyToMsg(text, {0: 'reply', content: {0: 'correlation success',  target:data.id2, correlation: data.correlation}});
+                     tm.replyToMsg(text, {0: 'reply', content: {0: 'correlation success',  target:data.id2, correlation: data.correlation}});
 
 
                 });
@@ -316,7 +316,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
 
         tm.run();
 
-        tm.sendMsg({0: 'tell', content: ['start-conversation']});
+     //   tm.sendMsg({0: 'tell', content: ['start-conversation']});
 
 
 

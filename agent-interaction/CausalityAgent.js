@@ -31,6 +31,8 @@ function CausalityAgent(name, id) {
 
     this.geneContext;
 
+    this.colorCode = "#ff46a7"; //agents have different colors based on specialty
+
 
 
 }

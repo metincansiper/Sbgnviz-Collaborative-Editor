@@ -1112,6 +1112,7 @@ app.proto.add = function (event, model, filePath) {
         });
 
 
+        console.log(comment);
        event.preventDefault();
 
         //change scroll position
@@ -1120,22 +1121,6 @@ app.proto.add = function (event, model, filePath) {
 
 
     });
-
-
-
-    // var messages = model.get('_page.doc.messages');
-    // if(messages){
-    //     var uttNum = messages.length;
-    //     socket.emit('relayMessageToTripsRequest', {text: '"' + comment +'"', uttNum: uttNum});
-    // }
-
-    // //update test messages as the last message
-    // try{
-    //     this.updateMessage();
-    // }
-    // catch(e) {
-    //     console.log(e);
-    // }
 
 
 

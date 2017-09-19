@@ -570,6 +570,8 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
             model.add('documents.' + msg.room + '.messages', msg);
 
+
+
             //io.in(socket.room).emit("message", msg);
 
             if(msg.comment){
@@ -626,6 +628,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
 
         socket.on('agentConnectToTripsRequest', function(param){
+
 
 
             if(param.isInterfaceAgent){
@@ -738,6 +741,46 @@ module.exports.start = function(io, model, cancerDataOrganizer){
                 });
 
 
+                //Notify agents of model changes
+                model.on('insert', (docPath + '.history.**'), function (id, cmdInd) {
+                        if (socket.subscribed) { //humans are connected through sockets as well,check userType to prevent notifying twice
+                            var cmd = model.get(docPath + '.history.' + cmdInd);
+                            //console.log(cmd.opName);
+                            io.in(socket.room).emit('operation', cmd);
+                        }
+                    }
+                );
+
+                // //To send the message to computer agents
+                model.on('all', (docPath + '.messages.**'), function (id, op, msg) {
+
+                    //it means message is newly inserted
+                    if (!id) {
+                        for (var att in msg) {
+                            if (msg.hasOwnProperty(att))
+                                msg = msg[att];
+                        }
+                    }
+
+
+
+                    io.in(socket.room).emit('message', msg);
+
+                    if (msg && msg.comment) {
+                        if (msg.comment.indexOf("The most likely context") > -1) { //if agent told about context
+                            io.in(socket.room).emit("agentContextQuestion", msg.userId);
+                        }
+
+                    }
+
+                });
+
+                //Send image file to computer agents
+                model.on('insert', (docPath + '.images.*'), function (op, id, data) {
+                    if (socket.subscribed)
+                        io.in(socket.room).emit('imageFile', data.img);
+                });
+
             });
             //
             // try {
@@ -825,44 +868,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
                         });
 
 
-                        //Notify agents of model changes
-                        model.on('insert', (docPath + '.history.**'), function (id, cmdInd) {
-                                if (socket.subscribed) { //humans are connected through sockets as well,check userType to prevent notifying twice
-                                    var cmd = model.get(docPath + '.history.' + cmdInd);
-                                    //console.log(cmd.opName);
-                                    io.in(socket.room).emit('operation', cmd);
-                                }
-                            }
-                        );
 
-                        // //To send the message to computer agents
-                        model.on('all', (docPath + '.messages.**'), function (id, op, msg) {
-
-                            //it means message is newly inserted
-                            if (!id) {
-                                for (var att in msg) {
-                                    if (msg.hasOwnProperty(att))
-                                        msg = msg[att];
-                                }
-                            }
-
-
-                            io.in(socket.room).emit('message', msg);
-
-                            if (msg && msg.comment) {
-                                if (msg.comment.indexOf("The most likely context") > -1) { //if agent told about context
-                                    io.in(socket.room).emit("agentContextQuestion", msg.userId);
-                                }
-
-                            }
-
-                        });
-
-                        //Send image file to computer agents
-                        model.on('insert', (docPath + '.images.*'), function (op, id, data) {
-                            if (socket.subscribed)
-                                io.in(socket.room).emit('imageFile', data.img);
-                        });
                     });
                 });
             }
