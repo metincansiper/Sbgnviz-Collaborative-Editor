@@ -391,6 +391,8 @@ app.proto.create = function (model) {
     this.atBottom = true;
 
 
+    this.connectTripsAgent();
+
 
     return model.on('all', '_page.list', (function (_this) {
 

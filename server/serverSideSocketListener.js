@@ -636,7 +636,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
             }
             else {
                 var tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
-                var causalityNLGModule = require('./tripsCausalityNLGModule.js')();
+                //var causalityNLGModule = require('./tripsCausalityNLGModule.js')();
             }
 
         });

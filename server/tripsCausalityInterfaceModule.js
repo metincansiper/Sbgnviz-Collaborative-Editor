@@ -72,6 +72,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
      */
     this.requestCausalityElementsFromAgent = function(id, rel, callback){
 
+
         var param = {id: id, pSite: '', rel:rel};
 
 
@@ -135,28 +136,28 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
 
 
         //Listen to the natural language sentences from the translation agent and display them
-        var pattern = { 0: 'reply', 1:'&key', content: [ 'success',  '.', '*'], sender: 'CAUSALITY-TRANSLATION-AGENT'};
-        tm.addHandler(pattern, function (text) {
-
-            var contentObj = KQML.keywordify(text.content);
-
-
-            if(contentObj) {
-
-                var msg = {agentName, userId: agentId, room: socket.room, date: +(new Date)};
-                contentObj.msg = trimDoubleQuotes(contentObj.msg);
-                msg.comment = contentObj.msg ;
-
-                //model.add('documents.' + msg.room + '.messages', msg);
-
-                //Send any response so that bioagents resolve the subgoal
-                tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success',  target:contentObj.target, correlation: contentObj.correlation}});
-
-                console.log(contentObj.target);
-
-            }
-
-        });
+        // var pattern = { 0: 'reply', 1:'&key', content: [ 'success',  '.', '*'], sender: 'CAUSALITY-TRANSLATION-AGENT'};
+        // tm.addHandler(pattern, function (text) {
+        //
+        //     var contentObj = KQML.keywordify(text.content);
+        //
+        //
+        //     if(contentObj) {
+        //
+        //         var msg = {agentName, userId: agentId, room: socket.room, date: +(new Date)};
+        //         contentObj.msg = trimDoubleQuotes(contentObj.msg);
+        //         msg.comment = contentObj.msg ;
+        //
+        //         //model.add('documents.' + msg.room + '.messages', msg);
+        //
+        //         //Send any response so that bioagents resolve the subgoal
+        //         tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success',  target:contentObj.target, correlation: contentObj.correlation}});
+        //
+        //         console.log(contentObj.target);
+        //
+        //     }
+        //
+        // });
 
         //Listen to queries about the causal relationship between to genes
         //E.g. How does MAPK1 affect JUND?
@@ -195,19 +196,20 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
                             var stringJson = JSON.stringify(indraJson);
                             stringJson = '"' + stringJson.replace(/["]/g, "\\\"") + '"';
 
-                            if (self.modelId) {
-                                tm.sendMsg({
-                                    0: 'request',
-                                    content: {
-                                        0: 'EXPAND-MODEL',
-                                        format: "indra_json",
-                                        description: stringJson,
-                                        'model-id': self.modelId
-                                    }
-                                });
-                            }
-                            else
-                                console.log("Model id not initialized.");
+                            //FIXME
+                            // if (self.modelId) {
+                            //     tm.sendMsg({
+                            //         0: 'request',
+                            //         content: {
+                            //             0: 'EXPAND-MODEL',
+                            //             format: "indra_json",
+                            //             description: stringJson,
+                            //             'model-id': self.modelId
+                            //         }
+                            //     });
+                            // }
+                            // else
+                            //     console.log("Model id not initialized.");
 
 
                             //console.log(stringJson);
