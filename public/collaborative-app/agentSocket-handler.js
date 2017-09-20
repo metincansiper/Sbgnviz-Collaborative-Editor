@@ -372,6 +372,7 @@ module.exports =  function(app, modelManager, socket) {
 
         //Merge an array of json objects to output a single json object.
         mergeJsons: function (jsonGraph, callback) {
+            alert(JSON.stringify(sbgnviz.createJson()));
             var idxCardNodeMap = {};
             var sentenceNodeMap = {};
 

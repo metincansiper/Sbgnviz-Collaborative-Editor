@@ -31,7 +31,6 @@ module.exports.start = function(io, model, cancerDataOrganizer){
             return(human.userId != userId && human.room == room);
         }); //returns the first match
 
-
         if(roomMate!= null) {
             var clientSocket = io.sockets.connected[roomMate.socketId];
             clientSocket.emit(requestStr, data, function(val){
@@ -43,6 +42,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
         }
         else
             if(callback) callback("fail");
+
     };
 
 
@@ -269,7 +269,6 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
 
         socket.on('agentMergeGraphRequest', function(data, callback){
-
             var requestStr;
             if(data.type == "sbgn")
                 requestStr = "mergeSbgn";
@@ -278,6 +277,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
 
             askHuman(socket.userId, data.room,  requestStr, data.graph, function(val){
+
                 if (callback) callback(val);
             });
 

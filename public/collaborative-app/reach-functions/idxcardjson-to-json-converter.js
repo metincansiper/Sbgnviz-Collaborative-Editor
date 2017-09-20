@@ -3,7 +3,7 @@
 
 // Author: David Servillo.
 
-//Date of the last change: 08/18/2016
+//Date of the last change: 09/20/2017
 
 var idxCardToJson = {
 
