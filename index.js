@@ -1018,9 +1018,8 @@ app.proto.runUnitTests = function(){
    // console.log(editorListener);
     //editorListener.debugMode = false;
     //require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
-    //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
+    // require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
     //  require("./public/test/testsModelManager.js")(modelManager, userId);
-     //require("./public/test/testsEditorListener.js")(editorListener);
 
 
      require("./public/test/testsUserOperations.js")(modelManager);

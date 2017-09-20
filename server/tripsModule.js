@@ -7,15 +7,20 @@ module.exports = (function() {
     var DefaultPort = 6200;
     var MaxPortTries = 100;
 
-    var isConnected = true; //funda
+
     var socket;
 
     var globalPat = "";
+
+
 
     function TripsModule(argv) {
         this.argv = argv;
     }
     TripsModule.prototype = {
+
+
+
         constructor: TripsModule,
 
         getParameter: function(name, defalt) {
@@ -83,12 +88,13 @@ module.exports = (function() {
                                 onconnect();
                             }
 
-                            isConnected = true;
+                            that.isConnected = true;
                         });
 
                         socket.on('error', function(){  //FUNDA: this detects disconnection
                             console.log("TRIPS is not connected.");
-                            isConnected = false;
+                            that.isConnected = false;
+
 
                         });
                     }
@@ -105,7 +111,7 @@ module.exports = (function() {
                     if (onconnect !== undefined) {
                         onconnect();
                     }
-                    isConnected = true;
+                    that.isConnected = true;
                 }
 
 
@@ -176,7 +182,7 @@ module.exports = (function() {
 
         sendMsg: function(msg) {
 
-            if(isConnected)
+            if(this.isConnected)
                 this.socket.write(msg);
 
 
@@ -232,6 +238,7 @@ module.exports = (function() {
 
     }
 
+    TripsModule.prototype.isConnected = true; //funda
     return TripsModule;
 
 })();

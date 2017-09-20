@@ -52,20 +52,57 @@ module.exports = function(serverIp, modelManager){
         });
     }
 
+    function testMessages(){
+        QUnit.test('Messages', function (assert) {
+            assert.expect(3);
+
+            var done1 = assert.async();
+            var done2 = assert.async();
+            var done3 = assert.async();
+
+            agent.tellCorrelation('AKT1', function(data){
+
+                console.log(data);
+                assert.ok(data.id2);
+                // assert.ok(data.explainable);
+                done1();
+            });
+
+            agent.tellCorrelation('AKT1', function(data){
+                console.log(data);
+
+                assert.ok(data.id2);
+                // assert.ok(data.explainable);
+                done2();
+            });
+
+
+            agent.tellCorrelation('AKT1', function(data){
+                console.log(data);
+
+                assert.ok(data.id2);
+                // assert.ok(data.explainable);
+                done3();
+            });
+
+        });
+
+    }
 
 
 
-    setTimeout(function() {
-        testNewAgent();
-    }, 100);
-
-
-
-
-    setTimeout(function() {
-        testLoadModel();
-    }, 100);
-
+    //
+    // setTimeout(function() {
+    //     testNewAgent();
+    // }, 100);
+    //
+    //
+    //
+    //
+    // setTimeout(function() {
+    //     testLoadModel();
+    // }, 100);
+    //
 
 
     setTimeout(function() {

@@ -775,6 +775,7 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
 
 
             self.currCorrelation = geneCorrArr[indCorr];
+            self.currCorrelation.explainable = "\"explainable\"";
 
         }
         else { //no causal explanation around gene
@@ -801,6 +802,7 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
                 self.currCorrelation.correlation = geneCorrArr[indCorr].correlation;
                 self.currCorrelation = geneCorrArr[indCorr];
 
+                 self.currCorrelation.explainable = "\"unexplainable\"";
 
                 if(self.currCorrelation.correlation < 0)
 
@@ -816,6 +818,8 @@ CausalityAgent.prototype.tellCorrelation = function(gene, callback){
                 agentMsg += makeUpstreamStr(commonUpstreams);
 
             }
+
+
 
         }
 

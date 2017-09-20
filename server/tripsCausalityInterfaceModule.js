@@ -7,7 +7,7 @@
 module.exports = function(agentId, agentName, socket, model, askHuman){
 
     var tripsModule = require('./tripsModule.js');
-    var tm = new tripsModule(['-name', 'Causality-Interface-Agent']);
+    this.tm = new tripsModule(['-name', 'Causality-Interface-Agent']);
     var KQML = require('./KQML/kqml.js');
 
     var self = this;
@@ -109,12 +109,12 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
      */
     this.getTermName = function(termStr, callback) {
 
-        tm.sendMsg({0: 'request', content: {0: 'CHOOSE-SENSE', 'ekb-term': termStr}});
+        self.tm.sendMsg({0: 'request', content: {0: 'CHOOSE-SENSE', 'ekb-term': termStr}});
 
 
         var patternXml = {0: 'reply', 1: '&key', content: ['SUCCESS', '.', '*']};
 
-        tm.addHandler(patternXml, function (textXml) {
+        self.tm.addHandler(patternXml, function (textXml) {
 
             if(textXml.content && textXml.content.length >= 2 && textXml.content[2].length > 0) {
 
@@ -128,16 +128,16 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
     }
 
 
-    tm.init(function(){
+    self.tm.init(function(){
 
-        tm.register();
+        self.tm.register();
 
         var textCorrelationRequestFromBA;
 
 
         //Listen to the natural language sentences from the translation agent and display them
         // var pattern = { 0: 'reply', 1:'&key', content: [ 'success',  '.', '*'], sender: 'CAUSALITY-TRANSLATION-AGENT'};
-        // tm.addHandler(pattern, function (text) {
+        // self.tm.addHandler(pattern, function (text) {
         //
         //     var contentObj = KQML.keywordify(text.content);
         //
@@ -151,7 +151,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
         //         //model.add('documents.' + msg.room + '.messages', msg);
         //
         //         //Send any response so that bioagents resolve the subgoal
-        //         tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success',  target:contentObj.target, correlation: contentObj.correlation}});
+        //         self.tm.replyToMsg(textCorrelationRequestFromBA, {0: 'reply', content: {0: 'correlation success',  target:contentObj.target, correlation: contentObj.correlation}});
         //
         //         console.log(contentObj.target);
         //
@@ -162,7 +162,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
         //Listen to queries about the causal relationship between to genes
         //E.g. How does MAPK1 affect JUND?
         var pattern = { 0: 'request', 1:'&key', content: [ 'find-causal-path',  '.', '*']};
-        tm.addHandler(pattern, function (text) { //listen to requests
+        self.tm.addHandler(pattern, function (text) { //listen to requests
 
             var contentObj = KQML.keywordify(text.content);
 
@@ -188,7 +188,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
                         var indraJson;
 
                         if (!causality || !causality.rel)
-                            tm.replyToMsg(text, {0: 'reply', content: {0: 'failure', 1: 'NO_PATH_FOUND'}});
+                            self.tm.replyToMsg(text, {0: 'reply', content: {0: 'failure', 1: 'NO_PATH_FOUND'}});
                         else {
 
 
@@ -198,7 +198,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
 
                             //FIXME
                             // if (self.modelId) {
-                            //     tm.sendMsg({
+                            //     self.tm.sendMsg({
                             //         0: 'request',
                             //         content: {
                             //             0: 'EXPAND-MODEL',
@@ -214,7 +214,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
 
                             //console.log(stringJson);
                             var response = {0: 'reply', content: {0: 'success', paths: stringJson}};
-                            tm.replyToMsg(text, response);
+                            self.tm.replyToMsg(text, response);
                         }
                     });
 
@@ -227,7 +227,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
         //E.g. What genes does MAPK1 phosphorylate?
         var pattern = { 0: 'request', 1:'&key', content: [ 'find-causality-target',  '.', '*']};
 
-        tm.addHandler(pattern, function (text) { //listen to requests
+        self.tm.addHandler(pattern, function (text) { //listen to requests
 
             var contentObj = KQML.keywordify(text.content);
 
@@ -247,7 +247,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
                     var requestType = queryToRequestMap[contentObj.type] || "modulates";
 
                     self.requestCausalityElementsFromAgent(target, requestType, function (response) {
-                        tm.replyToMsg(text, response);
+                        self.tm.replyToMsg(text, response);
                     });
                 });
             }
@@ -258,7 +258,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
         //E.g. What genes phosphorylate MAPK1?
         var pattern = { 0: 'request', 1:'&key', content: [ 'find-causality-source',  '.', '*']};
 
-        tm.addHandler(pattern, function (text) { //listen to requests
+        self.tm.addHandler(pattern, function (text) { //listen to requests
 
             var contentObj = KQML.keywordify(text.content);
             if(contentObj) {
@@ -278,7 +278,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
                     var requestType = queryToRequestMap[contentObj.type] || "modulates";
 
                     self.requestCausalityElementsFromAgent(source, requestType, function (response) {
-                        tm.replyToMsg(text, response);
+                        self.tm.replyToMsg(text, response);
 
                     });
                 });
@@ -289,7 +289,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
 
         //Listen to requests for correlation queries
         var pattern = { 0: 'request', 1:'&key', content: [ 'dataset-correlated-entity',  '.', '*']};
-        tm.addHandler(pattern, function (text) { //listen to requests
+        self.tm.addHandler(pattern, function (text) { //listen to requests
             var contentObj = KQML.keywordify(text.content);
 
             //Correlation request from BA
@@ -306,9 +306,11 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
                     var pSite2 = data.pSite2 || '-';
 
                     //enter data separately to keep the order
-                    //tm.sendMsg({0:'request', receiver:'CAUSALITY-TRANSLATION-AGENT', content: {0:'TRANSLATE-CORRELATION', id1: data.id1, id2: data.id2, pSite1: pSite1, pSite2: pSite2, correlation: data.correlation}});
+                    //self.tm.sendMsg({0:'request', receiver:'CAUSALITY-TRANSLATION-AGENT', content: {0:'TRANSLATE-CORRELATION', id1: data.id1, id2: data.id2, pSite1: pSite1, pSite2: pSite2, correlation: data.correlation}});
 
-                     tm.replyToMsg(text, {0: 'reply', content: {0: 'correlation success',  target:data.id2, correlation: data.correlation}});
+                     self.tm.replyToMsg(text, {0: 'reply', content: {0: 'success',  target:data.id2, correlation: data.correlation, explainable:data.explainable}});
+
+
 
 
                 });
@@ -316,9 +318,9 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
         });
 
 
-        tm.run();
+        self.tm.run();
 
-     //   tm.sendMsg({0: 'tell', content: ['start-conversation']});
+     //   self.tm.sendMsg({0: 'tell', content: ['start-conversation']});
 
 
 
@@ -335,7 +337,7 @@ module.exports = function(agentId, agentName, socket, model, askHuman){
 
     //TRIPS connection should be closed explicitly
     socket.on('disconnect', function(){
-        tm.disconnect();
+        self.tm.disconnect();
     })
 
 }

@@ -37,6 +37,9 @@
     <br>   <b> Agent Operations</b> <br>
 
     <br>
+
+    <input type="button" value="Run tests" onclick=runTests()>
+
     <button id = "newFile" onclick = newFile()>New model</button>
 
     <input id="fileInput" type="file" onchange = loadFile() />
@@ -654,6 +657,18 @@
             });
         });
     };
+
+    function runTests(){
+
+        for(var i =0; i < 10; i++){
+        setTimeout(function(){
+            agent.tellCorrelation('AKT1', function(data){
+                console.log(data);
+            });
+
+        }, i*1000)}
+    }
+
     function newFile(){
         agent.sendRequest("agentNewFileRequest",{param:null});
     }

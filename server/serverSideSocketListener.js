@@ -11,7 +11,8 @@ module.exports.start = function(io, model, cancerDataOrganizer){
     var roomList = [];
     var humanList = [];
     var pnnlArr  = [];
-
+    var tripsInterfaceModule;
+    var tripsCausalityInterfaceModule;
 
 
 
@@ -632,10 +633,16 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
 
             if(param.isInterfaceAgent){
-                var tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
+                console.log("trips general module connection");
+                if(tripsInterfaceModule)
+                    tripsInterfaceModule.tm.disconnect();
+                tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
             }
             else {
-                var tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
+                console.log("trips causality module connection");
+                if(tripsCausalityInterfaceModule)
+                    tripsCausalityInterfaceModule.tm.disconnect();
+                tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
                 //var causalityNLGModule = require('./tripsCausalityNLGModule.js')();
             }
 

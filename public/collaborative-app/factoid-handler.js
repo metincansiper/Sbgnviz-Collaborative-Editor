@@ -139,42 +139,42 @@ module.exports =  function(agentSocket, modelManager) {
 
             // console.log(idxCards);
 
-
-            cy.$(('#' + nodeId)).qtip({
-                content: {
-                    text: function (event, api) {
-
-                        var info = (new idxCardView(idxCards)).render();
-                        var html = $('#idxCard-container').html();
-
-
-                        api.set('content.text', html);
-
-                        return html;
-
-
-                    }
-                },
-                show: {
-                    ready: true
-                },
-                position: {
-                    my: 'top center',
-                    at: 'top middle',
-                    adjust: {
-                        cyViewport: true
-                    },
-                    effect: false
-                },
-                style: {
-                    classes: 'qtip-bootstrap',
-                    tip: {
-                        width: 20,
-                        height: 20
-                    }
-                }
-            });
-
+            //TODO: open this!!!!!! qtip not working
+            // cy.$(('#' + nodeId)).qtip({
+            //     content: {
+            //         text: function (event, api) {
+            //
+            //             var info = (new idxCardView(idxCards)).render();
+            //             var html = $('#idxCard-container').html();
+            //
+            //
+            //             api.set('content.text', html);
+            //
+            //             return html;
+            //
+            //
+            //         }
+            //     },
+            //     show: {
+            //         ready: true
+            //     },
+            //     position: {
+            //         my: 'top center',
+            //         at: 'top middle',
+            //         adjust: {
+            //             cyViewport: true
+            //         },
+            //         effect: false
+            //     },
+            //     style: {
+            //         classes: 'qtip-bootstrap',
+            //         tip: {
+            //             width: 20,
+            //             height: 20
+            //         }
+            //     }
+            // });
+            //
 
 
 

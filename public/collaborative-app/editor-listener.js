@@ -79,8 +79,8 @@ module.exports = function(modelManager, socket, userId){
         // if(this.debugMode){
 
             console.log(actionName);
-            // console.log(args);
-            // console.log(res);
+            console.log(args);
+            console.log(res);
 
 
 
