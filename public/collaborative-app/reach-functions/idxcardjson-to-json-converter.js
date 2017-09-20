@@ -51,7 +51,10 @@ var idxCardToJson = {
                     statesandinfos: [{bbox: statesandinfosbbox,
                         id: "ele"+i+2,
                         clazz: "unit of information",
-                        label: {text:"mt:prot"}}],
+                        label: {text:"mt:prot"},
+                        coordType:  "relativeToCenter",
+                        anchorSide: "top",
+                        isDisplayed: false}],
                     parent: "",
                     ports: []
                 }
@@ -74,7 +77,10 @@ var idxCardToJson = {
                     statesandinfos: [{bbox: statesandinfosbbox,
                         id:"ele"+i+6,
                         clazz:"unit of information",
-                        label:{text:"mt:prot"}}],
+                        label:{text:"mt:prot"},
+                        coordType:  "relativeToCenter",
+                        anchorSide: "top",
+                        isDisplayed: false}],
                     parent: "",
                     ports: []
                 }
@@ -97,14 +103,13 @@ var idxCardToJson = {
 
             jsonObj.nodes.push(newNode2);
 
-            //Create the fourth glyph
             var newNode3 = {
                 data: {
                     id: "ele"+i+6,
-                    class: "source and sink",
-                    label: "null",
+                    class: "",
+                    label: "",
                     statesandinfos: [],
-                    bbox: entityBbox.sourceandsink,
+                    bbox: {x:0, y:0, w:0, h:0},
                     parent: "",
                     ports: []
                 }
@@ -178,6 +183,9 @@ var idxCardToJson = {
                 newNode3.data.statesandinfos[0].clazz = "unit of information";
                 newNode3.data.statesandinfos[0].label = {};
                 newNode3.data.statesandinfos[0].label.text = "mt:prot";
+                newNode3.data.statesandinfos[0].coordType = "relativeToCenter";
+                newNode3.data.statesandinfos[0].anchorSide = "top";
+                newNode3.data.statesandinfos[0].isDisplayed = false;
 
                 //The result of the reaction is a complex
                 newNode1.data.class = "complex";
@@ -195,7 +203,10 @@ var idxCardToJson = {
                         statesandinfos: [{bbox: statesandinfosbbox,
                             id:"ele"+i+4,
                             clazz: "unit of information",
-                            label: {text:"mt:prot"}}],
+                            label: {text:"mt:prot"},
+                            coordType:  "relativeToCenter",
+                            anchorSide: "top",
+                            isDisplayed: false}],
                         parent: "ele"+i+3,
                         ports: []
                     }
@@ -212,7 +223,10 @@ var idxCardToJson = {
                         statesandinfos: [{bbox: statesandinfosbbox,
                             id: "ele"+i+12,
                             clazz: "unit of information",
-                            label:{text:"mt:prot"}}],
+                            label:{text:"mt:prot"},
+                            coordType:  "relativeToCenter",
+                            anchorSide: "top",
+                            isDisplayed: false}],
                         label: newNode0.data.label,
                         parent: "ele"+i+3,
                         ports: []
@@ -239,6 +253,9 @@ var idxCardToJson = {
                 newNode3.data.statesandinfos[0].label = {};
                 newNode3.data.statesandinfos[0].label.text = "mt:prot";
                 newNode3.data.statesandinfos[0].bbox = statesandinfosbbox;
+                newNode3.data.statesandinfos[0].coordType = "relativeToCenter";
+                newNode3.data.statesandinfos[0].anchorSide = "top";
+                newNode3.data.statesandinfos[0].isDisplayed = false;
                 newNode3.data.parent = "";
                 newNode3.data.ports = [];
 
@@ -248,7 +265,10 @@ var idxCardToJson = {
                         id: "ele"+i+7,
                         clazz: "state variable",
                         bbox: addmodifstatesandinfosbbox,
-                        state: {value: stateInfos[idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type]}
+                        state: {value: stateInfos[idxcardjsonObj.cards[i].extracted_information.modifications[j].modification_type]},
+                        coordType:  "relativeToCenter",
+                        anchorSide: "top",
+                        isDisplayed: false
                     };
 
                     newNode1.data.statesandinfos.push(newStateInfos);
@@ -286,6 +306,9 @@ var idxCardToJson = {
                 newNode3.data.statesandinfos[0].id = "ele"+i+9;
                 newNode3.data.statesandinfos[0].clazz = "unit of information";
                 newNode3.data.statesandinfos[0].label = {};
+                newNode3.data.statesandinfos[0].coordType = "relativeToCenter";
+                newNode3.data.statesandinfos[0].anchorSide = "top";
+                newNode3.data.statesandinfos[0].isDisplayed = false;
                 newNode3.data.statesandinfos[0].label.text = "mt:prot";
 
                 //The first glyph is transformed into a compartment
