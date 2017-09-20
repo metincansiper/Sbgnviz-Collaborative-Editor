@@ -76,12 +76,19 @@ module.exports = function(modelManager, socket, userId){
     });
 
     cy.on("afterDo afterRedo", function (event, actionName, args, res) {
+<<<<<<< HEAD
         // if(this.debugMode){
 
             console.log(actionName);
             // console.log(args);
             // console.log(res);
 
+=======
+ 
+        console.log(actionName);
+        console.log(args);
+        console.log(res);
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
 
         if (actionName === "changeData" || actionName === "changeFontProperties" ) {
