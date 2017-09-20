@@ -103,14 +103,13 @@ var idxCardToJson = {
 
             jsonObj.nodes.push(newNode2);
 
-            //Create the fourth glyph
             var newNode3 = {
                 data: {
                     id: "ele"+i+6,
-                    class: "source and sink",
-                    label: "null",
+                    class: "",
+                    label: "",
                     statesandinfos: [],
-                    bbox: entityBbox.sourceandsink,
+                    bbox: {x:0, y:0, w:0, h:0},
                     parent: "",
                     ports: []
                 }
