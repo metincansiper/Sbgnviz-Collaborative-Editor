@@ -89,6 +89,8 @@ module.exports = (function() {
                             }
 
                             that.isConnected = true;
+
+                            console.log(that.port +  " " + that.host);
                         });
 
                         socket.on('error', function(){  //FUNDA: this detects disconnection

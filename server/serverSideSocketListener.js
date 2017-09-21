@@ -628,7 +628,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
 
 
-        socket.on('agentConnectToTripsRequest', function(param){
+        socket.on('agentConnectToTripsRequest', function(param, callback){
 
 
 
@@ -637,13 +637,28 @@ module.exports.start = function(io, model, cancerDataOrganizer){
                 if(tripsInterfaceModule)
                     tripsInterfaceModule.tm.disconnect();
                 tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
+                setTimeout(function(){
+                    if(callback)
+                     callback(tripsInterfaceModule.tm.isConnected);
+                }, 2000);
             }
             else {
                 console.log("trips causality module connection");
                 if(tripsCausalityInterfaceModule)
                     tripsCausalityInterfaceModule.tm.disconnect();
-                tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
-                //var causalityNLGModule = require('./tripsCausalityNLGModule.js')();
+
+
+                tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model);
+
+                // setTimeout(function() {
+                //     if (callback) {
+                //         if (tripsCausalityInterfaceModule)
+                //             callback(tripsCausalityInterfaceModule.tm.isConnected);
+                //         else
+                //             callback(false);
+                //     }
+                // }, 2000);
+
             }
 
         });

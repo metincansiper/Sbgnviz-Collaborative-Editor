@@ -5,7 +5,7 @@
  * It handles general requests such as displaying, message sending and model building
  */
 
-module.exports = function(agentId,  agentName, socket, model, askHuman){
+module.exports = function(agentId,  agentName, socket, model){
 
 
     var tripsModule = require('./tripsModule.js');
@@ -14,6 +14,8 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
 
     var self = this;
     this.modelId;
+    this.socket = socket;
+
 
     this.displayImage = function(text){
         var contentObj = KQML.keywordify(text.content);
@@ -49,10 +51,14 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
                     }
 
 
-                    askHuman(agentId, socket.room, "addImage", imgData, function (val) {
-
+                    self.socket.emit('agentSendImageRequest', imgData, function(val){
                         self.tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
                     });
+
+                    // askHuman(agentId, socket.room, "addImage", imgData, function (val) {
+                    //
+                    //     self.tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
+                    // });
 
                 });
             }
@@ -77,7 +83,7 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
 
 
             //Request this information from the tripsInterface
-            socket.emit('displayModel', sbgnModel, function (val) {
+            self.socket.emit('displayModel', sbgnModel, function (val) {
 
             });
 
@@ -95,12 +101,18 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
         //Listen to spoken sentences
         var pattern = {0: 'tell', 1: '&key', content: ['spoken', '.', '*']};
         self.tm.addHandler(pattern, function (text) {
+
+
+
+
+
+
             var contentObj = KQML.keywordify(text.content);
 
             if (contentObj) {
 
-                var msg = {userName: agentName, userId: agentId, room: socket.room, date: +(new Date)};
-
+                var msg = {userName: agentName, userId: agentId, room: self.socket.room, date: +(new Date)};
+                console.log("spoken phrase " + text.content + self.socket.room);
 
                 msg.comment = trimDoubleQuotes(contentObj.what);
 
@@ -138,18 +150,18 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
         self.tm.sendMsg({0: 'tell', content: ['start-conversation']});
 
 
-        self.modelId = model.get('documents.' + socket.room + '.pysb.modelId');
+        self.modelId = model.get('documents.' + self.socket.room + '.pysb.modelId');
 
         //TODO: We now assume that the system is not reset after sbgnviz is connected-- so it keeps the model-id indefinitely
         //We also need to check modelid does not exist in the system
         //Or each time we get a new model id
 
-        if (!self.modelId) {
+        // if (!self.modelId) {
 
             var ekbTerm = '"<ekb>' + '' + '</ekb>"';
 
             self.tm.sendMsg({0: 'request', content: {0: 'BUILD-MODEL', description: ekbTerm}});
-        }
+        // }
 
         //Listen to model id response from MRA
         var pattern = {0: 'reply', 1: '&key', content: ['success', '.', '*'], sender: 'MRA'};
@@ -161,8 +173,8 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
             if (contentObj.modelId) {
 
                 self.modelId = contentObj.modelId;
-                model.set('documents.' + socket.room + '.pysb.modelId', self.modelId);
-                model.set('documents.' + socket.room + '.pysb.model', contentObj.model);
+                model.set('documents.' + self.socket.room + '.pysb.modelId', self.modelId);
+                model.set('documents.' + self.socket.room + '.pysb.model', contentObj.model);
 
 
                 console.log("New model started: " + self.modelId);
@@ -182,10 +194,10 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
 
         //Let user know
         if (!self.tm.isConnected) {
-            var msg = {userName: agentName, userId: agentId, room: socket.room, date: +(new Date)};
+            var msg = {userName: agentName, userId: agentId, room: self.socket.room, date: +(new Date)};
 
 
-            msg.comment = "Bob is not connected to TRIPS.";
+            msg.comment = "TRIPS connection cannot be established.";
 
             model.add('documents.' + msg.room + '.messages', msg);
 
@@ -193,10 +205,24 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
     }, 1000);
 
 
+    setInterval(function(){
+        //Let user know
+        if (!self.tm.isConnected) {
+            var msg = {userName: agentName, userId: agentId, room: self.socket.room, date: +(new Date)};
+
+
+            msg.comment = "TRIPS connection cannot be established.";
+
+            model.add('documents.' + msg.room + '.messages', msg);
+
+        }
+    }, 2000);
+
+
 
     try {
         //Utterances are sent to trips
-        socket.on('relayMessageToTripsRequest', function(data){
+        self.socket.on('relayMessageToTripsRequest', function(data){
 
 
             // if(data.userId !== agentId){
@@ -225,7 +251,7 @@ module.exports = function(agentId,  agentName, socket, model, askHuman){
         console.log(e + " Trips disconnected.");
     }
     //TRIPS connection should be closed explicitly
-    socket.on('disconnect', function(){
+    self.socket.on('disconnect', function(){
         self.tm.disconnect();
     });
 

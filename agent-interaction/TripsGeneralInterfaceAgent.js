@@ -25,9 +25,13 @@ function TripsGeneralInterfaceAgent(agentName, id) {
  *
  */
 TripsGeneralInterfaceAgent.prototype.init = function(){
+var self = this;
 
-
-    this.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: true, userName: this.agentName }); //interfaceAgent
+    this.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: true, userName: this.agentName }, function(result){
+        console.log(result);
+        if(!result)
+            self.disconnect();
+    }); //interfaceAgent
     this.listenToMessages();
 }
 
@@ -52,6 +56,7 @@ TripsGeneralInterfaceAgent.prototype.listenToMessages = function(callback){
 
     this.socket.on('displayModel', function(sbgn, callback){
 
+        //TODO: this should be deleted
         self.sendRequest('agentNewFileRequest');
 
         self.sendRequest('agentMergeGraphRequest', {type: 'sbgn', graph: sbgn}, function (data) {

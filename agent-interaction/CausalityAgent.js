@@ -94,7 +94,10 @@ CausalityAgent.prototype.init = function(){
     // }, 1000);
 
 
-    self.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: false, userName: self.agentName});
+    self.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: false, userName: self.agentName}, function(result){
+        if(result == false)
+            self.disconnect();
+    });
 
     //Agent initiates the request
 
