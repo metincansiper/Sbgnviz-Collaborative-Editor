@@ -5,7 +5,7 @@
  * It handles general requests such as displaying, message sending and model building
  */
 
-module.exports = function(agentId,  agentName, socket, model){
+module.exports = function(agentId,  agentName, socket, model, askHuman){
 
 
     var tripsModule = require('./tripsModule.js');
@@ -17,7 +17,9 @@ module.exports = function(agentId,  agentName, socket, model){
     this.socket = socket;
 
 
-    this.displayImage = function(text){
+
+
+        this.displayImage = function(text){
         var contentObj = KQML.keywordify(text.content);
         if (contentObj) {
 
@@ -51,14 +53,12 @@ module.exports = function(agentId,  agentName, socket, model){
                     }
 
 
-                    self.socket.emit('agentSendImageRequest', imgData, function(val){
-                        self.tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
-                    });
+                    //We are on the server side of the socket, so directly emitting request does not work
+                    //we must ask the client to do it for us
+                    askHuman(agentId, self.socket.room, "addImage", imgData, function (val) {
 
-                    // askHuman(agentId, socket.room, "addImage", imgData, function (val) {
-                    //
-                    //     self.tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
-                    // });
+                        // self.tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
+                    });
 
                 });
             }
@@ -81,11 +81,13 @@ module.exports = function(agentId,  agentName, socket, model){
             sbgnModel = sbgnModel.replace(/(\\")/g, '"');
             sbgnModel = "<?xml version='1.0' encoding='UTF-8' standalone='yes'?>\n" + sbgnModel;
 
+            //We are on the server side of the socket, so directly emitting request does not work
+            //we must ask the client to do it for us
+            askHuman(agentId, self.socket.room, "mergeSbgn", sbgnModel, function (val) {
 
-            //Request this information from the tripsInterface
-            self.socket.emit('displayModel', sbgnModel, function (val) {
-
+                // self.tm.replyToMsg(text, {0: 'reply', content: {0: 'success'}});
             });
+
 
         }
     }
@@ -103,16 +105,11 @@ module.exports = function(agentId,  agentName, socket, model){
         self.tm.addHandler(pattern, function (text) {
 
 
-
-
-
-
             var contentObj = KQML.keywordify(text.content);
 
             if (contentObj) {
 
                 var msg = {userName: agentName, userId: agentId, room: self.socket.room, date: +(new Date)};
-                console.log("spoken phrase " + text.content + self.socket.room);
 
                 msg.comment = trimDoubleQuotes(contentObj.what);
 
@@ -125,6 +122,7 @@ module.exports = function(agentId,  agentName, socket, model){
         var pattern = {0: 'tell', 1: '&key', content: ['display-sbgn', '.', '*']};
         self.tm.addHandler(pattern, function (text) {
             self.displaySbgn(text);
+
         });
 
 

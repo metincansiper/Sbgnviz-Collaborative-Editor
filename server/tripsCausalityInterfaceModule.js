@@ -4,7 +4,7 @@
  * Its role is to receive and decode messages and transfer them to causalityAgent
  */
 
-module.exports = function(agentId, agentName, socket, model){
+module.exports = function(agentId, agentName, socket, model, askHuman){
 
     var tripsModule = require('./tripsModule.js');
     this.tm = new tripsModule(['-name', 'Causality-Interface-Agent']);
@@ -12,8 +12,6 @@ module.exports = function(agentId, agentName, socket, model){
 
     var self = this;
     this.modelId;
-    this.socket = socket;
-
 
 
     const indraRelationMap ={
@@ -79,7 +77,7 @@ module.exports = function(agentId, agentName, socket, model){
 
 
         //Request this information from the causalityAgent
-        self.socket.emit("findCausalityTargets", param, function(elements){
+        socket.emit("findCausalityTargets", param, function(elements){
             var indraJson = [];
 
             //TODO: foreach
@@ -146,7 +144,7 @@ module.exports = function(agentId, agentName, socket, model){
         //
         //     if(contentObj) {
         //
-        //         var msg = {agentName, userId: agentId, room: self.socket.room, date: +(new Date)};
+        //         var msg = {agentName, userId: agentId, room: socket.room, date: +(new Date)};
         //         contentObj.msg = trimDoubleQuotes(contentObj.msg);
         //         msg.comment = contentObj.msg ;
         //
@@ -186,7 +184,7 @@ module.exports = function(agentId, agentName, socket, model){
 
 
                     //Request this information from the causalityAgent
-                    self.socket.emit('findCausality', param, function (causality) {
+                    socket.emit('findCausality', param, function (causality) {
                         var indraJson;
 
                         if (!causality || !causality.rel)
@@ -300,7 +298,7 @@ module.exports = function(agentId, agentName, socket, model){
             self.getTermName(contentObj.source, function (source) {
 
                 //Request this information from the causalityAgent
-                self.socket.emit('findCorrelation', source, function (data) {
+                socket.emit('findCorrelation', source, function (data) {
 
 
                     // We are not allowed to send a request if null, so put a temporary string
@@ -329,6 +327,9 @@ module.exports = function(agentId, agentName, socket, model){
 
 
 
+
+
+
     });
 
 
@@ -337,10 +338,10 @@ module.exports = function(agentId, agentName, socket, model){
 
         //Let user know
         if (!self.tm.isConnected) {
-            var msg = {userName: agentName, userId: agentId, room: self.socket.room, date: +(new Date)};
+            var msg = {userName: agentName, userId: agentId, room: socket.room, date: +(new Date)};
 
 
-            msg.comment = "TRIPS connection cannot be established.";
+            msg.comment = "Bob connection cannot be established.";
 
             model.add('documents.' + msg.room + '.messages', msg);
 
@@ -351,10 +352,10 @@ module.exports = function(agentId, agentName, socket, model){
     setInterval(function(){
         //Let user know
         if (!self.tm.isConnected) {
-            var msg = {userName: agentName, userId: agentId, room: self.socket.room, date: +(new Date)};
+            var msg = {userName: agentName, userId: agentId, room: socket.room, date: +(new Date)};
 
 
-            msg.comment = "TRIPS connection cannot be established.";
+            msg.comment = "Bob connection cannot be established.";
 
             model.add('documents.' + msg.room + '.messages', msg);
 
@@ -363,7 +364,7 @@ module.exports = function(agentId, agentName, socket, model){
 
 
     //TRIPS connection should be closed explicitly
-    self.socket.on('disconnect', function(){
+    socket.on('disconnect', function(){
         self.tm.disconnect();
     })
 

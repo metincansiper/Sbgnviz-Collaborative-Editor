@@ -35,6 +35,8 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
         if(roomMate!= null) {
             var clientSocket = io.sockets.connected[roomMate.socketId];
+
+            console.log("Ask human socket " + roomMate.socketId);
             clientSocket.emit(requestStr, data, function(val){
 
                 console.log(requestStr);
@@ -271,6 +273,8 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
         socket.on('agentMergeGraphRequest', function(data, callback){
 
+            console.log("socket merge graph");
+            console.log(data);
             var requestStr;
             if(data.type == "sbgn")
                 requestStr = "mergeSbgn";
@@ -631,11 +635,14 @@ module.exports.start = function(io, model, cancerDataOrganizer){
         socket.on('agentConnectToTripsRequest', function(param, callback){
 
 
+            console.log("agent connecttoTrips socket " + socket.id );
 
             if(param.isInterfaceAgent){
                 console.log("trips general module connection");
-                if(tripsInterfaceModule)
+                if(tripsInterfaceModule) {
                     tripsInterfaceModule.tm.disconnect();
+
+                }
                 tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
                 setTimeout(function(){
                     if(callback)
@@ -644,8 +651,10 @@ module.exports.start = function(io, model, cancerDataOrganizer){
             }
             else {
                 console.log("trips causality module connection");
-                if(tripsCausalityInterfaceModule)
+                if(tripsCausalityInterfaceModule) {
                     tripsCausalityInterfaceModule.tm.disconnect();
+
+                }
 
 
                 tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model);
@@ -909,6 +918,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
         socket.on('disconnect', function() {
 
+            console.log("disconnected socket " + socket.id);
             try {
 
 
