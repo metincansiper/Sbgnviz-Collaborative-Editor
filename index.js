@@ -394,7 +394,7 @@ app.proto.create = function (model) {
     this.connectTripsAgent();
 
     //TODO: Delete this
-    //this.updateMessage(); //init first one
+    this.updateMessage(); //init first one
 
     return model.on('all', '_page.list', (function (_this) {
 

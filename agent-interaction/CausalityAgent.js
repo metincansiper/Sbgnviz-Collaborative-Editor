@@ -29,11 +29,15 @@ function CausalityAgent(name, id) {
 
     this.currCorrelation = {correlation:-1000}; //current correlation
 
-    this.geneContext;
-
     this.colorCode = "#ff46a7"; //agents have different colors based on specialty
 
 
+
+}
+CausalityAgent.prototype.restart = function(){
+    this.indCausal = -1;
+    this.currCorrelation = {correlation:-1000}; //current correlation
+    console.log("Indices reset");
 
 }
 /***
@@ -95,8 +99,8 @@ CausalityAgent.prototype.init = function(){
 
 
     self.sendRequest('agentConnectToTripsRequest', {isInterfaceAgent: false, userName: self.agentName}, function(result){
-        if(result == false)
-            self.disconnect();
+        // if(result == false)
+        //     self.disconnect();
     });
 
     //Agent initiates the request
@@ -267,6 +271,11 @@ CausalityAgent.prototype.listenToMessages = function(callback){
 
 
 
+    this.socket.on('restartCausalityIndices', function(callback){
+
+        self.restart();
+        if(callback) callback();
+    });
 
     this.socket.on('getCausalityNL', function(data, callback){
 
@@ -881,6 +890,8 @@ CausalityAgent.prototype.showCausality = function(gene, ind, callback){
 
     if(geneRelationshipArr[ind].uriStr.length >0) {
 
+
+
         self.mergePCQuery(geneRelationshipArr[ind].uriStr, function (result) {
             if (ind >= geneRelationshipArr.length - 1 && callback)
                 callback();
@@ -903,6 +914,8 @@ CausalityAgent.prototype.mergePCQuery = function(uriStr, callback){
     pc2URL = pc2URL + uriStr + format;
 
     this.socket.emit('MergePCQuery', {url: pc2URL, type: "sbgn"}, function(data){
+
+
 
         if(callback) callback(data);
     });

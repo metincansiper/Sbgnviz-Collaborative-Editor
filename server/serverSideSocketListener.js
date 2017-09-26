@@ -11,8 +11,8 @@ module.exports.start = function(io, model, cancerDataOrganizer){
     var roomList = [];
     var humanList = [];
     var pnnlArr  = [];
-    var tripsInterfaceModule;
-    var tripsCausalityInterfaceModule;
+    var tripsGeneralInterfaceInstance;
+    var tripsCausalityInterfaceInstance;
 
 
 
@@ -36,7 +36,6 @@ module.exports.start = function(io, model, cancerDataOrganizer){
         if(roomMate!= null) {
             var clientSocket = io.sockets.connected[roomMate.socketId];
 
-            console.log("Ask human socket " + roomMate.socketId);
             clientSocket.emit(requestStr, data, function(val){
 
                 console.log(requestStr);
@@ -273,8 +272,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
         socket.on('agentMergeGraphRequest', function(data, callback){
 
-            console.log("socket merge graph");
-            console.log(data);
+
             var requestStr;
             if(data.type == "sbgn")
                 requestStr = "mergeSbgn";
@@ -634,39 +632,39 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
         socket.on('agentConnectToTripsRequest', function(param, callback){
 
-
-            console.log("agent connecttoTrips socket " + socket.id );
-
             if(param.isInterfaceAgent){
-                console.log("trips general module connection");
-                if(tripsInterfaceModule) {
-                    tripsInterfaceModule.tm.disconnect();
+                console.log("trips general module connection " + socket.id + " room: " + socket.room);
+                if(!tripsGeneralInterfaceInstance || !tripsGeneralInterfaceInstance.isConnectedToTrips()) {
+                    var tripsGeneralInterfaceModule = require('./tripsGeneralInterfaceModule.js');
+                    tripsGeneralInterfaceInstance = new tripsGeneralInterfaceModule(param.userId, param.userName, socket, model, askHuman);
 
                 }
-                tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(param.userId, param.userName, socket, model, askHuman);
-                setTimeout(function(){
-                    if(callback)
-                     callback(tripsInterfaceModule.tm.isConnected);
-                }, 2000);
+                else {//already there is an instance
+                    console.log("updating web socket")
+                    tripsGeneralInterfaceInstance.updateWebSocket(socket);
+          //          tripsGeneralInterfaceInstance.updateHandlers();
+
+                }
+
             }
             else {
-                console.log("trips causality module connection");
-                if(tripsCausalityInterfaceModule) {
-                    tripsCausalityInterfaceModule.tm.disconnect();
+                console.log("trips causality module connection " + socket.id + " room: " + socket.room);
+
+                if(!tripsCausalityInterfaceInstance || !tripsCausalityInterfaceInstance.isConnectedToTrips()) {
+
+                    var tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js');
+                    tripsCausalityInterfaceInstance = new tripsCausalityInterfaceModule(param.userId, param.userName, socket, model);
+
+                    setTimeout(function(){
+                    console.log(tripsCausalityInterfaceInstance.tm.socket);
+                    },1000);
 
                 }
-
-
-                tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js')(param.userId, param.userName, socket, model);
-
-                // setTimeout(function() {
-                //     if (callback) {
-                //         if (tripsCausalityInterfaceModule)
-                //             callback(tripsCausalityInterfaceModule.tm.isConnected);
-                //         else
-                //             callback(false);
-                //     }
-                // }, 2000);
+                else {
+                    console.log(tripsCausalityInterfaceInstance.tm.socket);
+                    tripsCausalityInterfaceInstance.updateWebSocket(socket);
+                    //tripsCausalityInterfaceInstance.updateHandlers();
+                }
 
             }
 
@@ -918,7 +916,6 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
         socket.on('disconnect', function() {
 
-            console.log("disconnected socket " + socket.id);
             try {
 
 
