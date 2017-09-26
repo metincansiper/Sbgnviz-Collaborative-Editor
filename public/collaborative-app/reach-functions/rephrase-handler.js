@@ -1,4 +1,5 @@
 /**
+<<<<<<< HEAD
  The module hereafter is a toolkit to do everything possible with what is called a "rephrase",
  i.e. an array of cytoscape objects (nodes and edges) that were extracted from a sbgn graph
  and then put in an order that reflects the one by which they were visited during the traversing of the graph.
@@ -6,6 +7,16 @@
  to handle when it comes to play with gaphs, especially with sbgn graphs where not all nodes are considered the same way:
  for example when merging two sbgn graphs, one merges the molecules before the process nodes.
  The functions implemented allows one to create a rephrase from a json object, merge the nodes and the edges, convert the rephrase back to a json object, etc... and more to come !
+=======
+  The module hereafter is a toolkit to do everything possible with what is called a "rephrase",
+  i.e. an array of cytoscape objects (nodes and edges) that were extracted from a sbgn graph
+  and then put in an order that reflects the one by which they were visited during the traversing of the graph.
+  A rephrase also represents the graph in one dimension and is a convenient data structure
+  to handle when it comes to play with gaphs, especially with sbgn graphs where not all nodes are considered the same way:
+  for example when merging two sbgn graphs, one merges the molecules before the process nodes.
+
+  The functions implemented allows one to create a rephrase from a json object, merge the nodes and the edges, convert the rephrase back to a json object, etc... and more to come !
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
  **/
 
 //Author: David Servillo.

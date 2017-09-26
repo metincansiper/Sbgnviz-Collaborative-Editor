@@ -217,6 +217,7 @@ module.exports = function () {
       $("#file-input").trigger('click');
     });
 
+<<<<<<< HEAD
     $("#file-input").change(function () {
       if ($(this).val() != "") {
         var file = this.files[0];
@@ -235,6 +236,9 @@ module.exports = function () {
         $(this).val("");
       }
     });
+=======
+            //promptConfirmationView.render(createNewFile);
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
     // get and set map properties from file
     $( document ).on( "sbgnvizLoadFileEnd sbgnvizLoadSampleEnd", function(){

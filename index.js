@@ -30,6 +30,7 @@ var factoidHandler;
 var notyView;
 
 var socket;
+<<<<<<< HEAD
 
 var agentSocket;
 
@@ -39,6 +40,12 @@ var oneColor = require('onecolor');
 var editorListener;
 
 
+=======
+var jsonMerger = require("./public/collaborative-app/reach-functions/json-merger.js");
+
+var modelManager;
+var oneColor = require('onecolor');
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 app.on('model', function (model) {
 
     model.fn('biggerTime', function (item) {
@@ -51,15 +58,6 @@ app.on('model', function (model) {
 
         return item.date > startTime;
     });
-
-    model.fn('biggerThanCurrentTime', function (item) {
-
-        var clickTime = model.get('_page.clickTime');
-
-
-        return item.date > clickTime;
-    });
-
 
 
 });
@@ -188,7 +186,10 @@ app.get('/:docId', function (page, model, arg, next) {
                     users.set(userId, {name: userName, colorCode: colorCode});
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
                     return page.render();
                 });
             });
@@ -200,14 +201,6 @@ app.get('/:docId', function (page, model, arg, next) {
 
 
 });
-
-app.proto.updateMessage = function(){
-
-    var e = document.getElementById("test-messages");
-    var msg = e.options[e.selectedIndex].text;
-
-    this.model.set('_page.newComment', msg);
-}
 
 
 
@@ -252,7 +245,350 @@ app.proto.changeDuration = function () {
 
 };
 
+<<<<<<< HEAD
 
+=======
+/***
+ * Human listens to agent socket and performs menu operations requested by the agent
+ */
+app.proto.listenToAgentSocket = function(model){
+
+    var self = this;
+    var modelOp;
+
+
+    //For debugging
+    socket.on('message', function (msg){
+
+        console.log(msg.comment);
+    });
+    socket.on('loadFile', function(txtFile, callback){
+        try {
+
+            sbgnviz.loadSBGNMLText(txtFile);
+            if(callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+
+    });
+
+    socket.on('newFile', function(data, callback){
+        try{
+            cy.remove(cy.elements());
+            modelManager.newModel("me"); //do not delete cytoscape, only the model
+            if(callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+    socket.on('runLayout', function(data, callback){
+        try {
+            $("#perform-layout").trigger('click');
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    socket.on('addNode', function(data, callback){
+        try {
+            //does not trigger cy events
+            var newNode = chise.elementUtilities.addNode(data.x, data.y, data.class);
+
+            //notifies other clients
+            modelManager.addModelNode(newNode.id(), data, "me");
+            modelManager.initModelNode(newNode, "me");
+
+            if (callback) callback(newNode.id());
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+
+    socket.on('deleteEles', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+
+            data.elementIds.forEach(function (id) {
+                cy.getElementById(id).select();
+            });
+
+
+            if (data.type === "simple")
+                $("#delete-selected-simple").trigger('click');
+            else { //"smart"
+                $("#delete-selected-smart").trigger('click');
+            }
+
+
+            var p1 = new Promise(function (resolve) {
+                if(modelOp === "delete"){
+                    var undoInd =  model.get('_page.doc.undoIndex');
+
+                    var cmd = model.get('_page.doc.history.' + undoInd);
+                    console.log(cmd.opName);
+                    resolve("success");
+                }
+            });
+            p1.then(function(){
+
+                if(callback) callback("deleted!!");
+            });
+
+
+
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    model.on('change', '_page.doc.undoIndex', function(id, cmdInd){
+
+        var cmd = model.get('_page.doc.history.' + id);
+            modelOp = cmd.opName;
+            //console.log(modelOp);
+
+
+    });
+
+
+    socket.on('addEdge', function(data, callback){
+        try {
+            //does not trigger cy events
+            var newEdge = chise.elementUtilities.addEdge(source, target, sbgnclass, id, visibility);
+
+            //notifies other clients
+            modelManager.addModelEdge(newNode.id(), data, "me");
+            // modelManager.initModelEdge(newEdge, "me");
+
+            if (callback) callback(newEdge.id());
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    socket.on('align', function(data, callback){
+        try {
+            var nodes = cy.collection();
+            if(data.nodeIds === '*' || data.nodeIds === 'all')
+                nodes = cy.nodes();
+            else
+                data.nodeIds.forEach(function(nodeId){
+                    nodes.add(cy.getElementById(nodeId));
+                });
+
+            chise.align(nodes, data.horizontal, data.vertical, cy.getElementById(data.alignTo));
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+
+    });
+    socket.on('updateVisibility', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            if (data.val === "showAll")
+                $("#show-all").trigger('click');
+            else {
+                data.elementIds.forEach(function (id) {
+                    cy.getElementById(id).select();
+                });
+
+                if (data.val == "hide")
+                    $("#hide-selected").trigger('click');
+                else
+                    $("#show-selected").trigger('click');
+            }
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+    socket.on('searchByLabel', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            chise.searchByLabel(data.label);
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+    socket.on('updateHighlight', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            if(data.val === "remove"){
+                $("#remove-highlights").trigger('click');
+            }
+            else{
+                data.elementIds.forEach(function (id) {
+                    cy.getElementById(id).select();
+                });
+
+                if (data.val === "neighbors")
+                    $("#highlight-neighbors-of-selected").trigger('click');
+                else if (data.val === "processes")
+                    $("#highlight-processes-of-selected").trigger('click');
+            }
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+    socket.on('updateExpandCollapse', function(data, callback){
+        try {
+
+            //unselect all others
+            cy.elements().unselect();
+
+            data.elementIds.forEach(function (id) {
+                cy.getElementById(id).select();
+            });
+
+            if (data.val === "collapse")
+                $("#collapse-selected").trigger('click');
+            else
+                $("#expand-selected").trigger('click');
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+    socket.on('addCompound', function(data, callback){
+        try {
+            //unselect all others
+            cy.elements().unselect();
+
+            data.elementIds.forEach(function (nodeId) {
+
+                cy.getElementById(nodeId).select();
+            });
+
+            if (data.val === "complex")
+                $("#add-complex-for-selected").trigger('click');
+            else
+                $("#add-compartment-for-selected").trigger('click');
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+
+    });
+
+    socket.on('clone', function(data, callback){
+        try {
+            cy.elements().unselect();
+
+            data.elementIds.forEach(function (nodeId) {
+                cy.getElementById(nodeId).select();
+            });
+
+            $("#clone-selected").trigger('click');
+
+
+            if (callback) callback("success");
+        }
+        catch(e){
+            console.log(e);
+            if(callback) callback("fail");
+
+        }
+    });
+
+
+
+    socket.on("mergeSbgn", function(data, callback){
+        self.mergeSbgn(data, function(){
+            if(callback) callback("success");
+        });
+
+
+    });
+
+    socket.on("mergeJsonWithCurrent", function(data, callback){
+        self.mergeJsonWithCurrent(data, function() {
+            if(callback) callback("success");
+        });
+    });
+
+
+
+    // socket.on('agentContextQuestion', function(socketId){
+    //     setTimeout(function() {
+    //         var answer = confirm("Do you agree with the context?");
+    //         socket.emit('contextAnswer', {socketId: socketId, value:answer});
+    //         //if (callback) callback(answer);
+    //     }, 1000); //wait for the human to read
+    //
+    // });
+
+
+
+}
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
 /***
  * Called only once in a browser after first page rendering
@@ -270,16 +606,6 @@ app.proto.create = function (model) {
 
     socket = io();
     notyView = noty({layout: "bottom",theme:"bootstrapTheme", text: "Please wait while model is loading."});
-
-    $('#messages').contentchanged = function () {
-
-        $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
-    }
-
-
-    //change scroll position
-    $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
 
 
     var id = model.get('_session.userId');
@@ -402,11 +728,6 @@ app.proto.create = function (model) {
             if (!_this.atBottom) {
                 return;
             }
-
-            document.getElementById("messages").scrollTop= document.getElementById("messages").scrollHeight;
-
-            // $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
-
             return _this.container.scrollTop = _this.list.offsetHeight;
         };
     })(this));
@@ -477,9 +798,12 @@ app.proto.listenToNodeOperations = function(model){
 
         if(docReady &&  passed.user == null) {
             factoidHandler.setFactoidModel(val);
+<<<<<<< HEAD
             //reset to the center
             cy.panzoom().reset();
 
+=======
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
         }
 
 
@@ -513,7 +837,6 @@ app.proto.listenToNodeOperations = function(model){
             if(!node || !node.id){ //node is deleted
                 cy.getElementById(id).remove();
             }
-
         }
 
     });
@@ -558,10 +881,6 @@ app.proto.listenToNodeOperations = function(model){
     });
     model.on('all', '_page.doc.cy.nodes.*.highlightColor', function(id, op, val,prev, passed){
 
-        //call it here so that everyone can highlight their own textbox
-
-        factoidHandler.highlightSentenceInText(id, val);
-
         if(docReady && passed.user == null) {
             if(val == null){
                 cy.getElementById(id).css({
@@ -577,9 +896,6 @@ app.proto.listenToNodeOperations = function(model){
                     "overlay-padding": 10,
                     "overlay-opacity": 0.25
                 });
-
-
-
 
             console.log("changed highlightcolor");
         }
@@ -852,7 +1168,6 @@ app.proto.listenToEdgeOperations = function(model){
 
 }
 
-
 app.proto.init = function (model) {
     var timeSort;
 
@@ -864,6 +1179,7 @@ app.proto.init = function (model) {
 
     //Listen to other model operations
 
+<<<<<<< HEAD
     //
     // model.on('all', '_page.doc.messages.**', function(id, op, val, prev, passed){
     //
@@ -876,6 +1192,8 @@ app.proto.init = function (model) {
 
 
 
+=======
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
     model.on('all', '_page.doc.factoid.*', function(id, op, val, prev, passed){
 
         if(docReady &&  passed.user == null) {
@@ -969,7 +1287,6 @@ app.proto.init = function (model) {
         if(docReady){
             triggerContentChange('messages');
 
-
         }
 
         if (com[com.length - 1].userId != myId) {
@@ -991,9 +1308,7 @@ app.proto.init = function (model) {
 };
 
 
-app.proto.onScroll = function (element) {
-    console.log(element);
-    console.log(this);
+app.proto.onScroll = function () {
     var bottom, containerHeight, scrollBottom;
     bottom = this.list.offsetHeight;
     containerHeight = this.container.offsetHeight;
@@ -1004,15 +1319,19 @@ app.proto.onScroll = function (element) {
 };
 
 
-
 app.proto.changeColorCode = function(){
 
     var  user = this.model.at('_page.doc.users.' + this.model.get('_session.userId'));
     user.set('colorCode', getNewColor());
 
 };
+<<<<<<< HEAD
 app.proto.runUnitTests = function(){
     var userId = this.model.get('_session.userId');
+=======
+
+app.proto.runUnitTests = function() {
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
     var room = this.model.get('_page.room');
 
@@ -1020,11 +1339,19 @@ app.proto.runUnitTests = function(){
    // console.log(editorListener);
     //editorListener.debugMode = false;
     //require("./public/test/testsAgentAPI.js")(("http://localhost:3000/" + room), modelManager);
+<<<<<<< HEAD
     // require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
+=======
+    //require("./public/test/testsCausalityAgent.js")(("http://localhost:3000/" + room), modelManager);
+<<<<<<< HEAD
+>>>>>>> a77ef3513208566f45f285fb43c813a2a05c4a92
     //  require("./public/test/testsModelManager.js")(modelManager, userId);
 
 
      require("./public/test/testsUserOperations.js")(modelManager);
+=======
+    //require("./public/test/testsModelManager.js")();
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
     require("./public/test/testOptions.js")(); //to print out results
 
 }
@@ -1032,7 +1359,11 @@ app.proto.runUnitTests = function(){
 
 
 
+<<<<<<< HEAD
 app.proto.connectTripsAgent = function(){
+=======
+};
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
 //    We can't run causality agent directly in node because it uses browser's database functionality
 
@@ -1070,14 +1401,14 @@ app.proto.enterMessage= function(event){
 
         // prevent default behavior
         event.preventDefault();
-
     }
 }
-app.proto.add = function (event, model, filePath) {
+
+app.proto.add = function (model, filePath) {
 
     if(model == null)
-        model = this.model;
 
+        model = this.model;
     this.atBottom = true;
 
 
@@ -1104,6 +1435,7 @@ app.proto.add = function (event, model, filePath) {
 
     socket.emit('getDate', function(date){ //get the date from the server
 
+<<<<<<< HEAD
        comment.style = "font-size:large";
         model.add('_page.doc.messages', {
             room: model.get('_page.room'),
@@ -1121,6 +1453,18 @@ app.proto.add = function (event, model, filePath) {
         //change scroll position
        $('#messages').scrollTop($('#messages')[0].scrollHeight  - $('.message').height());
 
+=======
+            model.add('_page.doc.messages', {
+                room: model.get('_page.room'),
+                targets: targets,
+                userId: msgUserId,
+                userName: msgUserName,
+                comment: comment,
+                date: date
+            });
+
+
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
 
     });
@@ -1129,14 +1473,53 @@ app.proto.add = function (event, model, filePath) {
 
 };
 
-app.proto.clearHistory = function () {
-    this.model.set('_page.clickTime', new Date);
-
-    return this.model.filter('_page.doc.messages', 'biggerThanCurrentTime').ref('_page.list');
-
-}
 
 
+<<<<<<< HEAD
+=======
+    if (windowWidth > canvasWidth)
+    {
+        $("#canvas-tab-area").width(windowWidth * 0.99 * 0.7);
+        $("#sbgn-network-container").width(windowWidth * 0.99 * 0.7);
+
+
+        if(images) {
+            images.forEach(function (img) {
+                $("#static-image-container-" + img.tabIndex).width(windowWidth * 0.99 * 0.7);
+            });
+        }
+        $("#inspector-tab-area").width(windowWidth * 0.99 * 0.3);
+
+        $("#sbgn-inspector").width(windowWidth * 0.99 * 0.3);
+        // var w = $("#sbgn-inspector-and-canvas").width(); //funda
+        var w = $("#canvas-tab-area").width();
+        $(".nav-menu").width(w);
+        $(".navbar").width(w);
+        $("#sbgn-toolbar").width(w);
+    }
+    else{
+        if(images) {
+            images.forEach(function (img) {
+                $("#static-image-container-" + img.tabIndex).width(800);
+                $("#static-image-container-" + img.tabIndex).height(680);
+            });
+        }
+    }
+
+    if (windowHeight > canvasHeight)
+    {
+        $("#canvas-tab-area").height(windowHeight * 0.84);
+        $("#sbgn-network-container").height(windowHeight * 0.84);
+        if(images) {
+            images.forEach(function (img) {
+
+                $("#static-image-container-" + img.tabIndex).height(windowHeight * 0.84);
+            });
+        }
+        $("#inspector-tab-area").height(windowHeight * 0.84);
+    }
+};
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
 app.proto.uploadFile = function(evt){
 
@@ -1160,9 +1543,9 @@ app.proto.uploadFile = function(evt){
         reader.readAsDataURL(file);
 
         //Add file name as a text message
-        this.model.set('_page.newComment',  ("Sent image: "  + filePath) );
+        this.model.set('_page.newComment', {text: "Sent image: "  + filePath} );
 
-        this.app.proto.add(evt,this.model, filePath);
+        this.app.proto.add(this.model, filePath);
 
 
     }
@@ -1209,11 +1592,16 @@ app.proto.formatObj = function(obj){
     return JSON.stringify(obj, null, '\t');
 };
 
+<<<<<<< HEAD
 
+=======
+app.proto.mergeSbgn = function(sbgnText, callback){
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
 app.proto.dynamicResize = function (images) {
     var win = $(window);
 
+<<<<<<< HEAD
     var windowWidth = win.width();
     var windowHeight = win.height();
 
@@ -1231,9 +1619,26 @@ app.proto.dynamicResize = function (images) {
                 minWidth: 860
             }
         );
+=======
+//Merge an array of json objects to output a single json object.
+app.proto.mergeJsons = function(jsonGraph) {
+  var idxCardNodeMap = {};
+  var sentenceNodeMap = {};
+
+  var jsonObj = jsonMerger.mergeJsons(jsonGraph, sentenceNodeMap, idxCardNodeMap);
+
+  modelManager.newModel( "me", true);
+
+  chise.updateGraph(jsonObj);
+
+  setTimeout(function(){
+    modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+  },1000); //wait for chise to complete updating graph
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
         var wCanvasTab = $("#canvas-tab-area").width();
 
+<<<<<<< HEAD
 
         $(".nav-menu").width(wCanvasTab);
         $(".navbar").width(wCanvasTab);
@@ -1295,4 +1700,53 @@ app.proto.dynamicResize = function (images) {
         $("#factoid-area").height(hInspectorTab * 0.9);
         $("#factoidBox").height(hInspectorTab * 0.6);
     }
+=======
+  $("#perform-layout").trigger('click');
+
+  //Call merge notification after the layout
+  setTimeout(function(){
+    modelManager.mergeJsons("me", true);
+  }, 1000);
+
+  return {sentences: sentenceNodeMap, idxCards: idxCardNodeMap};
+};
+
+//Merge an array of json objects with the json of the current sbgn network
+//on display to output a single json object.
+app.proto.mergeJsonWithCurrent = function(jsonGraph, callback) {
+  var currJson = sbgnviz.createJson();
+  modelManager.setRollbackPoint(); //before merging
+  var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
+
+  //get another sbgncontainer and display the new SBGN model.
+  modelManager.newModel( "me", true);
+  //this takes a while so wait before initiating the model
+  chise.updateGraph(jsonObj);
+  //DEBUG
+  // cy.nodes().forEach(function (node){
+  //     if(node._private.data == null){
+  //         console.log("Data not assigned");
+  //         console.log(node);
+  //     }
+  // });
+
+  setTimeout(function() {
+    modelManager.initModel(cy.nodes(), cy.edges(), appUtilities, "me");
+
+    //select the new graph
+    jsonGraph.nodes.forEach(function(node){
+      cy.getElementById(node.data.id).select();
+    });
+
+    //Call Layout
+    $("#perform-layout").trigger('click');
+
+    //Call merge notification after the layout
+    setTimeout(function(){
+      modelManager.mergeJsons("me", true);
+      if(callback) callback("success");
+    }, 1000);
+
+  }, 2000); //wait for chise to complete updating graph
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 };

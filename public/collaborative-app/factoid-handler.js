@@ -90,8 +90,18 @@ module.exports =  function(agentSocket, modelManager) {
 
                      notyView.setText( "Merging graphs...");
 
+<<<<<<< HEAD
 
                     nodeMap = agentSocket.mergeJsons(jsonGraphs, function(){
+=======
+                        //TODO: merge will be implemented
+                        //nodeMap = modelManager.mergeJsons(jsonGraphs); //mapping between sentences and node labels
+                    nodeMap = app.mergeJsons(jsonGraphs); //mapping between sentences and node labels
+
+
+                     console.log(jsonGraphs);
+
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
                         //save it to the model
                         modelManager.updateFactoidModel({jsonGraphs: jsonGraphs, nodeMap: nodeMap, text: text}, "me");
@@ -121,15 +131,14 @@ module.exports =  function(agentSocket, modelManager) {
 
 
 
-            console.log(nodeId);
+            //console.log(nodeId);
 
 
             if(highlightColor == null){
                 el.highlightTextarea('destroy');
                 return;
             }
-
-
+ 
 
             var sentences = nodeMap.sentences[nodeId];
 

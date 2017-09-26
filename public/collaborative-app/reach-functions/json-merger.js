@@ -1,4 +1,5 @@
 /**
+<<<<<<< HEAD
  The module merge multiple json objects into a single one. The strategy that have been adopted here is to merge
  the different elements of a graph sequentially, according to their level of priority: when merging,
  the molecules/complexes/etc... must be merged first, the process nodes must be merged second and the edges must be merged at last.
@@ -7,12 +8,26 @@
  the other node is a process node (process, association, source and sink, ...) or a logic node (and, or, not). So weird results can happen
  while merging graphs with logic nodes directly linked to process nodes for example.
  **/
+=======
+  The module merge multiple json objects into a single one. The strategy that have been adopted here is to merge
+  the different elements of a graph sequentially, according to their level of priority: when merging,
+  the molecules/complexes/etc... must be merged first, the process nodes must be merged second and the edges must be merged at last.
+  Only such a procedure guarantees a proper merge. It relies on the assumption that the SBGN graph can be split
+  into triplets of node-edge-node where one of the nodes is a biological item (protein, DNA, compartment, multimers, ...) and
+  the other node is a process node (process, association, source and sink, ...) or a logic node (and, or, not). So weird results can happen
+  while merging graphs with logic nodes directly linked to process nodes for example.
+**/
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 
 //Author: David Servillo.
 
 //Last change made the: 06/30/2017.
 
+<<<<<<< HEAD
 var _ = require('underscore');
+=======
+var _ = require('../../node_modules/underscore');
+>>>>>>> 20b20dcc7b32ce93c24a580799555adb1367cd98
 var rephraseToolBox = require('./rephrase-handler.js');
 
 module.exports = {
