@@ -68,6 +68,7 @@ module.exports = (function() {
         //FUNDA: socket connection needs to be closed
         disconnect: function(){
 
+             console.log("TripsModule socket connection closed");
             socket.destroy();
         },
 
@@ -90,11 +91,12 @@ module.exports = (function() {
 
                             that.isConnected = true;
 
+                            console.log("tripsModule: Connected to TRIPS.");
 
                         });
 
                         socket.on('error', function(){  //FUNDA: this detects disconnection
-                            console.log("TRIPS is not connected.");
+                            console.log("tripsModule: TRIPS is not connected.");
                             that.isConnected = false;
 
 
@@ -114,6 +116,7 @@ module.exports = (function() {
                         onconnect();
                     }
                     that.isConnected = true;
+                    console.log("tripsModule: Connected to TRIPS.");
                 }
 
 

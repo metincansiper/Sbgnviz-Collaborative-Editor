@@ -31,6 +31,8 @@ var self = this;
         console.log(result);
         if(!result)
             self.disconnect();
+
+
     }); //interfaceAgent
     this.listenToMessages();
 }
@@ -39,6 +41,8 @@ var self = this;
 TripsGeneralInterfaceAgent.prototype.relayMessage = function(text){
     var msg = "";
 
+
+    console.log(this.socket.id + " " + this.room);
 
     this.sendRequest('relayMessageToTripsRequest', {text: '"' + text +'"', uttNum: this.tripsUttNum});
 
