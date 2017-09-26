@@ -7,7 +7,6 @@
 *.iml
 out
 gen
-<<<<<<< HEAD
 .DS_Store
 .gitignore
 node_modules/
@@ -925,10 +924,8 @@ public/lib/js/cytoscape.js
 public/lib/js/jquery.highlighttextarea.js
 public/src/sbgn-extensions/
 public/src/utilities/
-=======
 /public/node_modules/
 /node_modules/
->>>>>>> master
 /.idea/
 /agent-interaction/CausalPath/
 /agent-interaction/CausalPath/PNNL-ovarian-correlations.txt
@@ -940,3 +937,7 @@ agent-interaction/BOB/
 !/public/lib/js/
 !/public/lib/js/jquery.highlighttextarea.js
 /public/app/main.js
+cypress/screenshots
+cypress/videos
+cypress/fixtures/profile.json
+cypress/fixtures/users.json
