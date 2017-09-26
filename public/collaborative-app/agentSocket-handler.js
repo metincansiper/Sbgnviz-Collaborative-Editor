@@ -371,7 +371,8 @@ module.exports =  function(app, modelManager, socket) {
         },
 
         //Merge an array of json objects to output a single json object.
-        mergeJsons: function (jsonGraph, callback) {
+        //mergeJsons: function (jsonGraph, callback) {
+        mergeJsonWithCurrent: function (jsonGraph, callback) {
             var idxCardNodeMap = {};
             var sentenceNodeMap = {};
 
@@ -400,11 +401,11 @@ module.exports =  function(app, modelManager, socket) {
 
         //Merge an array of json objects with the json of the current sbgn network
         //on display to output a single json object.
-        mergeJsonWithCurrent: function (jsonGraph, callback) {
+        //mergeJsonWithCurrent: function (jsonGraph, callback) {
+        mergeJsons: function (jsonGraph, callback) {
             var currJson = sbgnviz.createJson();
             modelManager.setRollbackPoint(); //before merging
-            var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph, currJson);
-
+            var jsonObj = jsonMerger.mergeJsonWithCurrent(jsonGraph[0].json, currJson);
             //get another sbgncontainer and display the new SBGN model.
             modelManager.newModel("me", true);
             //this takes a while so wait before initiating the model

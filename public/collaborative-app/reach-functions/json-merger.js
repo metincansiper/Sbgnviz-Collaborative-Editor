@@ -52,6 +52,8 @@ module.exports = {
             target = old2newIds[js.edges[i].data.target];
             js.edges[i].data.source = source;
             js.edges[i].data.target = target;
+            js.edges[i].data.portsource = source;
+            js.edges[i].data.porttarget = target;
             js.edges[i].data.id = source + "-" + target;
         }
     },

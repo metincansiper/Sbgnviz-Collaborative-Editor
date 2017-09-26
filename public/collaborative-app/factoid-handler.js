@@ -91,7 +91,6 @@ module.exports =  function(agentSocket, modelManager) {
                      notyView.setText( "Merging graphs...");
 
 
-
                     nodeMap = agentSocket.mergeJsons(jsonGraphs, function(){
 
                         //save it to the model
