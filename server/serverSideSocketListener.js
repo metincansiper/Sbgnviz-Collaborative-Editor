@@ -633,16 +633,16 @@ module.exports.start = function(io, model, cancerDataOrganizer){
         socket.on('agentConnectToTripsRequest', function(param, callback){
 
             if(param.isInterfaceAgent){
-                console.log("trips general module connection " + socket.id + " room: " + socket.room);
                 if(!tripsGeneralInterfaceInstance || !tripsGeneralInterfaceInstance.isConnectedToTrips()) {
-                    var tripsGeneralInterfaceModule = require('./tripsGeneralInterfaceModule.js');
-                    tripsGeneralInterfaceInstance = new tripsGeneralInterfaceModule(param.userId, param.userName, socket, model, askHuman);
+                    var TripsGeneralInterfaceModule = require('./TripsGeneralInterfaceModule.js');
+                    tripsGeneralInterfaceInstance = new TripsGeneralInterfaceModule(param.userId, param.userName, socket, model, askHuman);
+
+
 
                 }
                 else {//already there is an instance
-                    console.log("updating web socket")
                     tripsGeneralInterfaceInstance.updateWebSocket(socket);
-          //          tripsGeneralInterfaceInstance.updateHandlers();
+                    tripsGeneralInterfaceInstance.updateListeners(socket);
 
                 }
 
@@ -652,18 +652,14 @@ module.exports.start = function(io, model, cancerDataOrganizer){
 
                 if(!tripsCausalityInterfaceInstance || !tripsCausalityInterfaceInstance.isConnectedToTrips()) {
 
-                    var tripsCausalityInterfaceModule = require('./tripsCausalityInterfaceModule.js');
-                    tripsCausalityInterfaceInstance = new tripsCausalityInterfaceModule(param.userId, param.userName, socket, model);
-
-                    setTimeout(function(){
-                    console.log(tripsCausalityInterfaceInstance.tm.socket);
-                    },1000);
+                    var TripsCausalityInterfaceModule = require('./TripsCausalityInterfaceModule.js');
+                    tripsCausalityInterfaceInstance = new TripsCausalityInterfaceModule(param.userId, param.userName, socket, model);
 
                 }
                 else {
-                    console.log(tripsCausalityInterfaceInstance.tm.socket);
+
                     tripsCausalityInterfaceInstance.updateWebSocket(socket);
-                    //tripsCausalityInterfaceInstance.updateHandlers();
+
                 }
 
             }
@@ -814,7 +810,7 @@ module.exports.start = function(io, model, cancerDataOrganizer){
             //
             // try {
             //
-            //     var tripsInterfaceModule = require('./tripsGeneralInterfaceModule.js')(socket, model, askHuman);
+            //     var tripsInterfaceModule = require('./TripsGeneralInterfaceModule.js')(socket, model, askHuman);
             //     setTimeout(function(){
             //         modelManagerList[data.room].setName(tripsInterfaceModule.userId, tripsInterfaceModule.userName);
             //         modelManagerList[data.room].addUser(tripsInterfaceModule.userId);
