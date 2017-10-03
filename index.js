@@ -285,7 +285,8 @@ app.proto.create = function (model) {
     var id = model.get('_session.userId');
     var name = model.get('_page.doc.users.' + id +'.name');
 
-    modelManager = require('./public/collaborative-app/modelManager.js')(model, model.get('_page.room'), sbgnviz );
+    // Make modelManager instance accessible through window object as testModelManager to use it in Cypress tests
+    modelManager = window.testModelManager = require('./public/collaborative-app/modelManager.js')(model, model.get('_page.room'), sbgnviz );
     modelManager.setName( model.get('_session.userId'),name);
 
 
